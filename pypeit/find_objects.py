@@ -818,6 +818,7 @@ class MultiSlitFindObjects(FindObjects):
                                 fwhm=self.par['reduce']['findobj']['find_fwhm'],
                                 use_user_fwhm=self.par['reduce']['extraction']['use_user_fwhm'],
                                 boxcar_rad=self.par['reduce']['extraction']['boxcar_radius'] / self.get_platescale(),  #pixels
+                                maxshift=self.par['reduce']['findobj']['find_maxshift'],
                                 maxdev=self.par['reduce']['findobj']['find_maxdev'],
                                 numiterfit=self.par['reduce']['findobj']['find_numiterfit'],
                                 find_min_max=self.par['reduce']['findobj']['find_min_max'],

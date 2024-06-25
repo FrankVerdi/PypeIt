@@ -838,7 +838,7 @@ def masked_centroid(flux, cen, width, ivar=None, bpm=None, fwgt=None, row=None,
 def fit_trace(flux, trace_cen, order, ivar=None, bpm=None, trace_bpm=None, weighting='uniform',
               fwhm=3.0, maxshift=None, maxerror=None, function='legendre', maxdev=2.0, maxiter=25,
               niter=9, bitmask=None, debug=False, idx=None, xmin=None, xmax=None,
-              flavor='trace'):
+              flavor='trace', print_bpm_info=False):
     """
     Iteratively fit the trace of a feature in the provided image.
 
@@ -1072,7 +1072,7 @@ def fit_trace(flux, trace_cen, order, ivar=None, bpm=None, trace_bpm=None, weigh
         trace_fit = traceset.yfit.T
 
     # Plot the final fit if requested
-    if debug:
+    if debug or print_bpm_info:
         # Set the title based on the type of weighting used
         title_text = 'Flux Weighted' if weighting == 'uniform' else 'Gaussian Weighted'
         if idx is None:
@@ -1088,6 +1088,15 @@ def fit_trace(flux, trace_cen, order, ivar=None, bpm=None, trace_bpm=None, weigh
         gpm_bdcen_rej = inpgpm & np.invert(cengpm) & np.invert(fitgpm)
         gpm_gdcen_fit = inpgpm & cengpm & fitgpm
         gpm_gdcen_rej = inpgpm & cengpm & np.invert(fitgpm)
+
+        if print_bpm_info:
+            print(f" *** N traces: {ntrace}")
+            print(f" *** bpm_fit: {np.sum(bpm_fit)}")
+            print(f" *** bpm_ref: {np.sum(bpm_rej)}")
+            print(f" *** gpm_bdcen_fit: {np.sum(gpm_bdcen_fit)}")
+            print(f" *** gpm_bdcen_rej: {np.sum(gpm_bdcen_rej)}")
+            print(f" *** gpm_gdcen_fit: {np.sum(gpm_gdcen_fit)}")
+            print(f" *** gpm_gdcen_rej: {np.sum(gpm_gdcen_rej)}")
 
         for i in range(ntrace):
             # Plot data masked on input and included in fit using input

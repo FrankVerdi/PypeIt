@@ -4297,7 +4297,7 @@ class FindObjPar(ParSet):
     see :ref:`parameters`.
     """
 
-    def __init__(self, trace_npoly=None, snr_thresh=None, find_trim_edge=None,
+    def __init__(self, trace_npoly=None, snr_thresh=None, find_trim_edge=None, find_maxshift=None,
                  find_maxdev=None, find_extrap_npoly=None, maxnumber_sci=None, maxnumber_std=None,
                  find_fwhm=None, ech_find_max_snr=None, ech_find_min_snr=None, find_numiterfit=None,
                  ech_find_nabove_min_snr=None, skip_second_find=None, skip_final_global=None,
@@ -4354,6 +4354,10 @@ class FindObjPar(ParSet):
         defaults['find_extrap_npoly'] = 3
         dtypes['find_extrap_npoly'] = int
         descr['find_extrap_npoly'] = 'Polynomial order used for trace extrapolation'
+
+        defaults['find_maxshift'] = 1.0
+        dtypes['find_maxshift'] = [int, float]
+        descr['find_maxshift'] = 'Maximum shift allowed between the input and recalculated centroid in trace fitting'
 
         defaults['find_maxdev'] = 2.0
         dtypes['find_maxdev'] = [int, float]
@@ -4460,7 +4464,7 @@ class FindObjPar(ParSet):
 
         # Basic keywords
         parkeys = ['trace_npoly', 'snr_thresh', 'find_trim_edge',
-                   'find_extrap_npoly', 'maxnumber_sci', 'maxnumber_std',
+                   'find_extrap_npoly', 'maxnumber_sci', 'maxnumber_std', 'find_maxshift',
                    'find_maxdev', 'find_numiterfit', 'find_fwhm', 'ech_find_max_snr',
                    'ech_find_min_snr', 'ech_find_nabove_min_snr', 'skip_second_find',
                    'skip_final_global', 'skip_skysub', 'find_negative', 'find_min_max',

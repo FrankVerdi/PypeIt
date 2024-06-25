@@ -1419,6 +1419,7 @@ class MultiSlitCoAdd2D(CoAdd2D):
                     sci_list_rebin[0][iexp,:,:], utils.inverse(var_list_rebin[0][iexp,:,:]), thismask, slit_left, slit_righ,
                     inmask=inmask[iexp,:,:], fwhm=self.par['reduce']['findobj']['find_fwhm'],
                     trim_edg=self.par['reduce']['findobj']['find_trim_edge'],
+                    maxshift=self.par['reduce']['findobj']['find_maxshift'],
                     maxdev=self.par['reduce']['findobj']['find_maxdev'],
                     numiterfit=self.par['reduce']['findobj']['find_numiterfit'],
                     ncoeff=3, snr_thresh=self.par['reduce']['findobj']['snr_thresh'], 

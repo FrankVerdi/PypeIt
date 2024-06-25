@@ -18,10 +18,10 @@ and fabricated to match the spectrograph with LDT's f/6.1 beam.
 
 .. include:: ../include/links.rst
 """
-import numpy as np
 
-from astropy.table import Table
-from astropy.time import Time
+import astropy.table
+import astropy.time
+import numpy as np
 
 from pypeit import msgs
 from pypeit import telescopes
@@ -350,7 +350,7 @@ class LDTDeVenySpectrograph(spectrograph.Spectrograph):
 
         return par
 
-    def check_frame_type(self, ftype:str, fitstbl:Table, exprng=None):
+    def check_frame_type(self, ftype:str, fitstbl:astropy.table.Table, exprng=None):
         """
         Check for frames of the provided type.
 
@@ -427,7 +427,7 @@ class LDTDeVenySpectrograph(spectrograph.Spectrograph):
         """
         return super().pypeit_file_keys() + ['dispangle','slitwid','lampstat01']
 
-    def get_lamps(self, fitstbl:Table) -> list:
+    def get_lamps(self, fitstbl:astropy.table.Table) -> list:
         """
         Extract the list of arc lamps used from header
 
@@ -486,6 +486,9 @@ class LDTDeVenySpectrograph(spectrograph.Spectrograph):
             # Higher order wavelength fits because of larger span
             par['calibrations']['wavelengths']['n_first'] = 3  # Default: 2
             par['calibrations']['wavelengths']['n_final'] = 5  # Default: 4
+            # Allow for larger curvature in the object trace due to atmospheric dispersion
+            par['reduce']['findobj']['find_maxshift'] = 2.0
+
             # The approximate resolution of this grating
             par['sensfunc']['UVIS']['resolution'] = 400
 
@@ -786,7 +789,7 @@ class LDTDeVenySpectrograph(spectrograph.Spectrograph):
 
         # Attempt to directly return the AstroPy Time object
         try:
-            return Time(dt_str, format='isot')
+            return astropy.time.Time(dt_str, format='isot')
         except ValueError:
             # Split out all pieces of the datetime, and recompile
             date, time = dt_str.split("T")
@@ -808,4 +811,4 @@ class LDTDeVenySpectrograph(spectrograph.Spectrograph):
             # Reconstitute the DATE-OBS string, and return the Time() object
             date = f"{int(yea):04d}-{int(mon):02d}-{int(day):02d}"
             time = f"{int(hou):02d}:{int(mnt):02d}:{float(sec):09.6f}"
-            return Time(f"{date}T{time}", format='isot')
+            return astropy.time.Time(f"{date}T{time}", format='isot')

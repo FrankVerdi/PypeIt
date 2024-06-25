@@ -3,8 +3,6 @@
 .. include:: ../include/links.rst
 
 """
-from IPython import embed
-
 import numpy as np
 import scipy.interpolate
 import scipy.ndimage
@@ -26,6 +24,7 @@ from pypeit.core import arc
 from pypeit.display import display
 from pypeit.core import pixels
 from pypeit.core import extract
+from IPython import embed
 
 
 def create_skymask(sobjs, thismask, slit_left, slit_righ, box_rad_pix=None, trim_edg=(5,5),
@@ -1417,6 +1416,108 @@ def objfind_QA(spat_peaks, snr_peaks, spat_vector, snr_vector, snr_thresh, qa_ti
         fig.savefig(objfindQA_filename, dpi=400)
     plt.close('all')
 
+
+def objtrace_QA(trace_fit, traceset, cen, msk, trace_cen, trace_bpm, idx:list=None, objtraceQA_filename:str=None, show:bool=False):
+    """
+    Utility routine for making object tracing QA plots.
+
+    This is a slightly adjusted version of the ``debug`` plot from 
+    :func:`~pypeit.core.trace.fit_trace`.  This QA figure combines the two
+    rounds of trace-fitting, starting with the slit-edge trace and ending with
+    the gaussian-weighted trace (implicitly or explicitely drawing the flux-
+    weighted trace).
+
+    Args:
+    """
+
+    # idx == sobj.NAME
+
+    # Allow for single vectors as input
+    _trace_cen = trace_cen.reshape(-1,1) if trace_cen.ndim == 1 else trace_cen
+    _trace_bpm = trace_bpm.reshape(-1, 1) if trace_cen.ndim == 1 else trace_bpm
+    nspec, ntrace = _trace_cen.shape
+    trace_coo = np.tile(np.arange(nspec), (ntrace,1)).astype(float)
+
+    if idx is None:
+        idx = np.arange(1,ntrace+1).astype(str)
+
+    # Construct boolean flags
+    inpgpm = np.invert(_trace_bpm)
+    cengpm = np.invert(msk.astype(bool))
+    fitgpm = traceset.outmask.T
+    bpm_fit = _trace_bpm & fitgpm
+    bpm_rej = _trace_bpm & np.invert(fitgpm)
+    gpm_bdcen_fit = inpgpm & np.invert(cengpm) & fitgpm
+    gpm_bdcen_rej = inpgpm & np.invert(cengpm) & np.invert(fitgpm)
+    gpm_gdcen_fit = inpgpm & cengpm & fitgpm
+    gpm_gdcen_rej = inpgpm & cengpm & np.invert(fitgpm)
+
+    fig, axes = plt.subplots(ncols=1, nrows=ntrace, gridspec_kw={"hspace":0.0})
+
+    # Make possible loop for more than one object
+    for i, axis in enumerate([axes] if ntrace == 1 else axes):
+
+        # Plot data masked on input and included in fit using input
+        # locations and lower weight
+        if np.any(bpm_fit[:,i]):
+            axis.scatter(trace_coo[i,bpm_fit[:,i]], cen[bpm_fit[:,i],i], marker='o',
+                        color='cornflowerblue', s=30, label='Input masked, fit')
+
+        # Plot data masked on input and included in fit using input
+        # locations and lower weight, but rejected by the fit
+        if np.any(bpm_rej[:,i]):
+            axis.scatter(trace_coo[i,bpm_rej[:,i]], cen[bpm_rej[:,i],i], marker='x',
+                        color='C6', s=30, label='Input masked, fit, rejected')
+
+        # *** Plot data with bad recentroid measurements, included in
+        # fit using input locations and lower weight
+        if np.any(gpm_bdcen_fit[:,i]):
+            axis.scatter(trace_coo[i,gpm_bdcen_fit[:,i]], cen[gpm_bdcen_fit[:,i],i], marker='o',
+                        color='0.7', s=30, label='Centroid masked, fit')
+
+        # Plot data with bad recentroid measurements, included in
+        # fit using input locations and lower weight, but rejected
+        # by the fit
+        if np.any(gpm_bdcen_rej[:,i]):
+            axis.scatter(trace_coo[i,gpm_bdcen_rej[:,i]], cen[gpm_bdcen_rej[:,i],i], marker='x',
+                        color='C1', s=30, label='Centroid masked, fit, rejected')
+
+        # *** Plot data with good recentroid measurements and included
+        # in fit
+        if np.any(gpm_gdcen_fit[:,i]):
+            axis.scatter(trace_coo[i,gpm_gdcen_fit[:,i]], cen[gpm_gdcen_fit[:,i],i], marker='o',
+                        color='k', s=30, label='Remeasured and fit')
+
+        # Plot data with good recentroid measurements and included
+        # in fit but rejected
+        if np.any(gpm_gdcen_rej[:,i]):
+            axis.scatter(trace_coo[i,gpm_gdcen_rej[:,i]], cen[gpm_gdcen_rej[:,i],i], marker='x',
+                        color='C3', s=30, label='Remeasured, fit, and rejected')
+
+        # *** Plot all input trace locations as a line
+        axis.plot(trace_coo[i,:], _trace_cen[:,i], color='C2', linewidth=1.5,
+                    linestyle='--', label='Input Trace Data')
+
+        # *** Plot all input trace locations as a line
+        axis.plot(trace_coo[i,:], trace_fit[:,i], color='r', linewidth=2.0,
+                    linestyle='--', label='Fit')
+
+        plt.title(f'Centroid fit for trace {idx[i]}.')
+        plt.ylim((0.995*np.amin(trace_fit[:,i]), 1.005*np.amax(trace_fit[:,i])))
+
+        if i+1 == ntrace:
+            axis.set_xlabel('Spectral Pixel')
+        axis.set_ylabel('Spatial Pixel')
+        axis.legend()
+
+    # Display and/or save the plot(s)
+    if show:
+        plt.show()
+    if objtraceQA_filename is not None:
+        fig.savefig(objtraceQA_filename, dpi=400)
+    plt.close('all')
+
+
 def get_fwhm(fwhm_in, nsamp, smash_peakflux, spat_fracpos, flux_smash_smth):
     """
     Utility routine to measure the FWHM of an object trace from the spectrally
@@ -1506,7 +1607,7 @@ def get_fwhm(fwhm_in, nsamp, smash_peakflux, spat_fracpos, flux_smash_smth):
 
 def objs_in_slit(image, ivar, thismask, slit_left, slit_righ, 
                  inmask=None, fwhm=3.0,
-                 sigclip_smash=5.0, use_user_fwhm=False, boxcar_rad=7.,
+                 sigclip_smash=5.0, use_user_fwhm=False, boxcar_rad=7., maxshift=1.0,
                  maxdev=2.0, numiterfit=9, spec_min_max=None, hand_extract_dict=None, std_trace=None,
                  ncoeff=5, nperslit=None, snr_thresh=10.0, trim_edg=(5,5),
                  extract_maskwidth=4.0, specobj_dict=None, find_min_max=None,
@@ -1592,6 +1693,9 @@ def objs_in_slit(image, ivar, thismask, slit_left, slit_righ,
         boxcar_rad (:obj:`float`, optional):
             Box_car extraction radius *in pixels* to assign to each detected
             object and to be used later for boxcar extraction. 
+        maxshift (:obj:`float`, optional):
+            Maximum shift allowed between the input and recalculated
+            centroid (see :func:`~pypeit.core.trace.fit_trace`).
         maxdev (:obj:`float`, optional):
             Maximum deviation of pixels from polynomial fit to trace
             used to reject bad pixels in trace fitting.
@@ -1924,13 +2028,14 @@ def objs_in_slit(image, ivar, thismask, slit_left, slit_righ,
         xinit_fweight = np.copy(sobjs.TRACE_SPAT.T).astype(float)
         spec_mask = (spec_vec >= spec_min_max_out[0]) & (spec_vec <= spec_min_max_out[1])
         trc_inmask = np.outer(spec_mask, np.ones(len(sobjs), dtype=bool))
-        xfit_fweight = fit_trace(image, xinit_fweight, ncoeff, bpm=np.invert(inmask), maxshift=1., niter=numiterfit,
+        # trace_fit, cen, err, msk, traceset = thing1
+        xfit_fweight = fit_trace(image, xinit_fweight, ncoeff, bpm=np.invert(inmask), maxshift=maxshift, niter=numiterfit,
                                  trace_bpm=np.invert(trc_inmask), fwhm=fwhm, maxdev=maxdev,
                                  idx=sobjs.NAME, debug=show_fits)[0]
         xinit_gweight = np.copy(xfit_fweight)
-        xfit_gweight = fit_trace(image, xinit_gweight, ncoeff, bpm=np.invert(inmask), maxshift=1., niter=numiterfit,
+        xfit_gweight, cen, err, msk, traceset = fit_trace(image, xinit_gweight, ncoeff, bpm=np.invert(inmask), maxshift=maxshift, niter=numiterfit,
                                  trace_bpm=np.invert(trc_inmask), fwhm=fwhm, maxdev=maxdev,
-                                 weighting='gaussian', idx=sobjs.NAME, debug=show_fits)[0]
+                                 weighting='gaussian', idx=sobjs.NAME, debug=show_fits)
 
         # assign the final trace
         for iobj in range(nobj_reg):
@@ -1938,6 +2043,9 @@ def objs_in_slit(image, ivar, thismask, slit_left, slit_righ,
             sobjs[iobj].SPAT_PIXPOS = sobjs[iobj].TRACE_SPAT[specmid]
             sobjs[iobj].SPAT_PIXPOS_ID = int(np.rint(sobjs[iobj].SPAT_PIXPOS))
             sobjs[iobj].set_name()
+
+        # TODO: Create a QA plot for the object traces based on plots in ``fit_trace``
+        objtrace_QA(xfit_gweight, traceset, cen, msk, xinit_fweight, np.invert(trc_inmask), idx=sobjs.NAME,objtraceQA_filename=objfindQA_filename.replace("prof","trace"))
 
     # Now deal with the hand apertures if a hand_extract_dict was passed in. Add these to the SpecObj objects
     if hand_extract_dict is not None:
