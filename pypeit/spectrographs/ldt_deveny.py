@@ -410,7 +410,7 @@ class LDTDeVenySpectrograph(spectrograph.Spectrograph):
                 & (fitstbl['idname'] == 'DARK')
                 & (fitstbl['lampstat01'] == 'off')
             )
-        if ftype in ['pinhole', 'align', 'sky', 'lampoffflats', 'scattlight']:
+        if ftype in ['pinhole', 'align', 'sky', 'lampoffflats', 'scattlight', 'slitless_pixflat']:
             # DeVeny doesn't have any of these types of frames
             return np.zeros(len(fitstbl), dtype=bool)
         msgs.warn(f"Cannot determine if frames are of type {ftype}")
