@@ -256,9 +256,13 @@ class LBTMODSSpectrograph(spectrograph.Spectrograph):
         rawdatasec_img = np.zeros_like(array, dtype=int)
         oscansec_img = np.zeros_like(array, dtype=int)
 
+        # Processed images will have NAXIS1 = 8192 or 4096 (bin=2)
+        # Raw images will have NAXIS1 = 8288 or 4144 (bin=2)
         # Use the header keyword, BIASPROC, to determine whether the image has been processed or not.
+        # This doesn't work  - need just to search header for BIASPROC, but cannot do head['BIASPROC']
         # if not processed:
-        if not head['BIASPROC']:
+        #if not head['BIASPROC']:
+        if naxis1==8288 or naxis1==4144:
            cbias = 48 # number of columns in the prescan at either end
            nx_full = nx_full - (cbias*2)
            ny_full = ny_full
@@ -280,7 +284,8 @@ class LBTMODSSpectrograph(spectrograph.Spectrograph):
            rawdatasec_img[int(nx/2):int(nbias2/xbin), int(ny/2):] = 4
            oscansec_img[int(nbias2/xbin):nx-1, int(ny/2):] = 4 # exclude the last pixel since it always has problem
         # else if processed:
-        elif head['BIASPROC']:
+        #elif head['BIASPROC']:
+        elif naxis1==8192 or naxis1==4096:
            nx_full = nx_full
            ny_full = ny_full
            # Determine the size of the output array...
