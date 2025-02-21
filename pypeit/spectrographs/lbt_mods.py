@@ -417,9 +417,8 @@ class LBTMODS1RSpectrograph(LBTMODSSpectrograph):
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
         if self.get_meta_value(scifile, 'dispname') == 'G670L':
-            par['calibrations']['wavelengths']['method'] = 'holy-grail'
-            #par['calibrations']['wavelengths']['method'] = 'full_template'
-            #par['calibrations']['wavelengths']['reid_arxiv'] = 'lbt_mods1rproc_red.fits'
+            par['calibrations']['wavelengths']['method'] = 'full_template'
+            par['calibrations']['wavelengths']['reid_arxiv'] = 'lbt_mods1r_red.fits'
 
         return par
 
