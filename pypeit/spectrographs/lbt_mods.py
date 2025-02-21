@@ -239,42 +239,30 @@ class LBTMODSSpectrograph(spectrograph.Spectrograph):
         # get the x and y binning factors...
         xbin, ybin = head['CCDXBIN'], head['CCDYBIN']
 
-        #datasize = head['DETSIZE'] # Unbinned size of detector full array
-        datasize = "[1:"+str(naxis1)+",1:"+str(naxis2)+"]" # Size of image 
-        #print(datasize, head['DETSIZE']) 
-        _, nx_full, _, ny_full = np.array(parse.load_sections(datasize, fmt_iraf=False)).flatten()
-
         # allocate output array...
+        # For the processed images, was getting an error in bspline/utilc.py l:180 solution arrays, datatype must be float64
+        # so changed typecast from *1.0 to astype(float).  OPK 01/2025
         #array = hdu[0].data.T * 1.0 ## Convert to float in order to get it processed with procimg.py
         array = hdu[0].data.T.astype(float) ## Convert to float in order to get it processed with procimg.py
         #
-        # For the processed images, was getting an error in bspline/utilc.py l:180 solution arrays, datatype must be float64
-        # so changed typecast from *1.0 to astype(float).  OPK 01/2025
         # 
         rawdatasec_img = np.zeros_like(array, dtype=int)
         oscansec_img = np.zeros_like(array, dtype=int)
 
         # Use the value of NAXIS1 to determine whether the image has been processed or not.
-        # Processed images will have NAXIS1 = 8192 or 4096 (bin=2)
-        # Raw images will have NAXIS1 = 8288 or 4144 (bin=2)
-        # 
+        # Processed images will have NAXIS1 = 8192 (unbinned) or 4096 (xbin=2)
+        # Raw images will have NAXIS1 = 8288 (unbinned) or 4144 (xbin=2)
+          
         # if not processed:
         if naxis1==8288 or naxis1==4144:
            cbias = 48 # number of columns in the prescan at either end
            datasize = head['DETSIZE'] # Unbinned size of detector full array
            _, nx_full, _, ny_full = np.array(parse.load_sections(datasize, fmt_iraf=False)).flatten()
-           #nx_full = nx_full - (cbias*2)
-           #ny_full = ny_full
            # Determine the size of the output array...
            nx, ny = int(nx_full / xbin), int(ny_full / ybin)
            nbias1 = 48
            nbias2 = 8240
-#
-#        
-           #print("1: [1:%d,:%d]" % (int(nbias1/xbin),int(ny/2)))
-           #print("2: [%d:%d,:%d]" % (int(nbias2/xbin),nx-1,int(ny/2)))
-           #print("3: [1:%d,%d:]" % (int(nbias1/xbin), int(ny/2)))
-           #print("4: [%d:%d,%d:]" % (int(nbias2/xbin),nx-1,int(ny/2)))
+
            ## allocate datasec and oscansec to the image
            # apm 1
            rawdatasec_img[int(nbias1/xbin):int(nx/2), :int(ny/2)] = 1
@@ -288,12 +276,14 @@ class LBTMODSSpectrograph(spectrograph.Spectrograph):
            # apm 4
            rawdatasec_img[int(nx/2):int(nbias2/xbin), int(ny/2):] = 4
            oscansec_img[int(nbias2/xbin):nx-1, int(ny/2):] = 4 # exclude the last pixel since it always has problem
+
         # else if processed:
         elif naxis1==8192 or naxis1==4096:
-           nx_full = nx_full
-           ny_full = ny_full
+           datasize = "[1:"+str(naxis1)+",1:"+str(naxis2)+"]" # Size of image 
+           _, nx_full, _, ny_full = np.array(parse.load_sections(datasize, fmt_iraf=False)).flatten()
            # Determine the size of the output array...
            nx, ny = int(nx_full), int(ny_full)
+
            ## allocate datasec and oscansec to the image
            # apm 1
            rawdatasec_img[ :int(nx/2), :int(ny/2)] = 1
