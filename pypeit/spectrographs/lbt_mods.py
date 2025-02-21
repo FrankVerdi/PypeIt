@@ -271,10 +271,10 @@ class LBTMODSSpectrograph(spectrograph.Spectrograph):
            nbias2 = 8240
 #
 #        
-           print("1: [1:%d,:%d]" % (int(nbias1/xbin),int(ny/2)))
-           print("2: [%d:%d,:%d]" % (int(nbias2/xbin),nx-1,int(ny/2)))
-           print("3: [1:%d,%d:]" % (int(nbias1/xbin), int(ny/2)))
-           print("4: [%d:%d,%d:]" % (int(nbias2/xbin),nx-1,int(ny/2)))
+           #print("1: [1:%d,:%d]" % (int(nbias1/xbin),int(ny/2)))
+           #print("2: [%d:%d,:%d]" % (int(nbias2/xbin),nx-1,int(ny/2)))
+           #print("3: [1:%d,%d:]" % (int(nbias1/xbin), int(ny/2)))
+           #print("4: [%d:%d,%d:]" % (int(nbias2/xbin),nx-1,int(ny/2)))
            ## allocate datasec and oscansec to the image
            # apm 1
            rawdatasec_img[int(nbias1/xbin):int(nx/2), :int(ny/2)] = 1
