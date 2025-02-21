@@ -241,18 +241,16 @@ class LBTMODSSpectrograph(spectrograph.Spectrograph):
 
         #datasize = head['DETSIZE'] # Unbinned size of detector full array
         datasize = "[1:"+str(naxis1)+",1:"+str(naxis2)+"]" # Size of image 
-        print(datasize, head['DETSIZE']) 
+        #print(datasize, head['DETSIZE']) 
         _, nx_full, _, ny_full = np.array(parse.load_sections(datasize, fmt_iraf=False)).flatten()
 
         # allocate output array...
         #array = hdu[0].data.T * 1.0 ## Convert to float in order to get it processed with procimg.py
-        # For the processed images, I was getting an error in bspline/utilc.py l:180 solution arrays, datatype must be float64
-        # so changed typecast from *1.0 to astype(float). Unsure this really makes a difference, but code
-        # did not error out.
-        # 
         array = hdu[0].data.T.astype(float) ## Convert to float in order to get it processed with procimg.py
         #
-        #
+        # For the processed images, was getting an error in bspline/utilc.py l:180 solution arrays, datatype must be float64
+        # so changed typecast from *1.0 to astype(float).  OPK 01/2025
+        # 
         rawdatasec_img = np.zeros_like(array, dtype=int)
         oscansec_img = np.zeros_like(array, dtype=int)
 
@@ -263,12 +261,20 @@ class LBTMODSSpectrograph(spectrograph.Spectrograph):
         # if not processed:
         if naxis1==8288 or naxis1==4144:
            cbias = 48 # number of columns in the prescan at either end
-           nx_full = nx_full - (cbias*2)
-           ny_full = ny_full
+           datasize = head['DETSIZE'] # Unbinned size of detector full array
+           _, nx_full, _, ny_full = np.array(parse.load_sections(datasize, fmt_iraf=False)).flatten()
+           #nx_full = nx_full - (cbias*2)
+           #ny_full = ny_full
            # Determine the size of the output array...
            nx, ny = int(nx_full / xbin), int(ny_full / ybin)
            nbias1 = 48
            nbias2 = 8240
+#
+#        
+           print("1: [1:%d,:%d]" % (int(nbias1/xbin),int(ny/2)))
+           print("2: [%d:%d,:%d]" % (int(nbias2/xbin),nx-1,int(ny/2)))
+           print("3: [1:%d,%d:]" % (int(nbias1/xbin), int(ny/2)))
+           print("4: [%d:%d,%d:]" % (int(nbias2/xbin),nx-1,int(ny/2)))
            ## allocate datasec and oscansec to the image
            # apm 1
            rawdatasec_img[int(nbias1/xbin):int(nx/2), :int(ny/2)] = 1
@@ -348,7 +354,8 @@ class LBTMODS1RSpectrograph(LBTMODSSpectrograph):
             mincounts       = -1e10,
             numamplifiers   = 4,
             gain            = np.atleast_1d([2.38,2.50,2.46,2.81]),
-            ronoise         = np.atleast_1d([3.78,4.04,4.74,4.14]),
+            ronoise         = np.atleast_1d([3.78,4.04,4.74,4.14])
+            #ronoise         = np.atleast_1d([3.78,4.04,4.74,4.14]),
 # TODO: The raw image reader sets these up by hand
 #            datasec         = np.atleast_1d('[:,:]'),
 #            oscansec        = np.atleast_1d('[:,:]')
@@ -523,7 +530,8 @@ class LBTMODS1BSpectrograph(LBTMODSSpectrograph):
             mincounts       = -1e10,
             numamplifiers   = 4,
             gain            = np.atleast_1d([2.55,1.91,2.09,2.02]),
-            ronoise         = np.atleast_1d([3.41,2.93,2.92,2.76]),
+            ronoise         = np.atleast_1d([3.41,2.93,2.92,2.76])
+            #ronoise         = np.atleast_1d([3.41,2.93,2.92,2.76]),
 # TODO: The raw image reader sets these up by hand
 #            datasec         = np.atleast_1d('[:,:]'),
 #            oscansec        = np.atleast_1d('[:,:]')
@@ -681,7 +689,8 @@ class LBTMODS2RSpectrograph(LBTMODSSpectrograph):
             mincounts       = -1e10,
             numamplifiers   = 4,
             gain            = np.atleast_1d([1.70,1.67,1.66,1.66]),
-            ronoise         = np.atleast_1d([2.95,2.65,2.78,2.87]),
+            ronoise         = np.atleast_1d([2.95,2.65,2.78,2.87])
+            #ronoise         = np.atleast_1d([2.95,2.65,2.78,2.87]),
 # TODO: The raw image reader sets these up by hand
 #            datasec         = np.atleast_1d('[:,:]'),
 #            oscansec        = np.atleast_1d('[:,:]')
@@ -846,7 +855,8 @@ class LBTMODS2BSpectrograph(LBTMODSSpectrograph):
             mincounts       = -1e10,
             numamplifiers   = 4,
             gain            = np.atleast_1d([1.99,2.06,1.96,2.01]),
-            ronoise         = np.atleast_1d([3.66,3.62,3.72,3.64]),
+            #ronoise         = np.atleast_1d([3.66,3.62,3.72,3.64]),
+            ronoise         = np.atleast_1d([3.66,3.62,3.72,3.64])
 # TODO: The raw image reader sets these up by hand
 #            datasec         = np.atleast_1d('[:,:]'),
 #            oscansec        = np.atleast_1d('[:,:]')
@@ -1020,7 +1030,8 @@ class LBTMODS1RSpectrographProc(LBTMODSSpectrograph):
             mincounts       = -1e10,
             numamplifiers   = 4,
             gain            = np.atleast_1d([2.38,2.50,2.46,2.81]),
-            ronoise         = np.atleast_1d([3.78,4.04,4.74,4.14]),
+            ronoise         = np.atleast_1d([3.78,4.04,4.74,4.14])
+            #ronoise         = np.atleast_1d([3.78,4.04,4.74,4.14]),
 # TODO: The raw image reader sets these up by hand
 #            datasec         = np.atleast_1d('[:,:]'),
 #            oscansec        = np.atleast_1d('[:,:]')
@@ -1183,7 +1194,8 @@ class LBTMODS1BSpectrographProc(LBTMODSSpectrograph):
             mincounts       = -1e10,
             numamplifiers   = 4,
             gain            = np.atleast_1d([2.55,1.91,2.09,2.02]),
-            ronoise         = np.atleast_1d([3.41,2.93,2.92,2.76]),
+            ronoise         = np.atleast_1d([3.41,2.93,2.92,2.76])
+            #ronoise         = np.atleast_1d([3.41,2.93,2.92,2.76]),
 # TODO: The raw image reader sets these up by hand
 #            datasec         = np.atleast_1d('[:,:]'),
 #            oscansec        = np.atleast_1d('[:,:]')
@@ -1341,7 +1353,8 @@ class LBTMODS2RSpectrographProc(LBTMODSSpectrograph):
             mincounts       = -1e10,
             numamplifiers   = 4,
             gain            = np.atleast_1d([1.70,1.67,1.66,1.66]),
-            ronoise         = np.atleast_1d([2.95,2.65,2.78,2.87]),
+            ronoise         = np.atleast_1d([2.95,2.65,2.78,2.87])
+            #ronoise         = np.atleast_1d([2.95,2.65,2.78,2.87]),
 # TODO: The raw image reader sets these up by hand
 #            datasec         = np.atleast_1d('[:,:]'),
 #            oscansec        = np.atleast_1d('[:,:]')
@@ -1498,7 +1511,8 @@ class LBTMODS2BSpectrographProc(LBTMODSSpectrograph):
             mincounts       = -1e10,
             numamplifiers   = 4,
             gain            = np.atleast_1d([1.99,2.06,1.96,2.01]),
-            ronoise         = np.atleast_1d([3.66,3.62,3.72,3.64]),
+            ronoise         = np.atleast_1d([3.66,3.62,3.72,3.64])
+            #ronoise         = np.atleast_1d([3.66,3.62,3.72,3.64]),
 # TODO: The raw image reader sets these up by hand
 #            datasec         = np.atleast_1d('[:,:]'),
 #            oscansec        = np.atleast_1d('[:,:]')
