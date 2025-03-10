@@ -239,6 +239,14 @@ class LBTMODSSpectrograph(spectrograph.Spectrograph):
         # get the x and y binning factors...
         xbin, ybin = head['CCDXBIN'], head['CCDYBIN']
 
+        # Use the value of NAXIS1 to determine whether the image has been processed or not.
+        # Processed images will have NAXIS1 = 8192 (unbinned) or 4096 (xbin=2)
+        # Raw images will have NAXIS1 = 8288 (unbinned) or 4144 (xbin=2)
+        if (naxis1*xbin)==8288:
+            proc = False
+        elif (naxis1*xbin)==8192:
+            proc = True
+
         # allocate output array...
         # For the processed images, was getting an error in bspline/utilc.py l:180 solution arrays, datatype must be float64
         # so changed typecast from *1.0 to astype(float).  OPK 01/2025
@@ -249,12 +257,15 @@ class LBTMODSSpectrograph(spectrograph.Spectrograph):
         rawdatasec_img = np.zeros_like(array, dtype=int)
         oscansec_img = np.zeros_like(array, dtype=int)
 
-        # Use the value of NAXIS1 to determine whether the image has been processed or not.
-        # Processed images will have NAXIS1 = 8192 (unbinned) or 4096 (xbin=2)
-        # Raw images will have NAXIS1 = 8288 (unbinned) or 4144 (xbin=2)
+        # oscansec_img is not needed for the proc subclasses, however get_rawimage returns oscansec_img so we'll keep it for now.
+
           
-        # if not processed:
-        if naxis1==8288 or naxis1==4144:
+        #### if not processed: ####
+        # Is naxis1*xbin equal 8288? If Y, then not processed.
+        # In this case, set datasize using the keyword value DETSIZE and keep xbin, ybin  
+        #
+        #if (naxis1*xbin)==8288:
+        if not proc:
            cbias = 48 # number of columns in the prescan at either end
            datasize = head['DETSIZE'] # Unbinned size of detector full array
            _, nx_full, _, ny_full = np.array(parse.load_sections(datasize, fmt_iraf=False)).flatten()
@@ -277,8 +288,11 @@ class LBTMODSSpectrograph(spectrograph.Spectrograph):
            rawdatasec_img[int(nx/2):int(nbias2/xbin), int(ny/2):] = 4
            oscansec_img[int(nbias2/xbin):nx-1, int(ny/2):] = 4 # exclude the last pixel since it always has problem
 
-        # else if processed:
-        elif naxis1==8192 or naxis1==4096:
+        #### else if processed: ####
+        # For processed images, set datasize using naxis1, naxis2 and don't carry along xbin, ybin.
+        #elif naxis1==8192 or naxis1==4096:
+        #if (naxis1*xbin)==8192:
+        elif proc: 
            datasize = "[1:"+str(naxis1)+",1:"+str(naxis2)+"]" # Size of image 
            _, nx_full, _, ny_full = np.array(parse.load_sections(datasize, fmt_iraf=False)).flatten()
            # Determine the size of the output array...
@@ -345,7 +359,6 @@ class LBTMODS1RSpectrograph(LBTMODSSpectrograph):
             numamplifiers   = 4,
             gain            = np.atleast_1d([2.38,2.50,2.46,2.81]),
             ronoise         = np.atleast_1d([3.78,4.04,4.74,4.14])
-            #ronoise         = np.atleast_1d([3.78,4.04,4.74,4.14]),
 # TODO: The raw image reader sets these up by hand
 #            datasec         = np.atleast_1d('[:,:]'),
 #            oscansec        = np.atleast_1d('[:,:]')
@@ -363,20 +376,14 @@ class LBTMODS1RSpectrograph(LBTMODSSpectrograph):
         """
         par = super().default_pypeit_par()
 
-        # Processing steps
-        #turn_off = dict(use_illumflat=False, use_biasimage=False, use_overscan=False, use_pixelflat=False, 
-        #        use_specillum=False, trim=False)
-
-        #par.reset_all_processimages_par(**turn_off)
-
         par['flexure']['spec_method'] = 'boxcar'
 
         # 1D wavelength solution
         par['calibrations']['wavelengths']['sigdetect'] = 5.
         par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 0.09
         par['calibrations']['wavelengths']['fwhm'] = 10.
-        par['calibrations']['wavelengths']['lamps'] = ['ArI','NeI','KrI','XeI']
-        #par['calibrations']['wavelengths']['lamps'] = ['OH_MODS']
+        # Red: Dual uses all lamps, Red-Only does not use Hg(Ar) lamp
+        par['calibrations']['wavelengths']['lamps'] = ['HgI_MODS','ArI_MODS','NeI_MODS','KrI_MODS','XeI_MODS']
         par['calibrations']['wavelengths']['n_first'] = 3
         par['calibrations']['wavelengths']['match_toler'] = 2.5
 
@@ -520,7 +527,6 @@ class LBTMODS1BSpectrograph(LBTMODSSpectrograph):
             numamplifiers   = 4,
             gain            = np.atleast_1d([2.55,1.91,2.09,2.02]),
             ronoise         = np.atleast_1d([3.41,2.93,2.92,2.76])
-            #ronoise         = np.atleast_1d([3.41,2.93,2.92,2.76]),
 # TODO: The raw image reader sets these up by hand
 #            datasec         = np.atleast_1d('[:,:]'),
 #            oscansec        = np.atleast_1d('[:,:]')
@@ -543,7 +549,8 @@ class LBTMODS1BSpectrograph(LBTMODSSpectrograph):
         # 1D wavelength solution
         par['calibrations']['wavelengths']['sigdetect'] = 10.
         par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 0.09
-        par['calibrations']['wavelengths']['lamps'] = ['XeI','KrI','ArI','HgI']
+        # Blue: Dual uses all five lamps; Blue-Only does not use Ne lamp
+        par['calibrations']['wavelengths']['lamps'] = ['HgI_MODS','ArI_MODS','NeI_MODS','KrI_MODS','XeI_MODS']
 
         # slit
         par['calibrations']['slitedges']['sync_predict'] = 'nearest'
@@ -679,7 +686,6 @@ class LBTMODS2RSpectrograph(LBTMODSSpectrograph):
             numamplifiers   = 4,
             gain            = np.atleast_1d([1.70,1.67,1.66,1.66]),
             ronoise         = np.atleast_1d([2.95,2.65,2.78,2.87])
-            #ronoise         = np.atleast_1d([2.95,2.65,2.78,2.87]),
 # TODO: The raw image reader sets these up by hand
 #            datasec         = np.atleast_1d('[:,:]'),
 #            oscansec        = np.atleast_1d('[:,:]')
@@ -703,7 +709,8 @@ class LBTMODS2RSpectrograph(LBTMODSSpectrograph):
         par['calibrations']['wavelengths']['sigdetect'] = 5.
         par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 0.22
         par['calibrations']['wavelengths']['fwhm'] = 10.
-        par['calibrations']['wavelengths']['lamps'] = ['ArI','NeI','KrI','XeI']
+        # Red: Dual uses all five lamps; Red-Only does not use Hg(Ar) lamp
+        par['calibrations']['wavelengths']['lamps'] = ['HgI_MODS','ArI_MODS','NeI_MODS','KrI_MODS','XeI_MODS']
         #par['calibrations']['wavelengths']['lamps'] = ['OH_MODS']
         par['calibrations']['wavelengths']['n_first'] = 3
         par['calibrations']['wavelengths']['match_toler'] = 2.5
@@ -844,8 +851,7 @@ class LBTMODS2BSpectrograph(LBTMODSSpectrograph):
             mincounts       = -1e10,
             numamplifiers   = 4,
             gain            = np.atleast_1d([1.99,2.06,1.96,2.01]),
-            #ronoise         = np.atleast_1d([3.66,3.62,3.72,3.64]),
-            ronoise         = np.atleast_1d([3.66,3.62,3.72,3.64])
+            ronoise         = np.atleast_1d([3.66,3.62,3.72,3.64]),
 # TODO: The raw image reader sets these up by hand
 #            datasec         = np.atleast_1d('[:,:]'),
 #            oscansec        = np.atleast_1d('[:,:]')
@@ -868,7 +874,8 @@ class LBTMODS2BSpectrograph(LBTMODSSpectrograph):
         # 1D wavelength solution
         par['calibrations']['wavelengths']['sigdetect'] = 10.
         par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 0.09
-        par['calibrations']['wavelengths']['lamps'] = ['XeI','KrI','ArI','HgI']
+        # Blue: Dual uses all five lamps; Blue-Only does not use Ne lamp
+        par['calibrations']['wavelengths']['lamps'] = ['HgI_MODS','ArI_MODS','NeI_MODS','KrI_MODS','XeI_MODS']
 
         # slit
         par['calibrations']['slitedges']['sync_predict'] = 'nearest'
@@ -1020,10 +1027,6 @@ class LBTMODS1RSpectrographProc(LBTMODSSpectrograph):
             numamplifiers   = 4,
             gain            = np.atleast_1d([2.38,2.50,2.46,2.81]),
             ronoise         = np.atleast_1d([3.78,4.04,4.74,4.14])
-            #ronoise         = np.atleast_1d([3.78,4.04,4.74,4.14]),
-# TODO: The raw image reader sets these up by hand
-#            datasec         = np.atleast_1d('[:,:]'),
-#            oscansec        = np.atleast_1d('[:,:]')
             )
         return DetectorContainer(**detector_dict)
 
@@ -1049,7 +1052,8 @@ class LBTMODS1RSpectrographProc(LBTMODSSpectrograph):
         par['calibrations']['wavelengths']['sigdetect'] = 5.
         par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 0.09
         par['calibrations']['wavelengths']['fwhm'] = 10.
-        par['calibrations']['wavelengths']['lamps'] = ['ArI','NeI','KrI','XeI']
+        # Red: Dual uses all five lamps; Red-Only does not use Hg(Ar)
+        par['calibrations']['wavelengths']['lamps'] = ['HgI_MODS','ArI_MODS','NeI_MODS','KrI_MODS','XeI_MODS']
         par['calibrations']['wavelengths']['n_first'] = 3
         par['calibrations']['wavelengths']['match_toler'] = 2.5
 
@@ -1095,49 +1099,8 @@ class LBTMODS1RSpectrographProc(LBTMODSSpectrograph):
 
         return par
 
-    def bpm(self, filename, det, shape=None, msbias=None):
-        """
-        Generate a default bad-pixel mask.
-
-        Even though they are both optional, either the precise shape for
-        the image (``shape``) or an example file that can be read to get
-        the shape (``filename`` using :func:`get_image_shape`) *must* be
-        provided.
-
-        Args:
-            filename (:obj:`str` or None):
-                An example file to use to get the image shape.
-            det (:obj:`int`):
-                1-indexed detector number to use when getting the image
-                shape from the example file.
-            shape (tuple, optional):
-                Processed image shape
-                Required if filename is None
-                Ignored if filename is not None
-            msbias (`numpy.ndarray`_, optional):
-                Processed bias frame used to identify bad pixels
-
-        Returns:
-            `numpy.ndarray`_: An integer array with a masked value set
-            to 1 and an unmasked value set to 0.  All values are set to
-            0.
-        """
-        # Call the base-class method to generate the empty bpm
-        bpm_img = super().bpm(filename, det, shape=shape, msbias=msbias)
-
-        msgs.info("Using hard-coded BPM for  MODS1R")
-
-        # TODO: Fix this
-        # Get the binning
-        hdu = io.fits_open(filename)
-        header = hdu[0].header
-        xbin, ybin = header['CCDXBIN'], header['CCDYBIN']
-        hdu.close()
-
-        # Apply the mask
-
-        return bpm_img
-
+    # The processed images have been bad-pixel corrected already, so it is not necessary to 
+    # generate a bad pixel mask, bpm_img, with function bpm.
 
 class LBTMODS1BSpectrographProc(LBTMODSSpectrograph):
     """
@@ -1184,10 +1147,6 @@ class LBTMODS1BSpectrographProc(LBTMODSSpectrograph):
             numamplifiers   = 4,
             gain            = np.atleast_1d([2.55,1.91,2.09,2.02]),
             ronoise         = np.atleast_1d([3.41,2.93,2.92,2.76])
-            #ronoise         = np.atleast_1d([3.41,2.93,2.92,2.76]),
-# TODO: The raw image reader sets these up by hand
-#            datasec         = np.atleast_1d('[:,:]'),
-#            oscansec        = np.atleast_1d('[:,:]')
             )
         return DetectorContainer(**detector_dict)
 
@@ -1210,7 +1169,8 @@ class LBTMODS1BSpectrographProc(LBTMODSSpectrograph):
         # 1D wavelength solution
         par['calibrations']['wavelengths']['sigdetect'] = 10.
         par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 0.09
-        par['calibrations']['wavelengths']['lamps'] = ['XeI','KrI','ArI','HgI']
+        # Blue: Dual uses all five lamps; Blue-Only does not use Ne lamp
+        par['calibrations']['wavelengths']['lamps'] = ['HgI_MODS','ArI_MODS','NeI_MODS','KrI_MODS','XeI_MODS']
 
         # slit
         par['calibrations']['slitedges']['sync_predict'] = 'nearest'
@@ -1254,46 +1214,8 @@ class LBTMODS1BSpectrographProc(LBTMODSSpectrograph):
 
         return par
 
-    def bpm(self, filename, det, shape=None, msbias=None):
-        """
-        Generate a default bad-pixel mask.
-
-        Even though they are both optional, either the precise shape for
-        the image (``shape``) or an example file that can be read to get
-        the shape (``filename`` using :func:`get_image_shape`) *must* be
-        provided.
-
-        Args:
-            filename (:obj:`str` or None):
-                An example file to use to get the image shape.
-            det (:obj:`int`):
-                1-indexed detector number to use when getting the image
-                shape from the example file.
-            shape (tuple, optional):
-                Processed image shape
-                Required if filename is None
-                Ignored if filename is not None
-            msbias (`numpy.ndarray`_, optional):
-                Processed bias frame used to identify bad pixels
-
-        Returns:
-            `numpy.ndarray`_: An integer array with a masked value set
-            to 1 and an unmasked value set to 0.  All values are set to
-            0.
-        """
-        # Call the base-class method to generate the empty bpm
-        bpm_img = super().bpm(filename, det, shape=shape, msbias=msbias)
-        msgs.info("Using hard-coded BPM for  MODS1B")
-
-        # Get the binning
-        hdu = io.fits_open(filename)
-        header = hdu[0].header
-        xbin, ybin = header['CCDXBIN'], header['CCDYBIN']
-        hdu.close()
-
-        # Apply the mask
-
-        return bpm_img
+    # The processed images have been bad-pixel corrected already, so it is not necessary to 
+    # generate a bad pixel mask, bpm_img, with function bpm.
 
 class LBTMODS2RSpectrographProc(LBTMODSSpectrograph):
     """
@@ -1343,10 +1265,6 @@ class LBTMODS2RSpectrographProc(LBTMODSSpectrograph):
             numamplifiers   = 4,
             gain            = np.atleast_1d([1.70,1.67,1.66,1.66]),
             ronoise         = np.atleast_1d([2.95,2.65,2.78,2.87])
-            #ronoise         = np.atleast_1d([2.95,2.65,2.78,2.87]),
-# TODO: The raw image reader sets these up by hand
-#            datasec         = np.atleast_1d('[:,:]'),
-#            oscansec        = np.atleast_1d('[:,:]')
             )
         return DetectorContainer(**detector_dict)
 
@@ -1370,7 +1288,8 @@ class LBTMODS2RSpectrographProc(LBTMODSSpectrograph):
         par['calibrations']['wavelengths']['sigdetect'] = 5.
         par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 0.22
         par['calibrations']['wavelengths']['fwhm'] = 10.
-        par['calibrations']['wavelengths']['lamps'] = ['ArI','NeI','KrI','XeI']
+        # Red: Dual uses all lamps, Red-Only does not use Hg(Ar) lamp 
+        par['calibrations']['wavelengths']['lamps'] = ['HgI_MODS','ArI_MODS','NeI_MODS','KrI_MODS','XeI_MODS']
         par['calibrations']['wavelengths']['n_first'] = 3
         par['calibrations']['wavelengths']['match_toler'] = 2.5
 
@@ -1413,48 +1332,8 @@ class LBTMODS2RSpectrographProc(LBTMODSSpectrograph):
             par['calibrations']['wavelengths']['reid_arxiv'] = 'lbt_mods2r_red.fits'
         return par
 
-    def bpm(self, filename, det, shape=None, msbias=None):
-        """
-        Generate a default bad-pixel mask.
-
-        Even though they are both optional, either the precise shape for
-        the image (``shape``) or an example file that can be read to get
-        the shape (``filename`` using :func:`get_image_shape`) *must* be
-        provided.
-
-        Args:
-            filename (:obj:`str` or None):
-                An example file to use to get the image shape.
-            det (:obj:`int`):
-                1-indexed detector number to use when getting the image
-                shape from the example file.
-            shape (tuple, optional):
-                Processed image shape
-                Required if filename is None
-                Ignored if filename is not None
-            msbias (`numpy.ndarray`_, optional):
-                Processed bias frame used to identify bad pixels
-
-        Returns:
-            `numpy.ndarray`_: An integer array with a masked value set
-            to 1 and an unmasked value set to 0.  All values are set to
-            0.
-        """
-        # Call the base-class method to generate the empty bpm
-        bpm_img = super().bpm(filename, det, shape=shape, msbias=msbias)
-        msgs.info("Using hard-coded BPM for  MODS2R")
-
-        # Get the binning
-        hdu = io.fits_open(filename)
-        header = hdu[0].header
-        xbin, ybin = header['CCDXBIN'], header['CCDYBIN']
-        hdu.close()
-
-        # Apply the mask
-
-        return bpm_img
-
-
+    # The processed images have been bad-pixel corrected already, so it is not necessary to 
+    # generate a bad pixel mask, bpm_img, with function bpm.
 
 class LBTMODS2BSpectrographProc(LBTMODSSpectrograph):
     """
@@ -1501,10 +1380,6 @@ class LBTMODS2BSpectrographProc(LBTMODSSpectrograph):
             numamplifiers   = 4,
             gain            = np.atleast_1d([1.99,2.06,1.96,2.01]),
             ronoise         = np.atleast_1d([3.66,3.62,3.72,3.64])
-            #ronoise         = np.atleast_1d([3.66,3.62,3.72,3.64]),
-# TODO: The raw image reader sets these up by hand
-#            datasec         = np.atleast_1d('[:,:]'),
-#            oscansec        = np.atleast_1d('[:,:]')
             )
         return DetectorContainer(**detector_dict)
 
@@ -1527,7 +1402,8 @@ class LBTMODS2BSpectrographProc(LBTMODSSpectrograph):
         # 1D wavelength solution
         par['calibrations']['wavelengths']['sigdetect'] = 10.
         par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 0.09
-        par['calibrations']['wavelengths']['lamps'] = ['XeI','KrI','ArI','HgI']
+        # Blue: Dual uses all lamps; Blue-Only does not use Ne lamp
+        par['calibrations']['wavelengths']['lamps'] = ['HgI_MODS','ArI_MODS','NeI_MODS','KrI_MODS','XeI_MODS']
 
         # slit
         par['calibrations']['slitedges']['sync_predict'] = 'nearest'
@@ -1572,44 +1448,5 @@ class LBTMODS2BSpectrographProc(LBTMODSSpectrograph):
         return par
 
 
-    def bpm(self, filename, det, shape=None, msbias=None):
-        """
-        Generate a default bad-pixel mask.
-
-        Even though they are both optional, either the precise shape for
-        the image (``shape``) or an example file that can be read to get
-        the shape (``filename`` using :func:`get_image_shape`) *must* be
-        provided.
-
-        Args:
-            filename (:obj:`str` or None):
-                An example file to use to get the image shape.
-            det (:obj:`int`):
-                1-indexed detector number to use when getting the image
-                shape from the example file.
-            shape (tuple, optional):
-                Processed image shape
-                Required if filename is None
-                Ignored if filename is not None
-            msbias (`numpy.ndarray`_, optional):
-                Processed bias frame used to identify bad pixels
-
-        Returns:
-            `numpy.ndarray`_: An integer array with a masked value set
-            to 1 and an unmasked value set to 0.  All values are set to
-            0.
-        """
-        # Call the base-class method to generate the empty bpm
-        bpm_img = super().bpm(filename, det, shape=shape, msbias=msbias)
-        msgs.info("Using hard-coded BPM for  MODS2B")
-
-        # Get the binning
-        hdu = io.fits_open(filename)
-        header = hdu[0].header
-        xbin, ybin = header['CCDXBIN'], header['CCDYBIN']
-        hdu.close()
-
-        # Apply the mask
-
-        return bpm_img
-
+    # The processed images have been bad-pixel corrected already, so it is not necessary to 
+    # generate a bad pixel mask, bpm_img, with function bpm.
