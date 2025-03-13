@@ -51,8 +51,14 @@ def test_fetch_github_files():
     
 
 def test_github_contents():
+
+    # In case we're working in a fork
+    path = cache.git_remote_path()
+    assert path is not None, 'Could not define path to remote git repo'
+
     # Access the repo
-    repo = github.Github().get_repo("pypeit/PypeIt")
+    repo = github.Github().get_repo(path)
+    assert repo is not None, 'Could not load repo'
 
     # Get the relevant github branch
     branch = cache.git_branch()
@@ -66,7 +72,7 @@ def test_github_contents():
     contents = cache.github_contents(repo, branch, 'pypeit/data/tests', recursive=False)
     assert any([c.type == 'dir' for c in contents]), \
             'tests/ directory expected to have subdirectories'
-
+    
 
 def test_filepath_routines():
 
@@ -199,6 +205,10 @@ def test_cache_to_pkg():
     if len(contents) > 0:
         cache.remove_from_cache(cache_url=list(contents.keys()), allow_multiple=True)
 
+    # NOTE: If this test fails, it may be because the test failed on a previous
+    # attempt after the `cache_test.txt` file was deleted and before it was
+    # restored.  I.e., try running `git restore ../data/tests/cache_test.txt`
+    # and re-running the test.
     assert test_file.is_file(), 'File should exist on disk at the start of the test'
 
     # Remove the file
@@ -245,5 +255,4 @@ def test_cache_to_pkg():
     assert len(cache.search_cache(test_file_name)) == 0, \
             'File should have been removed from the cache'
     
-
 

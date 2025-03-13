@@ -41,12 +41,17 @@ import astropy.utils.data
 import github
 import requests
 
+
 # NOTE: pygit2 is only used for testing purposes.  It is not a requirement for a
 # general user.  Hence the try block below.
 try:
     from pygit2 import Repository
 except ImportError:
     Repository = None
+    GitError = None
+else:
+    from pygit2 import GitError
+
 
 # NOTE: To avoid circular imports, avoid (if possible) importing anything from
 # pypeit into this module!  Objects created or available in pypeit/__init__.py
@@ -57,6 +62,21 @@ from pypeit import __version__
 
 
 __PYPEIT_DATA__ = resources.files('pypeit') / 'data'
+__PYPEIT_REPO_PATH__ = 'pypeit/PypeIt'
+
+
+def git_repo():
+    """
+    Get a reference to the local repository, if possible.
+    """
+    if Repository is None:
+        # pygit2 not available
+        return None
+    try:
+        return Repository(resources.files('pypeit'))
+    except GitError:
+        # PypeIt not in a git repo
+        return None
 
 
 # For development versions, try to get the branch name
@@ -65,21 +85,33 @@ def git_branch():
     Return the name/hash of the currently checked out branch
     
     Returns:
-        :obj:`str`: Branch name or hash. Defaults to "develop" if PypeIt is not currently in a repository
-        or pygit2 is inot installed.
-    
+        :obj:`str`: Branch name or hash. Defaults to "develop" if PypeIt is not
+        currently in a repository or pygit2 is not installed.
     """
-    if Repository is not None:
-        try:
-            repo = Repository(resources.files('pypeit'))
-        except Exception as e:
-            # PypeIt not in a git repo
-            repo = None
-
-    if Repository is None or repo is None:
+    repo = git_repo()
+    if repo is None:
         return 'develop' if '.dev' in __version__ else __version__
-
     return str(repo.head.target) if repo.head_is_detached else str(repo.head.shorthand)
+
+
+def git_remote_path():
+    """
+    The the main path to the GitHub repository.
+
+    This defaults to the main repository if the repository cannot be defined
+    (see :func:`git_repo`) or if the "origin" remote URL cannot be determined.
+
+    Returns:
+        :obj:`str`: Remote path
+    """
+    repo = git_repo()
+    if repo is None:
+        return __PYPEIT_REPO_PATH__
+    try:
+        url = repo.remotes['origin'].url
+    except KeyError:
+        return __PYPEIT_REPO_PATH__
+    return urlparse(url).path.replace('.git','').removeprefix('/')
 
 
 def github_contents(repo, branch, path, recursive=True):
@@ -407,7 +439,7 @@ def parse_cache_url(url):
 
     if host == 'github':
         # Get the branch name
-        github_root = pathlib.PurePosixPath('/pypeit/PypeIt')
+        github_root = pathlib.PurePosixPath(f'/{git_remote_path()}')
         p = pathlib.PurePosixPath(url_parts.path).relative_to(github_root)
         branch = p.parts[0]
         f_type = str(p.parent.relative_to(pathlib.PurePosixPath(f'{branch}/pypeit/data')))
@@ -452,7 +484,7 @@ def _build_remote_url(f_name: str, f_type: str, remote_host: str=None):
         (above) is what controls the download.
     """
     if remote_host == "github":
-        parts = ['https://raw.githubusercontent.com/pypeit/PypeIt/', f'{git_branch()}/',
+        parts = ['https://raw.githubusercontent.com', f'/{git_remote_path()}/', f'{git_branch()}/',
                  'pypeit/', 'data/'] + [f'{p}/' for p in pathlib.Path(f_type).parts] + [f'{f_name}']
         return reduce(lambda a, b: urljoin(a, b), parts), None
 

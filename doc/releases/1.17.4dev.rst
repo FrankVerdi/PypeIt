@@ -58,7 +58,8 @@ Under-the-hood Improvements
    provided by the pypeit file passed to the script.
  - Moved ``deprecated``, ``paper``, ``presentations``, and ``proposals``
    directories into a new repository ``PypeIt-misc``.
-
+ - Abstracted generation of GitHub remote paths in the cache system to make sure
+   functionality works when working in a fork of the code.
 
 Bug Fixes
 ---------
