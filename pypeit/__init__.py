@@ -22,7 +22,7 @@ def short_warning(message, category, filename, lineno, file=None, line=None):
 warnings.formatwarning = short_warning
 
 # NOTE: This is essentially a hack to deal with all the RankWarnings that numpy
-# can through during polynomial fitting.  Specifically this happens frequently
+# can throw during polynomial fitting.  Specifically this happens frequently
 # in pypeit.core.fitting.PypeItFit.fit.  We should instead determine why these
 # rank warnings are happening and address the root cause!
 # 'default' means: "print the first occurrence of matching warnings for each
