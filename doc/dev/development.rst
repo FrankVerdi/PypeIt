@@ -5,7 +5,13 @@
 Development Procedures and Guidelines
 =====================================
 
-We encourage anyone to help us develop the ``PypeIt`` code base to better
+.. contents:: Contents
+    :depth: 1
+    :local:
+
+----
+
+We encourage anyone to help us develop the PypeIt code base to better
 suit your needs and to improve its algorithms.  If you do so, please
 follow this list of procedures and guidelines.  In particular, please
 note our :ref:`codeconduct`.
@@ -13,8 +19,8 @@ note our :ref:`codeconduct`.
 Installation
 ------------
 
-If you plan to develop/alter the ``PypeIt`` code directly, you should install
-the software via git, instead of pip or conda.  See :ref:`developer_install`.
+If you plan to develop/alter the PypeIt code directly, you should 
+install the code from source; see :ref:`developer_install`.
 
 This isn't required, but to simplify some of the commands below, I assume that
 you have an environmental variable that points to your installation of the
@@ -28,14 +34,13 @@ you have an environmental variable that points to your installation of the
 Branches
 --------
 
-``PypeIt`` maintains two persistent branches:
+PypeIt maintains two persistent branches:
 
  * ``release``: This is the primary stable version of the code.  Modulo any
-   recent hotfixes, this is the version of the code that is installed when
-   using `pip`_ and its the version that is used to produce the latest
-   `documentation`_.  Pull requests to this branch are only done before tagging
+   very recent :ref:`hotfixes`, this is closest to the most recently tagged and
+   released version.  Pull requests to this branch are only done before tagging
    a new release of the code or to perform critical bug hotfixes.  The release
-   schedule is irregular and decided by the core developers.
+   schedule is discussed during our bi-weekly development meetings.
 
  * ``develop``: This is the main development version of the code.  It should be
    stable enough to use, but it may contain experimental, unsupported code that
@@ -54,7 +59,7 @@ hot-fixes.  On the command line, you can do this as follows:
     git checkout develop
     git pull
     git checkout -b my_new_feature
-    git merge --no-ff release
+    git merge release
 
 .. note::
 
@@ -66,15 +71,15 @@ hot-fixes.  On the command line, you can do this as follows:
 Development Principles and Communication
 ----------------------------------------
 
-The main thing to keep in mind when developing for ``PypeIt`` is that its
+The main thing to keep in mind when developing for PypeIt is that its
 primary use is as an end-to-end reduction pipeline.  This has a few
 implications:
 
- * By default, the execution of ``run_pypeit`` should continue either
-   until a critical error is raised or the reduction is complete.  **No direct
-   interaction with the code should be required at any point**.  ``PypeIt`` does
-   have some interactive components, but these are executed via separate
-   scripts.
+ * By default, the execution of ``run_pypeit`` should continue either until a
+   critical error is raised or the reduction is complete.  **No direct
+   interaction with the code should be required at any point**.  PypeIt does
+   have some interactive components, but these are executed only if specifically
+   requested by command-line arguments or via separate scripts.
 
  * Any input needed from the user for your feature should be provided by
    :ref:`parameters` (preferred) or as a command-line argument.
@@ -88,13 +93,13 @@ implications:
    scripts that interact with the primary output files.
 
  * See :doc:`here <new_spectrograph>` for guidance on 
-   adding a **new spectrograph** to the list of spectrograph data that
-   ``PypeIt`` can reduce.
+   adding a **new spectrograph** to the list of spectroscopic data that
+   PypeIt can reduce.
 
  * If your development includes adding a **new executable script**, see advice
    at :ref:`new_script`.
 
-Feature development in ``PypeIt`` is unlikely to be fully independent of
+Feature development in PypeIt is unlikely to be fully independent of
 other development activities.  Your feature will likely depend on or
 influence the outcome of other modules during the data-reduction
 process.  This leads to a few important guidelines:
@@ -110,8 +115,8 @@ process.  This leads to a few important guidelines:
         git checkout develop
         git pull
         git checkout my_new_feature
-        git merge --no-ff release
-        git merge --no-ff develop
+        git merge release
+        git merge develop
 
  * Consider the effects of simultaneous development efforts on your work
    and vice versa.  For example, if you're working on a specific module
@@ -130,12 +135,71 @@ Our primary means of **communication** for development is the `PypeIt developers
 Slack <https://pypeit.slack.com>`_ and a biweekly telecon.  Contact `X
 Prochaska`_ for Slack access and/or the relevant Zoom link.
 
+
+.. _changelog:
+
+Logging changes
+~~~~~~~~~~~~~~~
+
+It is important to log changes made to the code in a way that other developers
+and eventually users can interpret.  In the past we have done this using the
+single ``CHANGES.rst`` file; however, we now have version specific change logs
+in the ``doc/releases`` directory.  In terms of development guidelines:
+
+- Changes made to the code should be logged in the relevant development log.
+  For example, all changes made *after* version 1.14.0 will be logged in a
+  ``doc/release/1.14.1dev.rst`` file.  If the relevant file doesn't exist when
+  you submit your PR, create it.
+
+- Changes are expected to fall under a small set of broad categories, like
+  improvements to performance for specific instruments, minor bug fixes, or
+  datamodel changes (see previous release docs for examples).  When including
+  your change, add it below the relevant heading; if no relevant heading
+  exists, add a new one.
+
+- Hotfixes merged directly to the ``release`` branch should *also be added to
+  the relevant development log*.  I.e., these changes are not part of the
+  released tag, even if they are in the "release" branch.  Again, if the
+  relevant file doesn't exist when you perform the hotfix, create it in a way
+  that it will get merged with the identical doc in the ``develop`` branch.
+
+- When tagging, the development log will be renamed to the new tag version, and
+  a new file should be created for the next development phase.  See
+  :ref:`tagging`.
+
+.. _hotfixes:
+
+Hotfixes
+~~~~~~~~
+
+There may be bugs in the ``release`` version of the code that are not caught by
+the tests, but significantly impact some users.  Fixing these issues leads to a
+patch release of the code, following this procedure:
+
+ * Checkout the ``release`` version of the code.
+
+ * Create a new branch from the ``release`` version (*not* the ``develop``
+   version).
+
+ * Implement the hotfix.
+
+ * Create a release doc that lists the hotfix.  For example, if the current
+   development doc is ``doc/release/1.14.1dev.rst``: *create* the new file
+   ``doc/release/1.14.1.rst``, edit it to include a description of the hotfix,
+   add it to the repo, and rename the existing development doc to indicate the
+   version increment (``doc/release/1.14.2dev.rst``).  Also update the
+   ``doc/whatsnew.rst`` file to include the new release files.
+
+ * Issue a PR and follow the :ref:`tagging`.  Following the example above, the
+   new tag would be ``1.14.1``.
+
+
 Testing the Code
 ----------------
 
-``PypeIt`` performs extensive testing using the :ref:`dev-suite`; follow that
-link for more details on executing the tests.  What follows describes how to add
-new tests.
+PypeIt performs extensive testing using the :ref:`dev-suite`; follow that link
+for more details on executing the tests.  Below, we describe how to add new
+tests.
 
 .. _dev-suite-tests:
 
@@ -232,17 +296,18 @@ Similar ``dev`` dependencies are configured for ``numpy``, ``ginga``, and
 
 Unit tests included in the main PypeIt repo should *not* require large data
 files.  Some files are kept in the repo for this purpose (see the
-``pypeit/tests/files`` directory), but they should be minimized to keep the size
-of the package distribution manageable.  Unit tests that require input data
-files should instead be added to the `PypeIt Development Suite`_.
+``pypeit/data/tests`` directory), but they should be minimized to keep the size
+of the repository manageable (these test files are *not* included in the package
+distribution).  In genaral, unit tests that require input data files should
+instead be added to the `PypeIt Development Suite`_.
 
 Workflow
 --------
 
-A typical ``PypeIt`` development workflow is as follows:
+A typical PypeIt development workflow is as follows:
 
- * Create a new branch stemming from the ``develop`` branch (hot-fixes should
-   instead branch from ``release``):
+ * Create a new branch stemming from the ``develop`` branch (:ref:`hotfixes`
+   should instead branch from ``release``):
 
    .. code-block:: bash
 
@@ -252,7 +317,7 @@ A typical ``PypeIt`` development workflow is as follows:
         git checkout develop
         git pull
         git checkout -b my_new_feature
-        git merge --no-ff release
+        git merge release
 
  * Develop and debug the feature
 
@@ -271,12 +336,7 @@ A typical ``PypeIt`` development workflow is as follows:
         cd $PYPEIT_DIR
         tox -e test
 
- * Run the `Development Suite`_ and fix any failures:
-
-   .. code-block:: bash
-
-        cd $PYPEIT_DEV
-        ./pypeit_test develop
+ * Run the `Development Suite`_ and fix any failures.
 
    .. warning::
 
@@ -338,13 +398,13 @@ Once you've submitted a pull request, we'll review your PR and provide
 comments on the code.  The minimum requirements for acceptance of a PR
 are as follows:
 
- * If your PR introduces a new instrument (see :ref:`new_spec`) that ``PypeIt``
+ * If your PR introduces a new instrument (see :ref:`new_spec`) that PypeIt
    is to support for the long term, this instrument *must* be added to the
    `Development Suite`_.  That means raw data should be added to the Google
    Drive (see :ref:`here <dev-suite>`) and relevant tests should be added to
    the ``$PYPEIT_DEV/pypeit_test`` script (via a PR to the `PypeIt Development
    Suite`_) such that the new instrument is included in list of instruments
-   tested by executing ``./pypeit_test develop``.
+   tested by the testing script (``pypeit_test``).
 
  * The CI tests run by GitHub (see the Checks tab of the PR) on the remote
    repository must pass.
@@ -380,9 +440,7 @@ are as follows:
 
  * The documentation must be successfully recompiled, either using the
    ``update_docs`` scripts or but running ``make clean ; make html`` in the
-   ``doc/`` directory.  (We plan for this to be added to the dev-suite testing;
-   in the meantime, PR authors simply need to affirm that the documentation
-   builds successfully.)
+   ``doc/`` directory.
 
  * Spurious commented code used for debugging or testing is fine, but
    please let us know if you want it to be kept by adding a relevant
@@ -393,7 +451,7 @@ are as follows:
  * "Unsupported code," that is code that is experimental and still work
    in progress, should be minimized as much as is reasonable.  The
    relevant code block should be clearly marked as experimental or WIP,
-   and it should not be executed by the main ``PypeIt`` executable,
+   and it should not be executed by the main PypeIt executable,
    ``run_pypeit``.
 
  * At least two reviewers must accept the code.
@@ -403,10 +461,10 @@ Tagging Protocol
 
 The core development team will regularly tag "release" versions of the
 repository.  Tagging a release version of the code is triggered anytime the
-development branch of the code is merged into the ``release`` branch.  The
-tagging process is as follows:
+development branch of the code or a hotfix is merged into the ``release``
+branch.  The tagging process is as follows:
 
- * At biweekly ``PypeIt`` telecons or over the ``PypeIt`` developers Slack, the
+ * At biweekly PypeIt telecons or over the PypeIt developers Slack, the
    core development team will decide to merge the ``develop`` branch into
    ``release``.
 
@@ -432,9 +490,8 @@ tagging process is as follows:
         * Make any final updates to ``CHANGES.rst`` and reset the relevant
           version header to be the intended tag number.
 
-        * Add a new release doc to the ``doc/releases`` directory, parsing
-          changes from the ``CHANGES.rst`` file, and add include it in the
-          ``whatsnew.rst`` doc.
+        * Update the documentation by executing ``cd doc ; make clean ; make
+          html``, add any updated files, and correct all errors/warnings.
 
  * Once the ``release`` branch and the :ref:`dev-suite` ``main`` branch are
    updated, the dev-suite tests are re-run using these two branches.  These
@@ -463,8 +520,9 @@ tagging process is as follows:
 
         # Make sure you have the most recent version of twine installed
         pip install twine --upgrade
+        pip install build --upgrade
         # Construct the pip distribution
-        python setup.py sdist bdist_wheel
+        python -m build --sdist --wheel .
         # Test the upload
         twine upload --repository pypeit-test dist/*
         # Upload, this time it's for keeps
@@ -512,7 +570,7 @@ If we wish to generate a new DOI for the code, it is as simple as
 This document was developed and mutually agreed upon by: Kyle Westfall,
 J. Xavier Prochaska, Joseph Hennawi.
 
-*Last Modified: 07 Sep 2023*
+*Last Modified: 05 Mar 2025*
 
 ----
 
