@@ -27,6 +27,7 @@ import matplotlib.pyplot as plt
 
 from astropy import units
 from astropy import stats
+from astropy.io import ascii
 
 from pypeit import msgs
 from pypeit.move_median import move_median
@@ -458,7 +459,7 @@ def to_string(data, use_repr=True, verbatim=False):
             Use quotes around the provided string to indicate that
             the string should be represented in a verbatim (fixed
             width) font.
-        
+
     Returns:
         :obj:`str`: A string representation of the provided ``data``.
     """
@@ -529,7 +530,7 @@ def spec_atleast_2d(wave, flux, ivar, gpm, log10_blaze_function=None, copy=False
 
     Input and output spectra are ordered along columns; i.e., the flux vector
     for the first spectrum is in ``flux[:,0]``.
-    
+
     Args:
         wave (`numpy.ndarray`_):
             Wavelength array. Must be 1D if the other arrays are 1D. If 1D
@@ -2042,3 +2043,50 @@ def list_of_spectral_lines():
                          CaII_Kwav, CaII_Hwav, Gbandwav])
 
     return line_names, line_wav
+
+
+def get_line_list(name):
+    """
+    Return one of the built-in line lists.
+
+    Parameters
+    ----------
+    name : str
+        Name of the line list.
+
+    Returns
+    -------
+    tbl : `~astropy.table.Table`
+        An astropy Table containing a line list info (e.g. names and wavelens).
+
+    """
+    from pypeit import __file__
+    pypeit_home = os.path.dirname(__file__)
+    line_list_tbl = os.path.join(pypeit_home, 'data', 'line_lists',
+                                 f"{name}.ecsv")
+    tbl = ascii.read(line_list_tbl)
+    return tbl
+
+
+def get_line_list_names():
+    """
+    Return the list of built-in line list names.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    names : list
+        A list of built in line list names
+
+    """
+    # TODO: return descriptions of the names
+    from pypeit import __file_
+    pypeit_home = os.path.dirname(__file__)
+    line_list_files = glob.glob(os.path.join(pypeit_home, 'data', 'line_lists',
+                                             '*.ecsv'))
+    names = [os.path.splitext(os.path.basename(fname))[0]
+             for fname in line_list_files]
+    return names
