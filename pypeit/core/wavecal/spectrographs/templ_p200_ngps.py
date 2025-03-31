@@ -3,17 +3,12 @@ import os
 
 from pypeit.core.wavecal import templates
 
-##
-# NGPS Red Channel
-##
 
-# ##############################
 def p200_ngps_R(overwrite=False):  # NGPS_R
 
-    binspec = 2 # KEY PARAMETER, WILL NEED TO REDO MANUAL WAVELENGTH SOLUTION WHEN BINNING IS CHANGED
+    binspec = 2 
     outroot = 'p200_ngps_R.fits'
     
-    # Assume for right now that wavelength solution is roughly equivalent for all 3 slits
     slits = [98, 254, 424] 
     lcut = None
 
