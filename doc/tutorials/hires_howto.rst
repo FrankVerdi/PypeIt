@@ -11,7 +11,7 @@ Overview
 ========
 
 This tutorial goes through a full run of PypeIt on one of our example Keck/HIRES datasets.
-Specifically, we shows the reduction of the ``J0100+2802_H204Hr_RED_C1_ECH_-0.82_XD_1.62_1x2``
+Specifically, we show the reduction of the ``J0100+2802_H204Hr_RED_C1_ECH_-0.82_XD_1.62_1x2``
 dataset, which are observations of the quasar J0100+2802 at z=6.29 taken with the HIRES RED
 cross-disperser, echelle angle of -0.82°, cross-disperser angle of 1.62°, and 1x2
 (spectral x spatial) binning.  See :ref:`here <dev-suite>` to find this example dataset.
@@ -68,7 +68,7 @@ and it looks like this:
 
 .. include:: ../include/keck_hires_A.pypeit.rst
 
-Inspecting this file, we want to make sure that all the frame types were accurately assigned in the
+Inspecting this file, we want to make sure that all of the frame types were accurately assigned in the
 :ref:`data_block`.  If not, these can be fixed by editing the :ref:`pypeit_file` directly; see instructions
 :ref:`here<data_block>`. We can also remove any bad (or undesired) calibration
 or science frames from the list, by either deleting them altogether or commenting them out with a ``#``.
@@ -130,6 +130,10 @@ Calibrations
 Order Edges
 +++++++++++
 
+PypeIt, by default, uses a mosaic approach for the reduction. It constructs a mosaic
+of the blue, green, and red detector data and reduces it, instead of processing
+the detector data individually.
+
 The code first uses the ``trace`` frames to find the order edges on the three HIRES
 detector mosaiced together. To check that PypeIt correctly identified every order,
 we can run the :ref:`pypeit_chk_edges` script, with this explicit call:
@@ -167,8 +171,12 @@ The QA file is a PNG file in the ``QA/PNG/`` folder and it looks like this:
 Wavelengths
 +++++++++++
 
-The wavelength calibration is usually performed using the ThAr arc lamp frames. The results can
-be inspected using the automatically generated QA files; see :ref:`qa-wave-fit`.
+The wavelength calibration is usually performed using the ThAr arc lamp frames,
+and an approach that is specific for :ref:`wvcalib-echelle`. This approach
+follows the standard procedure for the 1D wavelength fit, but it also
+performs a 2D fit to the wavelength solutions in order to improve the
+1D fits. The 2D fit is performed on a *per* detector basis, since we find
+the solution for the whole mosaic to be less accurate.
 
 Below is the 1D fit wavelength-calibration QA plot for the bluest order in this dataset (order=62).
 Such a plot is produced for each order.
@@ -186,10 +194,8 @@ Such a plot is produced for each order.
    were rejected by the wavelength solution.  The bottom-right panel shows the
    fit residuals (i.e., data - model).
 
-For echelle spectrographs, the automated wavelength calibration procedure will
-also perform a 2d fit to attempt to improve the 1d fits. The results of the 2d
-fit can be inspected by looking at the automatically generated QA files. Below
-is an example of the global 2D fit and the improved 1D fits QA plots.
+The results of the 2D fit can be inspected by looking at the automatically generated QA files.
+Below is an example of the global 2D fit and the improved 1D fits QA plots.
 
 .. container:: image-group
 
@@ -397,6 +403,16 @@ Fluxing and co-adding
 The flux calibration is performed by first creating a sensitivity function from the
 standard star observations. The sensitivity function is then applied to the science
 observations. See :ref:`fluxing` for more details.
+
+.. warning::
+
+   High quality absolute flux calibration of HIRES data is difficult to achieve. This is due to
+   the fact that the instrument's response function varies with the telescope position in an
+   "unpredictable way", see `Suzuki at al 2003 <https://iopscience.iop.org/article/10.1086/376849>`__
+   and `here <https://www2.keck.hawaii.edu/inst/common/makeewww/FluxCalibration/index.html>`__.
+   The following steps, therefore, provide an approximate relative flux calibration. The
+   user should be aware of this and use the flux calibration with caution.
+
 
 Generating a Sensitivity function
 ---------------------------------
