@@ -31,6 +31,7 @@ from astropy.io import ascii
 
 from pypeit import msgs
 from pypeit.move_median import move_median
+from pypeit import dataPaths
 
 
 def zero_not_finite(array):
@@ -2060,10 +2061,7 @@ def get_line_list(name):
         An astropy Table containing a line list info (e.g. names and wavelens).
 
     """
-    from pypeit import __file__
-    pypeit_home = os.path.dirname(__file__)
-    line_list_tbl = os.path.join(pypeit_home, 'data', 'line_lists',
-                                 f"{name}.ecsv")
+    line_list_tbl = dataPaths.line_lists.get_file_path(f"{name}.ecsv")
     tbl = ascii.read(line_list_tbl)
     return tbl
 
@@ -2083,10 +2081,8 @@ def get_line_list_names():
 
     """
     # TODO: return descriptions of the names
-    from pypeit import __file_
-    pypeit_home = os.path.dirname(__file__)
-    line_list_files = glob.glob(os.path.join(pypeit_home, 'data', 'line_lists',
-                                             '*.ecsv'))
+    line_list_dir = dataPaths.line_lists.path
+    line_list_files = glob.glob(os.path.join(line_list_dir, '*.ecsv'))
     names = [os.path.splitext(os.path.basename(fname))[0]
              for fname in line_list_files]
     return names

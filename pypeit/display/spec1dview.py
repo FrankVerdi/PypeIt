@@ -306,7 +306,7 @@ class Spec1dView(GingaPlugin.LocalPlugin):
 
             for kk in range(len(gdwv)):
                 jj = gdwv[kk]
-                wrest = self.llist['wrest'][jj].value
+                wrest = self.llist['wrest'][jj]
                 lbl = self.llist['name'][jj]
                 # Plot
                 x_data = wrest * np.array([z + 1, z + 1])
