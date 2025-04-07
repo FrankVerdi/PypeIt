@@ -81,7 +81,7 @@ class APFTelescopePar(TelescopePar):
                                               longitude=loc.lon.to(units.deg).value,
                                               latitude=loc.lat.to(units.deg).value,
                                               elevation=loc.height.to(units.m).value,
-                                              diameter=2.4,
+                                              diameter=2.41,
                                               eff_aperture=4.47) # assumes 2% central obscuration
                                 
 class TNGTelescopePar(TelescopePar):
