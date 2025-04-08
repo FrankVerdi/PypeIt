@@ -222,7 +222,7 @@ def test_cache_to_pkg():
     assert len(contents) == 1, 'Should find 1 relevant file in the cache'
 
     # Parse the url
-    host, branch, subdir, filename = cache.parse_cache_url(list(contents.keys())[0])
+    host, fork, branch, subdir, filename = cache.parse_cache_url(list(contents.keys())[0])
     assert host == 'github', 'Host is wrong'
     assert branch == cache.git_branch(), 'Branch is wrong'
     assert subdir == dataPaths.tests.subdirs, 'Subdirectory is wrong'
@@ -254,5 +254,4 @@ def test_cache_to_pkg():
     # ... and should no longer exist in the cache
     assert len(cache.search_cache(test_file_name)) == 0, \
             'File should have been removed from the cache'
-    
 

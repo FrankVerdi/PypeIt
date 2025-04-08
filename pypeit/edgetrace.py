@@ -834,9 +834,14 @@ class EdgeTraceSet(calibframe.CalibFrame):
         ad_rm = False
         if self.par['rm_slits'] is not None:
             ad_rm = self.rm_user_traces(self.par['rm_slits'])
+            # WARNING: If this removes all the slits, this will set the
+            # "success" flag to False.  This is why it is reset to True below
+            # when adding a slit, if the add was successful.
         # Add user traces
         if self.par['add_slits'] is not None:
             ad_rm = self.add_user_traces(self.par['add_slits'], method=self.par['add_predict'])
+            if ad_rm and not self.success:
+                self.success = True
         # Show the result, if any traces were added or removed
         if debug > 0 and ad_rm:
             self.show(title='After user-dictated adding/removing slits')
@@ -893,6 +898,10 @@ class EdgeTraceSet(calibframe.CalibFrame):
         msgs.info('-'*50)
         msgs.info('{0:^50}'.format('Initialize Edge Tracing'))
         msgs.info('-'*50)
+
+        if self.traceid is not None:
+            # Clear all pre-existing trace data
+            self._reinit_trace_data()
 
         # TODO: Put in some checks that makes sure the relevant image
         # attributes are not None?
@@ -2731,7 +2740,11 @@ class EdgeTraceSet(calibframe.CalibFrame):
             self.edge_fit = self.edge_fit[:,keep]
         self.traceid = self.traceid[keep]
         if self.maskdef_id is not None:
-            self.maskdef_id = self.maskdef_id[keep]
+            try:
+                self.maskdef_id = self.maskdef_id[keep]
+            except:
+                embed()
+                exit()
 
         if resort:
             # Resort by the spatial dimension
