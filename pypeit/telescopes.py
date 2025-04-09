@@ -13,7 +13,11 @@ from astropy import units
 
 class AATTelescopePar(TelescopePar):
     def __init__(self):
-        loc = EarthLocation.of_site('Siding Spring Observatory')
+        try:
+            loc = EarthLocation.of_site('Siding Spring Observatory')
+        except Exception as e:
+            print(EarthLocation.get_site_names(refresh_cache=True))
+            raise e
         super(AATTelescopePar, self).__init__(name='AAT',
                                               longitude=loc.lon.to(units.deg).value,
                                               latitude=loc.lat.to(units.deg).value,
