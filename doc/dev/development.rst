@@ -11,16 +11,16 @@ Development Procedures and Guidelines
 
 ----
 
-We encourage anyone to help us develop the PypeIt code base to better
-suit your needs and to improve its algorithms.  If you do so, please
-follow this list of procedures and guidelines.  In particular, please
-note our :ref:`codeconduct`.
+We, of course, welcome and encourage community development of PypeIt.  All code
+contributors are expected to follow our :ref:`codeconduct` and these development
+guidelines.
 
 Installation
 ------------
 
-If you plan to develop/alter the PypeIt code directly, you should 
-install the code from source; see :ref:`developer_install`.
+If you plan to develop/alter the PypeIt code directly, you should install the
+code from source from a fork of the main respository; see
+:ref:`developer_install`.
 
 For simplicity in the discussion below, I refer to the directory with your
 installation as ``$PYPEIT_DIR``.
@@ -594,6 +594,7 @@ Here are some developer-specific docs:
 .. toctree::
    :maxdepth: 1
 
+   installing
    metadata
    new_script
    new_spectrograph
