@@ -2,6 +2,14 @@
 Version 1.17.4dev
 =================
 
+Documentation Updates
+---------------------
+
+- Updated development guidelines with new procedures related to using forks.
+  Apart from a small number of maintainers, code contributions are now expected
+  to come from forks.  Also, all the developer-specific installation details
+  have been removed from the main installation doc.
+
 Installation Changes
 --------------------
 
