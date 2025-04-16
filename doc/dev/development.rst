@@ -15,8 +15,10 @@ Development Procedures and Guidelines
 We welcome and encourage community development of PypeIt!  All code contributors
 are expected to follow our :ref:`codeconduct` and these development guidelines.
 
-Installation
-============
+.. _developer_install:
+
+Installing and working with your fork
+=====================================
 
 If you plan to develop the PypeIt code, you should install the code from a fork
 of the main respository, as described below.
@@ -41,7 +43,7 @@ right.  Do not change the name of the repository (``PypeIt``).
 When you fork the code, you will be asked if you want to only copy the
 ``release`` branch (default).  If you uncheck this box, you will get *all* of
 the current branches, which is almost certainly not something you want to do.
-See :ref:`below<checkout_remote_branch>`` for one way to add the ``develop``
+See :ref:`below <checkout_remote_branch>` for one way to add the ``develop``
 branch to your repo.
 
 Finally, you are **strongly** encouraged to add branch protection rules for both
@@ -53,7 +55,8 @@ Follow a similar process for creating a fork of the :ref:`dev-suite`.
 Local Install
 -------------
 
-To install from source, first create a local clone of your fork:
+To install from source, first create a local clone of your fork (replace
+``{github_handle}`` with the GitHub handle used to create your fork):
 
 .. code-block:: console
 
@@ -77,12 +80,12 @@ Install the main PypeIt code, including its package dependencies, using ``pip``
     pip install -e ".[dev]"
 
 This (specifically the ``-e`` option) creates an "editable" installation, which
-means that any changes you make in the repository directory tree will become
-immediately available the next time the code is imported. Including the
-``[dev]`` set of optional dependencies ensures that all of the tools you need to
-test and build PypeIt are installed. (Note that you may or may not need the
-quotes above depending on your shell, and that you should avoid cutting and
-pasting these commands into a terminal window.)
+means that any changes you make in the repository directory tree will take
+immediate effect the next time the code is imported. Including the ``[dev]`` set
+of optional dependencies ensures that all of the tools you need to test and
+build PypeIt are installed. (Note that you may or may not need the quotes above
+depending on your shell, and that you should avoid cutting and pasting these
+commands into a terminal window.)
 
 You *do not* need to execute a similar installation for the dev-suite.
 
@@ -128,7 +131,8 @@ run:
 
     % git fetch upstream
 
-Do this often!
+Do this often!  Note, however, that this **does not** update the content of your
+fork to match the changes in the upstream repo.
 
 .. _checkout_remote_branch:
 
@@ -170,7 +174,7 @@ or rebase:
 
 In the rebase example note two things:
 
-- This does not update your local develop branch because we were not on our
+- This does not update your local ``develop`` branch because we were not on our
   local ``develop`` branch when we executed the rebase command.  This *only*
   updates the ``feature_branch`` with the changes made to its original base
   branch, ``develop`` in this case.
@@ -219,8 +223,8 @@ remote connection after finishing the collaborative work:
 
 .. _persistent-branches:
 
-Persistent Branches
-===================
+Persistent and development branches
+===================================
 
 PypeIt maintains two persistent branches:
 
@@ -253,7 +257,7 @@ directory:
     # Switch to your local develop branch
     git checkout develop
     # Update it
-    git merge upstream/develope
+    git merge upstream/develop
     # Push the updated branch to your fork
     git push
     # Create a new branch from your local develop branch
@@ -396,8 +400,8 @@ patch release of the code, following this procedure:
  * Issue a PR and follow the :ref:`tagging`.  Following the example above, the
    new tag would be ``1.14.1``.
 
-Testing the Code
-================
+Testing
+=======
 
 PypeIt performs extensive testing using the :ref:`dev-suite`; follow that link
 for more details on executing the tests.  Below, we describe how to add new
