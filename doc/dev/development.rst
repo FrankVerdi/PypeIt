@@ -2,6 +2,7 @@
 
 .. _development:
 
+=====================================
 Development Procedures and Guidelines
 =====================================
 
@@ -11,40 +12,46 @@ Development Procedures and Guidelines
 
 ----
 
-We, of course, welcome and encourage community development of PypeIt.  All code
-contributors are expected to follow our :ref:`codeconduct` and these development
-guidelines.
+We welcome and encourage community development of PypeIt!  All code contributors
+are expected to follow our :ref:`codeconduct` and these development guidelines.
 
 Installation
-------------
+============
 
-If you plan to develop/alter the PypeIt code directly, you should install the
-code from source from a fork of the main respository, as described below.
+If you plan to develop the PypeIt code, you should install the code from a fork
+of the main respository, as described below.
+
+You may also need/want to create a fork of the :ref:`dev-suite`!  This process
+proceeds similarly to the main code repository, **except that you do not need to
+pip install the dev-suite repository.**
 
 Setup a clean python environment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
 This is the same as described for a user installation; see :ref:`environment`.
 
 Fork the code
-^^^^^^^^^^^^^
+-------------
 
 Except for a few maintainers, code development should be done in forks of the
 code base.  To fork the code, go to `GitHub
 <https://github.com/pypeit/PypeIt>`__ and click the "Fork" button at the upper
-right.  You should keep the name of the repository (``PypeIt``) the same.
+right.  Do not change the name of the repository (``PypeIt``).
 
 When you fork the code, you will be asked if you want to only copy the
 ``release`` branch (default).  If you uncheck this box, you will get *all* of
 the current branches, which is almost certainly not something you want to do.
-See below for one way to add the ``develop`` branch to your repo.
+See :ref:`below<checkout_remote_branch>`` for one way to add the ``develop``
+branch to your repo.
 
 Finally, you are **strongly** encouraged to add branch protection rules for both
 the ``release`` and ``develop`` branches in your fork (these rules are *not*
 inherited from the main repository).
 
+Follow a similar process for creating a fork of the :ref:`dev-suite`.
+
 Local Install
-^^^^^^^^^^^^^
+-------------
 
 To install from source, first create a local clone of your fork:
 
@@ -53,8 +60,16 @@ To install from source, first create a local clone of your fork:
     git clone https://github.com/{github_handle}/PypeIt.git
 
 This will create a ``PypeIt`` directory at the location the command above was
-executed.  Then install the code, including the development dependencies, using
-``pip`` (even if you're in a conda environment):
+executed.
+
+To install the dev-suite, perform a similar operation (from your fork):
+
+.. code-block:: console
+
+    git clone https://github.com/{github_handle}/PypeIt-development-suite.git
+
+Install the main PypeIt code, including its package dependencies, using ``pip``
+(even if you're in a conda environment):
 
 .. code-block:: console
 
@@ -65,12 +80,14 @@ This (specifically the ``-e`` option) creates an "editable" installation, which
 means that any changes you make in the repository directory tree will become
 immediately available the next time the code is imported. Including the
 ``[dev]`` set of optional dependencies ensures that all of the tools you need to
-test and build PypeIt are installed. (Again, note that you may or may not need
-the quotes above depending on your shell, and that you should avoid cutting and
+test and build PypeIt are installed. (Note that you may or may not need the
+quotes above depending on your shell, and that you should avoid cutting and
 pasting these commands into a terminal window.)
 
-Connect your fork to the main repository
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+You *do not* need to execute a similar installation for the dev-suite.
+
+Connect the main repository to your fork
+----------------------------------------
 
 To ensure you are up-to-date with the main repository, you should add it as a
 remote:
@@ -87,8 +104,22 @@ remote:
     upstream	https://github.com/pypeit/PypeIt.git (fetch)
     upstream	https://github.com/pypeit/PypeIt.git (push)
 
+For the dev-suite:
+
+.. code-block:: console
+
+    % git remote -v
+    origin	https://github.com/{github_handle}/PypeIt-development-suite.git (fetch)
+    origin	https://github.com/{github_handle}/PypeIt-development-suite.git (push)
+    % git remote add upstream https://github.com/pypeit/PypeIt-development-suite.git
+    % git remote -v
+    origin	https://github.com/{github_handle}/PypeIt-development-suite.git (fetch)
+    origin	https://github.com/{github_handle}/PypeIt-development-suite.git (push)
+    upstream	https://github.com/pypeit/PypeIt-development-suite.git (fetch)
+    upstream	https://github.com/pypeit/PypeIt-development-suite.git (push)
+
 Updating your fork
-==================
+------------------
 
 To update your fork so that it will recognize changes in the main repository,
 run:
@@ -99,8 +130,10 @@ run:
 
 Do this often!
 
+.. _checkout_remote_branch:
+
 Checkout a remote branch and add it to your fork
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------------
 
 The most obvious application of this is for your first checkout of the
 ``develop`` branch into your fork.  However, you can do this with any branch
@@ -114,7 +147,7 @@ upstream branch, (3) push it to your fork (and change its remote tracking):
     % git push -u origin develop
 
 Merging changes made to an upstream branch
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------
 
 The ``fetch`` command does *not* merge changes made to the upstream repo.  You
 have to do that explicitly using either merge:
@@ -135,10 +168,22 @@ or rebase:
     % git rebase upstream/develop
     % git push --force
 
-Note the use of ``--force`` when pushing to your remote origin when you rebase.
+In the rebase example note two things:
+
+- This does not update your local develop branch because we were not on our
+  local ``develop`` branch when we executed the rebase command.  This *only*
+  updates the ``feature_branch`` with the changes made to its original base
+  branch, ``develop`` in this case.
+
+- Rebasing often requires forcing the push to your fork, using the ``--force``
+  option, because it alters the commit history.  If you try pushing without the
+  force argument, you will likely get a warning that your branch is out of date
+  and you need to pull the origin branch.  **Do not do this.**  Pulling in your
+  remote branch after rebasing will lead to a number of conflicts and, likely,
+  lost work.
 
 Collaborating on a branch
-^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
 If you're working with another developer (who has a different fork) on a single
 branch, you can add their fork as another remote and proceed similarly to how
@@ -166,14 +211,16 @@ Then you can both work on a ``feature_branch`` while keeping your branches in sy
 
 When you're done, one of you can issue the PR from one of your forks into the
 main repo.  If you want to keep your remote list clean, you can remove the
-remote connection:
+remote connection after finishing the collaborative work:
 
 .. code-block:: console
 
     % git remote remove collab
 
-Branches
---------
+.. _persistent-branches:
+
+Persistent Branches
+===================
 
 PypeIt maintains two persistent branches:
 
@@ -190,17 +237,31 @@ PypeIt maintains two persistent branches:
 When editing the code, please create a new branch stemming from the ``develop``
 branch.  You should also pull and merge in the most recent version of the
 ``release`` branch to make sure your new branch includes any very recent
-hot-fixes.  On the command line, you can do this as follows:
+hotfixes.  On the command line, you can do this as follows from your ``PypeIt``
+directory:
 
 .. code-block:: bash
 
-    cd $PYPEIT_DIR
+    # Fetch upstream changes
+    git fetch upstream
+    # Switch to your local release branch
     git checkout release
-    git pull
+    # Update it
+    git merge upstream/release
+    # Push the updated branch to your fork
+    git push
+    # Switch to your local develop branch
     git checkout develop
-    git pull
+    # Update it
+    git merge upstream/develope
+    # Push the updated branch to your fork
+    git push
+    # Create a new branch from your local develop branch
     git checkout -b my_new_feature
+    # Make sure develop is up-to-date with release
     git merge release
+    # Push the new branch to your fork
+    git push -u origin my_new_feature
 
 .. note::
 
@@ -210,7 +271,7 @@ hot-fixes.  On the command line, you can do this as follows:
     a new tag is released.  See :ref:`changelog`.
 
 Development Principles and Communication
-----------------------------------------
+========================================
 
 The main thing to keep in mind when developing for PypeIt is that its
 primary use is as an end-to-end reduction pipeline.  This has a few
@@ -250,11 +311,11 @@ process.  This leads to a few important guidelines:
 
    .. code-block:: bash
 
-        cd $PYPEIT_DIR
+        git fetch upstream
         git checkout release
-        git pull
+        git merge upstream/release
         git checkout develop
-        git pull
+        git merge upstream/develop
         git checkout my_new_feature
         git merge release
         git merge develop
@@ -280,7 +341,7 @@ Prochaska`_ for Slack access and/or the relevant Zoom link.
 .. _changelog:
 
 Logging changes
-~~~~~~~~~~~~~~~
+---------------
 
 It is important to log changes made to the code in a way that other developers
 and eventually users can interpret.  In the past we have done this using the
@@ -302,7 +363,8 @@ in the ``doc/releases`` directory.  In terms of development guidelines:
   the relevant development log*.  I.e., these changes are not part of the
   released tag, even if they are in the "release" branch.  Again, if the
   relevant file doesn't exist when you perform the hotfix, create it in a way
-  that it will get merged with the identical doc in the ``develop`` branch.
+  that it will get merged with the identical doc in the ``develop`` branch.  See
+  :ref:`hotfixes`.
 
 - When tagging, the development log will be renamed to the new tag version, and
   a new file should be created for the next development phase.  See
@@ -311,7 +373,7 @@ in the ``doc/releases`` directory.  In terms of development guidelines:
 .. _hotfixes:
 
 Hotfixes
-~~~~~~~~
+--------
 
 There may be bugs in the ``release`` version of the code that are not caught by
 the tests, but significantly impact some users.  Fixing these issues leads to a
@@ -334,9 +396,8 @@ patch release of the code, following this procedure:
  * Issue a PR and follow the :ref:`tagging`.  Following the example above, the
    new tag would be ``1.14.1``.
 
-
 Testing the Code
-----------------
+================
 
 PypeIt performs extensive testing using the :ref:`dev-suite`; follow that link
 for more details on executing the tests.  Below, we describe how to add new
@@ -345,7 +406,7 @@ tests.
 .. _dev-suite-tests:
 
 Development Suite
-~~~~~~~~~~~~~~~~~
+-----------------
 
 To add new tests to the development suite
 
@@ -382,16 +443,15 @@ results of the PypeIt scripts against the expected performance/result.
 .. _unit-tests:
 
 Unit Tests (GitHub CI)
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 Unit tests performed by GitHub continuous integration (CI) are located in the
 ``$PYPEIT_DIR/pypeit/tests`` directory.  To run them, make sure you have
 `pytest`_ installed (this should be true if you followed the developer
-installation procedure) and then:
+installation procedure) and then run, from your ``PypeIt`` directory:
 
 .. code-block:: bash
 
-    cd $PYPEIT_DIR
     pytest
 
 If some tests fail, you can run an individual test, e.g. ``test_wvcalib.py``
@@ -399,7 +459,6 @@ with
 
 .. code-block:: bash
 
-    cd $PYPEIT_DIR
     pytest -s pypeit/tests/test_wvcalib.py
 
 Note that the "-s" option allows you to insert interactive debugging commands
@@ -413,25 +472,23 @@ failing.
     part of the tests, but these are not always caught.
 
 Note also that the use of `pytest`_ requires the test dependencies to be
-installed, e.g. via ``pip install -e .[test]``. It is also possible, and often
-preferable, to run tests within their own isolated environments using `tox
-<https://tox.readthedocs.io/en/latest/>`_. This provides the capability to
-easily run tests against different versions of the various dependencies,
-including different python versions. The available ``tox`` environments are
-defined in ``$PYPEIT_DIR/tox.ini`` and can be listed by running ``tox -a``. To
-run tests against the default dependencies using the default python, do:
+installed. It is also possible, and often preferable, to run tests within their
+own isolated environments using `tox <https://tox.readthedocs.io/en/latest/>`_.
+This provides the capability to easily run tests against different versions of
+the various dependencies, including different python versions. The available
+``tox`` environments are defined in the ``tox.ini`` file and can be listed by
+running ``tox -a``. To run tests against the default dependencies using the
+default python, do:
 
 .. code-block:: bash
 
-    cd $PYPEIT_DIR
     tox -e test
 
 To specify a python version, do something like:
 
 .. code-block:: bash
 
-    cd $PYPEIT_DIR
-    tox -e py38-test
+    tox -e py312-test
 
 To test against, for example, the ``main`` branch for ``astropy`` on GitHub, you
 can do:
@@ -439,7 +496,7 @@ can do:
 .. code-block:: bash
 
     cd $PYPEIT_DIR
-    tox -e py38-test-astropydev
+    tox -e py312-test-astropydev
 
 Similar ``dev`` dependencies are configured for ``numpy``, ``ginga``, and
 ``linetools``, as well.
@@ -448,94 +505,74 @@ Unit tests included in the main PypeIt repo should *not* require large data
 files.  Some files are kept in the repo for this purpose (see the
 ``pypeit/data/tests`` directory), but they should be minimized to keep the size
 of the repository manageable (these test files are *not* included in the package
-distribution).  In genaral, unit tests that require input data files should
-instead be added to the `PypeIt Development Suite`_.
+distribution).  In general, unit tests that require input data files should
+instead be added to the :ref:`dev-suite`.
 
 Workflow
---------
+========
 
 A typical PypeIt development workflow is as follows:
 
  * Create a new branch stemming from the ``develop`` branch (:ref:`hotfixes`
-   should instead branch from ``release``):
-
-   .. code-block:: bash
-
-        cd $PYPEIT_DIR
-        git checkout release
-        git pull
-        git checkout develop
-        git pull
-        git checkout -b my_new_feature
-        git merge release
+   should instead branch from ``release``); see :ref:`persistent-branches`.
 
  * Develop and debug the feature
 
  * Run the unit tests, fix any failures, add new tests that test your new
-   feature(s), and/or modify the tests to accommodate your new feature:
-
-   .. code-block:: bash
-
-        cd $PYPEIT_DIR
-        pytest
-
-   or preferably:
-
-   .. code-block:: bash
-
-        cd $PYPEIT_DIR
-        tox -e test
+   feature(s), and/or modify the tests to accommodate your new feature.
 
  * Run the `Development Suite`_ and fix any failures.
 
    .. warning::
 
-        The `Development Suite`_ is *extensive* and takes significant computing
+        The :ref:`dev-suite` is *extensive* and takes significant computing
         resources and time.  The PypeIt development team consistently executes
         these tests using cloud computing.  We recommend you ensure that your
         PypeIt branch successfully runs on either a specific instrument of
         interest or ``shane_kast_blue`` first, and then someone on the PypeIt
         development team can execute the tests in the cloud.  From the top-level
-        directory of the `Development Suite`_, you can run all tests for
-        ``shane_kast_blue`` as follows:
+        directory of the :ref:`dev-suite`, you can run all tests for
+        ``shane_kast_blue`` as follows, from the ``PypeIt-development-suite``
+        directory:
 
         .. code-block:: bash
 
             ./pypeit_test all -i shane_kast_blue
 
- * Edit the relevant development log (e.g.,
-   ``$PYPEIT_DIR/doc/release/1.14.1dev.rst``) to include your key developments
-   (see :ref:`changelog`) and update the `documentation`_.  You can compile the
-   docs using the ``update_docs`` script (see below), which is just a simple
-   convenience script for executing ``make clean ; make html`` in the ``doc``
-   directory.
+ * Edit the relevant development log (e.g., ``doc/release/1.14.1dev.rst``) to
+   include your key developments (see :ref:`changelog`) and update the
+   `documentation`_.  You can compile the docs using the ``update_docs`` script
+   in the ``PypeIt`` directory (see below), which is just a simple convenience
+   script for executing ``make clean ; make html`` in the ``doc`` directory.
 
    .. code-block:: bash
 
-        cd $PYPEIT_DIR
         ./update_docs
 
-   *Any* warnings in the sphinx build of the docs *must* be fixed.  If you're
-   having difficulty getting the right sphinx/rst incantation, ping the
+   *Any* warnings in the sphinx build of the docs *must* be fixed (i.e.,
+   "warnings" should be considered the same as "errors" in this context).  If
+   you're having difficulty getting the right sphinx/rst incantation, ping the
    documentation channel in the `PypeIt Developers Slack
    <https://pypeit.slack.com>`__.  Also note that, even if no warnings are
    issued, it's useful to check that the documentation formats as you expect.
    After building the docs, you can open the ``doc/_build/html/index.html`` file
-   to view and navigate through the documentation in its entirety.
+   to view and navigate through the documentation in its entirety.  Finally note
+   that building the docs requires access to the ``RAW_DATA`` directory in the
+   :ref:`dev-suite`; the data are used to build some of the automatically
+   generated content for the documentation.
 
- * Make sure all your edits are committed and pushed to the remote
-   repository:
+ * Make sure all your edits are committed and pushed to your fork:
 
    .. code-block:: bash
 
-        cd $PYPEIT_DIR
         git add -u
         git commit -m 'final prep for PR'
         git push
 
  * `Submit a Pull Request (PR)
-   <https://github.com/pypeit/PypeIt/compare>`_. Unless otherwise
-   requested, all PRs should be submitted to the ``develop`` branch.
+   <https://github.com/pypeit/PypeIt/compare>`_ from your fork to the main
+   repository. Unless otherwise requested, all PRs should be submitted to the
+   ``develop`` branch.
 
 .. note::
 
@@ -546,7 +583,7 @@ A typical PypeIt development workflow is as follows:
    for more details.
 
 Pull Request Acceptance Requirements
-------------------------------------
+====================================
 
 Once you've submitted a pull request, two developers will review your PR and
 provide comments on the code.  The minimum requirements for acceptance of a PR
@@ -554,26 +591,25 @@ are as follows:
 
  * If your PR introduces a new instrument (see :ref:`new_spec`) that PypeIt
    is to support for the long term, this instrument *must* be added to the
-   `Development Suite`_.  That means raw data should be added to the Google
-   Drive (see :ref:`here <dev-suite>`) and relevant tests should be added to
-   the ``$PYPEIT_DEV/pypeit_test`` script (via a PR to the `PypeIt Development
-   Suite`_) such that the new instrument is included in list of instruments
-   tested by the testing script (``pypeit_test``).
+   :ref:`dev-suite`.  That means raw data should be added to the Google Drive
+   and relevant tests should be added to the
+   ``PypeIt-development-suite/pypeit_test`` script (via a PR to the
+   :ref:`dev-suite` repo) such that the new instrument is included in the list
+   of instruments tested by the testing script (``pypeit_test``).
 
  * The CI tests run by GitHub (see the Checks tab of the PR) on the remote
    repository must pass.
 
  * You (or someone running the tests on your behalf) must post a successful
-   report resulting from your execution of the `Development Suite`_, which
-   should look something like this:
+   report resulting from your execution of the :ref:`dev-suite`, which should
+   look something like this:
 
    .. figure:: ../figures/tests_success.png
 
         Example posting of successful tests.
 
-   For hotfixes, these tests can be circumvented at the discretion of
-   the core developers in the cases where the hotfix is obviously
-   correct.
+   For :ref:`hotfixes`, these tests can be circumvented at the discretion of the
+   maintainers in the cases where the hotfix is obviously correct.
 
  * All new methods and classes must be at least minimally documented.
    "Minimally documented" means that each method has a docstring that
@@ -587,7 +623,7 @@ are as follows:
    
    Documentation is expected to adhere to `Sphinx`_ syntax; i.e., the docstrings
    should be `reStructuredText`_.  We accept both `Google-format docstrings`_
-   and `Numpy-format docstrings`_.
+   and `Numpy-format docstrings`_ (preferred).
 
  * The docstrings for any changes to existing methods that were altered
    must have been modified so that they are up-to-date and accurate.
@@ -613,12 +649,13 @@ are as follows:
 .. _tagging:
 
 Tagging Protocol
-----------------
+================
 
 The core development team will regularly tag "release" versions of the
 repository.  Tagging a release version of the code is triggered anytime the
 development branch of the code or a hotfix is merged into the ``release``
-branch.  The tagging process is as follows:
+branch.  **Only a maintainer can tag the code.*** The tagging process is as
+follows:
 
  * At biweekly PypeIt telecons or over the PypeIt developers Slack, the
    core development team will decide to merge the ``develop`` branch into
@@ -631,7 +668,7 @@ branch.  The tagging process is as follows:
    ``develop``.  Code review is expected to be limited (because all code changes
    will have been reviewed before pulling into ``develop``), but the result of
    the dev-suite tests must be shown and approved.  The reason for creating the
-   new branch instead of a direct ``release...develop`` PR is to allow for the
+   new branch, instead of a direct ``release...develop`` PR, is to allow for the
    following updates to ``staged`` before merging (``develop`` is a protected
    branch and cannot be directly edited):
 
@@ -659,7 +696,6 @@ branch.  The tagging process is as follows:
 
         # Create a tag of the form X.Y.Z (using 1.14.0 here as an example).
         # The current autogenerated version is found in pypeit/version.py.
-        cd $PYPEIT_DIR
         git checkout release
         git pull
         git tag 1.14.0
@@ -705,13 +741,6 @@ branch.  The tagging process is as follows:
         username = pypeit
         password = [ask for this]
 
- * After a new version is uploaded to `pip`_, a new PR is automatically
-   generated for the `conda-forge/pypeit-feedstock
-   <https://github.com/conda-forge/pypeit-feedstock>`_ repository.  Follow the
-   commit checklist there before merging that PR, which will trigger the release
-   of a new pypeit package on conda-forge. For more information on how to
-   manually update the conda-forge pypeit package, see :ref:`conda_forge`.
-
 DOI
 ---
 
@@ -728,7 +757,7 @@ If we wish to generate a new DOI for the code, it is as simple as
 This document was developed and mutually agreed upon by: Kyle Westfall,
 J. Xavier Prochaska, Joseph Hennawi.
 
-*Last Modified: 05 Mar 2025*
+*Last Modified: 16 Apr 2025*
 
 ----
 
@@ -741,7 +770,6 @@ Here are some developer-specific docs:
 .. toctree::
    :maxdepth: 1
 
-   installing
    metadata
    new_script
    new_spectrograph
