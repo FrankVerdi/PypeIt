@@ -405,7 +405,7 @@ class SensFunc(datamodel.DataContainer):
 
         """
         # Now flux the standard star
-        self.sobjs_std.apply_flux_calib(self.par_fluxcalib, self.spectrograph, self)
+        self.sobjs_std.apply_flux_calib(self.par_fluxcalib, self.spectrograph, self, tell=self.algorithm=='IR')
         # TODO assign this to the data model
 
         # Unpack the fluxed standard
@@ -740,6 +740,8 @@ class SensFunc(datamodel.DataContainer):
         for iorddet in range(self.sens['SENS_FLUXED_STD_WAVE'].shape[0]):
             wave_gpm = self.sens['SENS_FLUXED_STD_WAVE'][iorddet] > 1.0
             model_flux_sav[iorddet][wave_gpm] = model_interp_func(self.sens['SENS_FLUXED_STD_WAVE'][iorddet][wave_gpm])
+
+        self.sens['SENS_STD_MODEL_FLAM'] = model_flux_sav
 
 
 
