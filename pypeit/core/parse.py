@@ -335,3 +335,7 @@ def str2list(inp, length=None):
             indices += [int(grp)]
     return np.unique(indices).tolist()
 
+
+def flip_fits_slice(s: str) -> str:
+    return '[' + ','.join(s.strip('[]').split(',')[::-1]) + ']'
+

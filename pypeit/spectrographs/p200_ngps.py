@@ -21,8 +21,6 @@ from pypeit.core import parse
 from pypeit.images import detector_container
 
 
-def flip_fits_slice(s: str) -> str:
-    return '[' + ','.join(s.strip('[]').split(',')[::-1]) + ']'
 
 
 class P200NGPSSpectrograph(spectrograph.Spectrograph):
@@ -142,7 +140,7 @@ class P200NGPSSpectrograph(spectrograph.Spectrograph):
             return good_exp & (fitstbl['idname'] == 'BIAS')
         
         if ftype in ['pixelflat', 'trace', 'illumflat']:
-            return good_exp & (fitstbl['idname'] == 'DOMEFLAT')
+            return ((good_exp & (fitstbl['idname'] == 'DOMEFLAT')) | (good_exp & (fitstbl['idname'] == 'CONT')))
         
         if ftype in ['pinhole', 'dark']:
             # Don't type pinhole or dark frames
@@ -208,11 +206,7 @@ class P200NGPSSpectrograph_R(P200NGPSSpectrograph):
         if meta_key == 'mjd':
             return Time(headarr[0]['UTSHUT']).mjd
         elif meta_key == 'dispangle':
-            try:
-                return 0
-            except Exception as e:
-                msgs.warn("Could not read dispangle from header:" + msgs.newline() + str(headarr[0]['ANGLE']))
-                raise e    
+            return 0
             
         elif meta_key == 'binning':
             # Always the same binning for DET01 and DET02    
@@ -229,7 +223,7 @@ class P200NGPSSpectrograph_R(P200NGPSSpectrograph):
         elif meta_key == 'dichroic': 
             return None
         else:
-            msgs.error("Not ready for this compound meta: ", meta_key)
+            msgs.error(f"Not ready for this compound meta: {meta_key}")
 
 
     def get_detector_par(self, det: int, hdu: Optional[fits.HDUList] = None):
@@ -266,13 +260,11 @@ class P200NGPSSpectrograph_R(P200NGPSSpectrograph):
             numamplifiers   = 1, 
             gain            = np.atleast_1d(2.8),
             ronoise         = np.atleast_1d(8.5),
-            datasec         = np.atleast_1d(flip_fits_slice(hdu[1].header['DATASEC'])),
-            oscansec        = np.atleast_1d(flip_fits_slice(hdu[1].header['BIASSEC']))
+            datasec         = np.atleast_1d(parse.flip_fits_slice(hdu[1].header['DATASEC'])),
+            oscansec        = np.atleast_1d(parse.flip_fits_slice(hdu[1].header['BIASSEC']))
         )
 
-        # Instantiate
-        detector1 = detector_container.DetectorContainer(**detector_dict1)
-        return detector1
+        return detector_container.DetectorContainer(**detector_dict1)
 
 
     @classmethod
@@ -314,77 +306,15 @@ class P200NGPSSpectrograph_R(P200NGPSSpectrograph):
 
         # Do not flux calibrate
         #par['fluxcalib'] = None
-        par['sensfunc']['algorithm'] = 'UVIS' # CHANGE #
+        par['sensfunc']['algorithm'] = 'UVIS' 
 
         # Set the default exposure time ranges for the frame typing
         par['calibrations']['biasframe']['exprng'] = [None, 0.001]
-        par['calibrations']['darkframe']['exprng'] = [999999, None]     # No dark frames
-        par['calibrations']['pinholeframe']['exprng'] = [999999, None]  # No pinhole frames
         par['calibrations']['arcframe']['exprng'] = [None, 120]
         par['calibrations']['standardframe']['exprng'] = [None, 120]
         par['scienceframe']['exprng'] = [90, None]
 
         return par
-
-
-    def config_specific_par(self, scifile, inp_par=None): 
-        """
-        Modify the PypeIt parameters to hard-wired values used for
-        specific instrument configurations.
-
-        Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
-            inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
-                Parameter set used for the full run of PypeIt.  If None,
-                use :func:`default_pypeit_par`.
-
-        Returns:
-            :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
-            adjusted for configuration specific parameter values.
-        """
-        # Start with instrument wide
-        par = super().config_specific_par(scifile, inp_par=inp_par)
-
-        return par
-    
-
-    def bpm(self, filename, det, shape=None, msbias=None):
-        """
-        Generate a default bad-pixel mask.
-
-        Even though they are both optional, either the precise shape for
-        the image (``shape``) or an example file that can be read to get
-        the shape (``filename`` using :func:`get_image_shape`) *must* be
-        provided.
-
-        Args:
-            filename (:obj:`str` or None):
-                An example file to use to get the image shape.
-            det (:obj:`int`):
-                1-indexed detector number to use when getting the image
-                shape from the example file.
-            shape (tuple, optional):
-                Processed image shape
-                Required if filename is None
-                Ignored if filename is not None
-            msbias (`numpy.ndarray`_, optional):
-                Processed calibration frame used to identify bad pixels
-
-        Returns:
-            `numpy.ndarray`_: An integer array with a masked value set
-            to 1 and an unmasked value set to 0.  All values are set to
-            0.
-        """
-
-        # Call the base-class method to generate the empty bpm
-        bpm_img = super().bpm(filename, det, shape=shape, msbias=msbias)
-
-        #msgs.info("Using hard-coded BPM for NGPS") # Can create actual BPM later if necessary
-        #bpm_img[:, 0] = 1
-
-        return bpm_img
 
 
     
@@ -499,13 +429,11 @@ class P200NGPSSpectrograph_I(P200NGPSSpectrograph):
             numamplifiers   = 1, # Updated
             gain            = np.atleast_1d(2.8),
             ronoise         = np.atleast_1d(8.5),
-            datasec         = np.atleast_1d(flip_fits_slice(hdu[2].header['DATASEC'])),
-            oscansec        = np.atleast_1d(flip_fits_slice(hdu[2].header['BIASSEC']))
+            datasec         = np.atleast_1d(parse.flip_fits_slice(hdu[2].header['DATASEC'])),
+            oscansec        = np.atleast_1d(parse.flip_fits_slice(hdu[2].header['BIASSEC']))
         )
 
-        # Instantiate
-        detector2 = detector_container.DetectorContainer(**detector_dict2)
-        return detector2
+        return detector_container.DetectorContainer(**detector_dict2)
 
     @classmethod
     def default_pypeit_par(cls):
@@ -546,74 +474,14 @@ class P200NGPSSpectrograph_I(P200NGPSSpectrograph):
 
         # Do not flux calibrate  
         #par['fluxcalib'] = None
-        par['sensfunc']['algorithm'] = 'UVIS' # CHANGE #
+        par['sensfunc']['algorithm'] = 'UVIS'
 
         # Set the default exposure time ranges for the frame typing
         par['calibrations']['biasframe']['exprng'] = [None, 0.001]
-        par['calibrations']['darkframe']['exprng'] = [999999, None]     # No dark frames
-        par['calibrations']['pinholeframe']['exprng'] = [999999, None]  # No pinhole frames
         par['calibrations']['arcframe']['exprng'] = [None, 120]
         par['calibrations']['standardframe']['exprng'] = [None, 120]
         par['scienceframe']['exprng'] = [90, None]
 
         return par
 
- 
-    def config_specific_par(self, scifile, inp_par=None): 
-        """
-        Modify the PypeIt parameters to hard-wired values used for
-        specific instrument configurations.
-
-        Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
-            inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
-                Parameter set used for the full run of PypeIt.  If None,
-                use :func:`default_pypeit_par`.
-
-        Returns:
-            :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
-            adjusted for configuration specific parameter values.
-        """
-        # Start with instrument wide
-        par = super().config_specific_par(scifile, inp_par=inp_par)
-
-        return par
     
-    def bpm(self, filename, det, shape=None, msbias=None):
-        """
-        Generate a default bad-pixel mask.
-
-        Even though they are both optional, either the precise shape for
-        the image (``shape``) or an example file that can be read to get
-        the shape (``filename`` using :func:`get_image_shape`) *must* be
-        provided.
-
-        Args:
-            filename (:obj:`str` or None):
-                An example file to use to get the image shape.
-            det (:obj:`int`):
-                1-indexed detector number to use when getting the image
-                shape from the example file.
-            shape (tuple, optional):
-                Processed image shape
-                Required if filename is None
-                Ignored if filename is not None
-            msbias (`numpy.ndarray`_, optional):
-                Processed calibration frame used to identify bad pixels
-
-        Returns:
-            `numpy.ndarray`_: An integer array with a masked value set
-            to 1 and an unmasked value set to 0.  All values are set to
-            0.
-        """
-
-        # Call the base-class method to generate the empty bpm
-        bpm_img = super().bpm(filename, det, shape=shape, msbias=msbias)
-
-        #msgs.info("Using hard-coded BPM for NGPS") 
-        #bpm_img[:, 0] = 1
-
-        return bpm_img
-
