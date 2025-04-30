@@ -317,8 +317,6 @@ class P200NGPSSpectrograph_R(P200NGPSSpectrograph):
         return par
 
 
-    
-##########################################################################################
 
 class P200NGPSSpectrograph_I(P200NGPSSpectrograph):
     """
