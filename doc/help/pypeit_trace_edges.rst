@@ -3,8 +3,8 @@
     $ pypeit_trace_edges -h
     usage: pypeit_trace_edges [-h] (-f PYPEIT_FILE | -t TRACE_FILE) [-g GROUP]
                               [-d [DETECTOR ...]] [-s SPECTROGRAPH] [-b BINNING]
-                              [-p REDUX_PATH] [-c CALIB_DIR] [-o] [--debug] [--show]
-                              [-v VERBOSITY]
+                              [-p REDUX_PATH] [-c CALIB_DIR] [-o] [--debug DEBUG]
+                              [--show] [-v VERBOSITY]
     
     Trace slit edges
     
@@ -59,9 +59,14 @@
                             Calibrations)
       -o, --overwrite       Overwrite any existing files/directories (default:
                             False)
-      --debug               Run in debug mode. (default: False)
-      --show                Show the stages of trace refinements (only for the new
-                            code). (default: False)
+      --debug DEBUG         Debug level. (1) Show the result of each stage of the
+                            tracing algorithm (previously the --show option). (2)
+                            Also show summary plots related to the PCA decomposition
+                            and the slit and order matching. (3) Also show the
+                            individual polynomial fits to the detected edges.
+                            (default: 0)
+      --show                DEPRECATED! If set, the code will assume you mean to set
+                            --debug 1. (default: False)
       -v, --verbosity VERBOSITY
                             Verbosity level between 0 [none] and 2 [all]. Default:
                             1. Level 2 writes a log with filename
