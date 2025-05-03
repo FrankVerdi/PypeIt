@@ -9,13 +9,9 @@ Overview
 
 Telluric correction is done after the main run of PypeIt, :doc:`fluxing` and
 :doc:`coadd1d`.  The algorithm for deriving the best telluric model is pretty
-similar with that used in the IR sensitivity function, which fits a user-defined
-model and telluric to a giant telluric grid. Please see :doc:`fluxing` for more
-details.
-
-Note that execution of ``pypeit_tellfit`` requires the atmospheric model grids
-to be installed on your system.  See the instructions for installing these
-:ref:`data_installation`.
+similar with that used in the IR sensitivity function, which jointly fits a
+user-defined object model and atmospheric absorption model to the spectrum.
+Please see :doc:`fluxing` for more details.
 
 .. _pypeit_tellfit:
 
@@ -109,9 +105,9 @@ Your object model, either qso, star or poly.
 --tell_grid, -g
 +++++++++++++++
 
-The filename of the telluric grid file. In case of spectrograph which
-has defined the default grid, you do not need to set this argument.  You
-may, however, select a different grid than the instrument default using
+The filename of the telluric model file. In case of spectrographs which
+have defined a default model, you do not need to set this argument. You
+may, however, select a different model than the instrument default using
 this argument.
 
 --pca_file, -p
@@ -149,6 +145,33 @@ File name for the tellfit parameters used in the fit.
 
 Parameters
 ==========
+
+teltype
+++++++++
+
+There are two options to model the atmospheric absorption, ``pca`` (default)
+and ``grid`` (legacy).
+
+Both options are based on atmospheric radiative transfer models run with the
+LBLRTM code using the HITRAN2016 line list via a modified version of the
+`TelFit <https://github.com/kgullikson88/Telluric-Fitter>`__ python interface.
+
+The ``pca`` option uses a PCA decomposition of a massive grid of atmospheric
+models run for many different observatories, and should thus work for just about
+any observatory. Additional details can be found in the text of
+`this PR <https://github.com/pypeit/PypeIt/pull/1647>`__; a separate publication
+may eventually appear as well.
+
+The ``grid`` option corresponds to the default method used in earlier versions
+of PypeIt, and uses grids of pre-computed observatory-specific atmospheric models.
+
+tell_npca
+++++++++
+
+The default number of PCA vectors used is 5, but ``tell_npca`` can be increased
+up to 10 in case more flexibility is required in the telluric model. Has no
+effect if ``teltype = grid`` is specified.
+
 
 qso model
 ---------
