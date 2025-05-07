@@ -10,6 +10,10 @@ Documentation Updates
   to come from forks.  Also, all the developer-specific installation details
   have been removed from the main installation doc.
 
+- Cleaned up documentation referring to the telluric atmospheric grids. Much of
+  the old documentation had not been updated to reflect the PCA models, leading
+  to some confusion.
+
 Installation Changes
 --------------------
 
@@ -37,6 +41,8 @@ Functionality/Performance Improvements and Additions
   parameter.
 - Added `EdgeTracePar` parameter `mask_off_detector` to allow the user to mask spectral
   regions in each slit/order where more than 50% of the slit falls off the detector
+- Restricted the range of stretch corrections to the wavelength solution in tellfit
+  to a more reasonable one to avoid catastrophic edge cases.
 
 Instrument-specific Updates
 ---------------------------

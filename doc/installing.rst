@@ -407,7 +407,7 @@ model files).
 
 It is still possible to use the legacy atmospheric grid files by modifying the
 ``teltype`` `TelluricPar keyword
-<https://pypeit.readthedocs.io/en/latest/pypeit_par.html#telluricpar-keywords>`.
+<https://pypeit.readthedocs.io/en/latest/pypeit_par.html#telluricpar-keywords>`__.
 Only a handful of the original observatory-specific grids are still available for
 download on the `PypeIt dev-suite Google Drive`_. Users may select any of the files
 in the Google Drive for their telluric correction, download them separately, then
