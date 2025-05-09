@@ -391,10 +391,10 @@ Calculation of the sensitivity functions and general fitting of telluric
 absorption uses a PCA decomposition of a massive grid of model atmosphere spectra
 across many different observatories, with reference files that are only a few MB
 in size. Earlier PypeIt versions used pre-computed model grids which were much
-larger (several GB) which were observatory-specific; note that the new PCA
+larger (several GB) and observatory-specific; note that the new PCA
 models are explicitly designed to be observatory-agnostic, and typically only differ
 in their intrinsic spectral resolution (except for Keck/HIRES and Keck/NIRSPEC
-model files).
+model files) to improve computational efficiency.
 
 .. note::
 
