@@ -393,7 +393,7 @@ across many different observatories, with reference files that are only a few MB
 in size. Earlier PypeIt versions used pre-computed model grids which were much
 larger (several GB) and observatory-specific; note that the new PCA
 models are explicitly designed to be observatory-agnostic, and typically only differ
-in their intrinsic spectral resolution (except for Keck/HIRES and Keck/NIRSPEC
+in their intrinsic spectral resolution (except for experimental Keck/HIRES and Keck/NIRSPEC [high-resolution mode]
 model files) to improve computational efficiency.
 
 .. note::
