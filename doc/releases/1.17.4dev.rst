@@ -41,8 +41,10 @@ Functionality/Performance Improvements and Additions
   parameter.
 - Added `EdgeTracePar` parameter `mask_off_detector` to allow the user to mask spectral
   regions in each slit/order where more than 50% of the slit falls off the detector
-- Restricted the range of stretch corrections to the wavelength solution in tellfit
-  to a more reasonable one to avoid catastrophic edge cases.
+- Restricted the range of stretch corrections to the wavelength solution in telluric
+  fits to a more reasonable one to avoid catastrophic edge cases.
+- Passed the `TelluricPar` parameter `resln_frac_bounds` through to the tellfit script
+  functions (qso_telluric, star_telluric, poly_telluric)
 
 Instrument-specific Updates
 ---------------------------
