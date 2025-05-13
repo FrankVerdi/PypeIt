@@ -64,7 +64,7 @@ corrupt header.
 Error in ``astropy.stats.sigma_clipped_stats``
 ==============================================
 
-An error in `astropy.stats.sigma_clipped_stats` for Astropy version 6.1.6 can
+An error in `astropy.stats.sigma_clipped_stats`_ for Astropy version 6.1.6 can
 lead to data being overly masked; see the `Astropy Changelog
 <https://docs.astropy.org/en/v6.1.7/changelog.html>`__.  If you see odd masking
 behavior, check your Astropy version.  Note that PypeIt currently requires a
