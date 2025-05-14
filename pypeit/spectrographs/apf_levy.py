@@ -84,11 +84,11 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         # slits and the usual APF target is bright
         par['reduce']['findobj']['skip_skysub'] = True
 
-        par['reduce']['findobj']['find_trim_edges'] = 3, 3,
+        par['reduce']['findobj']['find_trim_edge'] = [1, 1]
         par['reduce']['findobj']['maxnumber_sci'] = 1
         par['reduce']['findobj']['maxnumber_std'] = 1
 
-        par['reduce']['extract']['boxcar_radius'] = 2.4
+        par['reduce']['extraction']['boxcar_radius'] = 3.0
 
         return par
 
