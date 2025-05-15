@@ -58,10 +58,11 @@ of conduct, but agree to also abide by the present code of conduct.
 
 ----
 
-This document is a modified version of `Astropy Code of Conduct 
+This document is a modified version of the `Astropy Code of Conduct 
 <https://www.astropy.org/code_of_conduct.html>`_, licensed under a `Creative
 Commons Attribution 4.0 International License
-<https://creativecommons.org/licenses/by/4.0/>`__, of which parts have been
-adapted from the `PSF Code of Conduct <https://www.python.org/psf/conduct/>`_.
+<https://creativecommons.org/licenses/by/4.0/>`__, of which parts were
+originally adapted from the `PSF Code of Conduct
+<https://www.python.org/psf/conduct/>`_.
 
 
