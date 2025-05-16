@@ -89,6 +89,7 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         par['reduce']['findobj']['maxnumber_std'] = 1
 
         par['reduce']['extraction']['boxcar_radius'] = 1.6
+        par['reduce']['skysub']['mask_by_boxcar'] = True
 
         return par
 
@@ -383,7 +384,7 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
 
         if decker == '3.0':
             par['reduce']['skysub']['no_local_sky'] = True
-            par['reduce']['extraction']['boxcar_radius'] = 0.8
+            par['reduce']['extraction']['boxcar_radius'] = 0.9
         return par
 
     @property
