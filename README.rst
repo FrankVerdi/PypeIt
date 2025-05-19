@@ -50,11 +50,11 @@ PypeIt |forks| |stars|
 
 |DOI_latest| |JOSS| |arxiv|
 
-PypeIt is a Python package for semi-automated reduction of astronomical
-spectroscopic data. Its algorithms build on decades-long development of previous
-data reduction pipelines by the developers. The reduction procedure - including
-a complete list of the input parameters and available functionality - is
-provided by our `online documentation
+PypeIt (pronounced "pipe it") is a Python package for semi-automated reduction
+of astronomical spectroscopic data. Its algorithms build on decades-long
+development of previous data reduction pipelines by the developers. The
+reduction procedure - including a complete list of the input parameters and
+available functionality - is provided by our `online documentation
 <https://pypeit.readthedocs.io/en/release/>`__.
 
 PypeIt is designed to be used by both advanced spectroscopists with prior data
@@ -64,18 +64,18 @@ slit-imaging spectrograph, including long-slit, multi-slit, as well as
 cross-dispersed echelle spectra.  **The spectrographs that PypeIt can be used
 with are listed** `here
 <https://pypeit.readthedocs.io/en/release/spectrographs/spectrographs.html>`__.
-
-Also note that `this link
+Specifically, look `here
 <https://pypeit.readthedocs.io/en/release/spectrographs/spectrographs.html#instrument-specific-details>`__
-contains some useful information about reducing data
-with certain instruments that you might also find helpful.
+for useful information about reducing data with certain instruments.
 
 In addition to our primary code base, we maintain an extensive `development
 suite <https://github.com/pypeit/PypeIt-development-suite>`__ primarily used to
 perform multiple layers of code testing, from basic unit tests to full
-end-to-end tests of all our command-line scripts.  **If you are new to PypeIt,
-you are encouraged to pull example data from the DevSuite for your instrument
-when learning how to use the software.**
+end-to-end tests of all our command-line scripts.  **If you are new to PypeIt**,
+you are encouraged to learn how to use the code by finding and experimenting
+with example data similar to your own in the ``RAW_DATA`` directory (organized
+by instrument and configuration) of `this shared Google Drive folder
+<https://drive.google.com/drive/folders/1oh19siB1-F0jjmY-F_jr73eA-TQYEiFW?usp=sharing>`__.
 
 ----
 
@@ -91,12 +91,44 @@ follow our `Code of Conduct
 
 Along with our extensive `online documentation
 <https://pypeit.readthedocs.io/en/release/>`__, we encourage the PypeIt user
-base to communicate via our `PypeIt Users Slack <https://pypeit-users.slack.com>`__.
-All are welcome to join using `this invitation link <https://join.slack.com/t/pypeit-users/shared_invite/zt-1kc4rxhsj-vKU1JnUA~8PZE~tPlu~aTg>`__.
+base to communicate via our `PypeIt Users Slack
+<https://pypeit-users.slack.com>`__.  All are welcome to join using `this
+invitation link
+<https://join.slack.com/t/pypeit-users/shared_invite/zt-1kc4rxhsj-vKU1JnUA~8PZE~tPlu~aTg>`__.
 
 If you find a bug (particularly one that is experienced by others in the Users
-Slack) or have a feature request, please `submit an issue
+Slack) or have a feature request, please `submit a GitHub issue
 <https://github.com/pypeit/PypeIt/issues>`__.
+
+----
+
+Contributing to PypeIt
+++++++++++++++++++++++
+
+.. NOTE: This is a copy of the CONTRIBUTING.rst file!  Try to keep them
+   consistent.
+
+We are excited to welcome your contributions to PypeIt!  We acknowledge 
+contributions take many forms, including but not limited to participating in
+discussions in our Users Slack Workspace; reporting issues to our GitHub
+repository, submitting pull requests with small bug fixes, documentation
+improvements, or large feature improvements, and participating in project
+maintenance and governance.  All contributors are expected to follow our `Code
+of Conduct <https://pypeit.readthedocs.io/en/stable/codeconduct.html>`__.
+
+For direct contributions to the code, please see our `Development Guidelines
+<https://pypeit.readthedocs.io/en/stable/dev/development.html>`__.  As
+mentioned, communication between developers is key to ensuring efforts are
+coordinated.  Before beginning any development activities, we would appreciate
+communicating your intentions to the core development team, e.g., via the PypeIt
+Users Slack Workspace.
+
+For information regarding our governance structure and policies, please see the
+`PypeIt Governance <https://pypeit.readthedocs.io/en/stable/governance.html>`__
+documentation.
+
+For a list of current contributors and project roles, please see our `PypeIt
+Team <https://pypeit.readthedocs.io/en/stable/team.html>`__ listing.
 
 ----
 
@@ -111,15 +143,17 @@ for your convenience):
  - Prochaska et al. (2020, JOSS): `arXiv <https://ui.adsabs.harvard.edu/abs/2020arXiv200506505P/abstract>`__, `JOSS <https://joss.theoj.org/papers/10.21105/joss.02308>`__
  - Prochaska et al. (2020, Zenodo): `Zenodo <https://ui.adsabs.harvard.edu/abs/2020zndo...3743493P/abstract>`__
 
-If there is no place to include the relevant citations in the text of
-the publication, please include the following acknowledgement
-(provided in latex and using the provided `BibTeX entries
+You are also encouraged to note the specific version of the code you have used
+(e.g., 1.17.3).  If there is no place to include the relevant citations in the
+text of the publication, please include the following acknowledgement (provided
+in latex and using the provided `BibTeX entries
 <https://pypeit.readthedocs.io/en/release/index.html#pypeit-bibtex-entries>`__):
 
 .. code-block:: latex
 
-    This research made use of \ttfamily{PypeIt},\footnote{\url{https://pypeit.readthedocs.io/en/latest/}}
-    a Python package for semi-automated reduction of astronomical slit-based spectroscopy
+    This research made use of \ttfamily{PypeIt} version
+    1.17.3,\footnote{\url{https://pypeit.readthedocs.io/en/stable/}} a Python
+    package for semi-automated reduction of astronomical slit-based spectroscopy
     \citep{pypeit:joss_pub, pypeit:zenodo}.
 
 ----
@@ -127,43 +161,14 @@ the publication, please include the following acknowledgement
 Funding
 +++++++
 
-PypeIt receives direct funding from the following sources:
+PypeIt gratefully acknowledges funding from:
 
   * NASA ADAP (A20-0412, 20-1018)
-  * W.M. Keck Observatory
+  * NSF (TI-2346210, OAC-2410837)
+  * JWST (JWST-AR-05464.001-A)
+  * W. M. Keck Observatory
   * University of California Observatories
 
-We also rely on important in-kind contributions from individuals at
-Caltech, the Multiple Mirror Observatory, and elsewhere.
-
-----
-
-Developers
-++++++++++
-
-PypeIt is an open-source, community developed package.  Astronomers are
-encouraged to join the project and should review our `Code of Conduct
-<https://pypeit.readthedocs.io/en/release/codeconduct.html>`__ and `Development
-Guidelines <https://pypeit.readthedocs.io/en/release/dev/development.html>`__.
-We would also appreciate if you contact the lead developers (JXP, JFH) before
-beginning development activities.
-
-The following persons have contributed substantially to the
-development of PypeIt.
-
-* J Xavier Prochaska (JXP)
-* Joseph F. Hennawi (JFH)
-* Kyle B. Westfall
-* Ryan J. Cooke
-* Feige Wang
-* Tiffany Hsyu
-* Frederick B. Davies
-* Emanuele Paolo Farina
-* Debora Pelliccia
-* James Reichwein
-* Milan Roberson
-* Timothy Pickering
-* Timothy Ellsworth-Bowers
-* Gregory Simonian
-* Heather Martin
+We also critically rely on important in-kind, open-source contributions from
+the broader astronomical community.
 
