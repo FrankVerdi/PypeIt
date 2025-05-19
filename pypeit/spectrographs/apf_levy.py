@@ -45,23 +45,21 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         par = super().default_pypeit_par()
 
         par['calibrations']['slitedges']['edge_thresh'] = 2.
-        par['calibrations']['slitedges']['fit_order'] = 4
+        par['calibrations']['slitedges']['fit_order'] = 6
         par['calibrations']['slitedges']['max_shift_adj'] = 0.5
         par['calibrations']['slitedges']['left_right_pca'] = True
         par['calibrations']['slitedges']['smash_range'] = [0.4,0.6]
 
         par['calibrations']['tilts']['tracethresh'] = 20
-        # Bias
 
-        par['calibrations']['wavelengths']['reid_arxiv'] = 'apf_levy_ech.fits'
         # 1D wavelength solution
+        par['calibrations']['wavelengths']['reid_arxiv'] = 'apf_levy_ech.fits'
         par['calibrations']['wavelengths']['lamps'] = ['ThAr_HARPS']
         par['calibrations']['wavelengths']['sigdetect'] = 5.0
         par['calibrations']['wavelengths']['fwhm'] = 2.5
         par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 0.2
         # Reidentification parameters
         par['calibrations']['wavelengths']['method'] = 'reidentify'
-        #par['calibrations']['wavelengths']['ech_fix_format'] = True
         # Echelle parameters
         par['calibrations']['wavelengths']['echelle'] = True
         par['calibrations']['wavelengths']['ech_nspec_coeff'] = 4
@@ -78,7 +76,7 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
 
         # no sky subtraction on standard stars
         par['reduce']['skysub']['global_sky_std'] = False
-        
+
         # skip sky subtraction when searching for objects
         # this is because the sky subtraction is not very good with narrow
         # slits and the usual APF target is bright
@@ -88,7 +86,8 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         par['reduce']['findobj']['maxnumber_sci'] = 1
         par['reduce']['findobj']['maxnumber_std'] = 1
 
-        par['reduce']['extraction']['boxcar_radius'] = 3.0
+        par['reduce']['extraction']['boxcar_radius'] = 1.6
+        par['reduce']['skysub']['mask_by_boxcar'] = True
 
         return par
 
@@ -382,8 +381,7 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         decker = self.get_meta_value(scifile, 'decker')
 
         if decker == '3.0':
-            par['reduce']['skysub']['no_local_sky'] = False
-
+            par['reduce']['extraction']['boxcar_radius'] = 0.864
         return par
 
     @property
