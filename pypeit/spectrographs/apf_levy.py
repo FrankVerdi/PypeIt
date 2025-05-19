@@ -360,7 +360,7 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
             rv = rv & (fitstbl['idname'] != filetype)
 
         return rv
-    
+
     def config_specific_par(self, scifile, inp_par=None):
         """
         Modify the PypeIt parameters to hard-wired values used for
@@ -382,7 +382,7 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         decker = self.get_meta_value(scifile, 'decker')
 
         if decker == '3.0':
-            par['reduce']['skysub']['no_local_sky'] = True
+            par['reduce']['skysub']['no_local_sky'] = False
 
         return par
 
