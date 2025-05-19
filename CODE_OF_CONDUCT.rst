@@ -44,7 +44,8 @@ As members of the community,
 - We pledge to help the entire community follow the code of conduct and to not
   remain silent when we see or experience violations.  Reported violations will
   be acted upon in a timely manner.  Code-of-conduct violations can be reported
-  by contacting pypeit@ucolick.org, direct messages to members of the PypeIt
+  by contacting confidential.pypeit@ucolick.org (messages to this address are
+  only sent to our Ombudsperson), direct messages to members of the PypeIt
   leadership team, or anonymously via an intermediary.  All communications
   regarding such violations will be treated with the strictest confidence.
 
