@@ -132,6 +132,14 @@ PypeIt BibTeX Entries
    bitmasks
 
 .. toctree::
+   :caption: Project Information
+   :maxdepth: 1
+   :hidden:
+
+   governance
+   team
+
+.. toctree::
    :caption: For Developers
    :maxdepth: 1
    :hidden:
