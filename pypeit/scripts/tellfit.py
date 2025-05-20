@@ -7,47 +7,30 @@ Fit telluric absorption to observed spectra
 from IPython import embed
 
 from pypeit.scripts import scriptbase
-
+from pypeit.par.pypeitpar import TelluricPar
 
 class TellFit(scriptbase.ScriptBase):
 
     @classmethod
     def get_parser(cls, width=None):
+        par = TelluricPar()
         parser = super().get_parser(description='Telluric correct a spectrum',
                                     width=width, formatter=scriptbase.SmartFormatter)
         parser.add_argument("spec1dfile", type=str,
                             help="spec1d or coadd file that will be used for telluric correction.")
-        parser.add_argument("--objmodel", type=str, default=None, choices=['qso', 'star', 'poly'],
-                            help='R|science object model used in the fitting. The options are:\n'
-                                 '\n'
-                                 'qso = For quasars. You might need to set redshift, '
-                                 'bal_wv_min_max in the tell file.\n'
-                                 '\n'
-                                 'star = For stars. You need to set star_type, star_ra, star_dec, '
-                                 'and star_mag in the tell_file.\n'
-                                 '\n'
-                                 'poly = For other type object, You might need to set '
-                                 'fit_wv_min_max, and norder in the tell_file.\n'
-                                 '\n')
-        parser.add_argument("-r", "--redshift", type=float, default=None,
-                            help="Specify redshift. Used with the --objmodel qso option above.")
-        parser.add_argument("-g", "--tell_grid", type=str,
-                            help='Telluric model file. You should download the model file to the'
-                                 'pypeit/data/telluric folder. It should only be passed if you '
-                                 'want to overwrite the default tell_grid that is set via each '
-                                 'spectrograph file.')
-        parser.add_argument("-p", "--pca_file", type=str,
-                            help='Quasar PCA fits file with full path. The default file '
-                                 '(qso_pca_1200_3100.fits) is stored in the pypeit/data/telluric '
-                                 'folder. If you change the fits file, make sure to set the '
-                                 'pca_lower and pca_upper in the tell_file to specify the '
-                                 'wavelength coverage of your model. The defaults are '
-                                 'pca_lower=1220. and pca_upper=3100.')
+        parser.add_argument("--objmodel", type=str, default=par.default['objmodel'],
+                            choices=['qso', 'star', 'poly'], help=par.descr['objmodel'])
+        parser.add_argument("-r", "--redshift", type=float, default=par.default['redshift'],
+                            help=par.descr['redshift'])
+        parser.add_argument("-g", "--tell_grid", type=str, default=par.default['telgridfile'],
+                            help=par.descr['telgridfile'])
+        parser.add_argument("-p", "--pca_file", type=str, default=par.default['pca_file'],
+                            help=par.default['pca_file'])
         parser.add_argument("-t", "--tell_file", type=str,
                             help='R|Configuration file to change default telluric parameters.  '
-                                 'Note that the parameters in this file will be overwritten if '
-                                 'you set argument in your terminal.  The --tell_file option '
-                                 'requires a .tell file with the following format:\n\n'
+                                 'The format is identical to any telluric parameters in your '
+                                 'pypeit file.  See the PypeIt parameter documentation.  For '
+                                 'example, the ".tell" file could have the following:\n\n'
                                  'F|    [telluric]\n'
                                  'F|         objmodel = qso\n'
                                  'F|         redshift = 7.6\n'
