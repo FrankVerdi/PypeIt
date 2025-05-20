@@ -385,7 +385,7 @@ use the scripts below.
 .. _install_atmosphere:
 
 Atmospheric Models
------------------------
+------------------
 
 Calculation of the sensitivity functions and general fitting of telluric
 absorption uses a PCA decomposition of a massive grid of model atmosphere spectra

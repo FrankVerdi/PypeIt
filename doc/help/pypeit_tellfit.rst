@@ -33,8 +33,8 @@
                             above.
       -g, --tell_grid TELL_GRID
                             Telluric model file. You should download the model file
-                            to the pypeit/data/telluric folder. It should only be
-                            passed if you want to overwrite the default telgridfile
+                            to thepypeit/data/telluric folder. It should only be
+                            passed if you want to overwrite the default tell_grid
                             that is set via each spectrograph file.
       -p, --pca_file PCA_FILE
                             Quasar PCA fits file with full path. The default file
