@@ -8,6 +8,17 @@ Overview
 This file summarizes several instrument specific
 items for the LBT/MODS spectrograph.
 
+proc classes: (lbt_mods1r_proc, lbt_mods1b_proc, lbt_mods2r_proc, lbt_mods2b_proc) 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Four proc classes, one per channel, have been introduced (2025) to work on the pre-processed 
+MODS spectra that are output by the modsCCDRed tasks. These files, which have the _otf.fits 
+suffix, have been overscan-subtracted, trimmed, and flat fielded by a color-normalized slitless
+pixel flat. 
+
+Unlike the original mods classes, the proc classes do not apply the conversion gain, and so 
+pixel values are in units of ADU. 
+
 
 Edge Tracing
 ++++++++++++
@@ -21,7 +32,22 @@ try:
 
     [calibrations]
         [[slitedges]]
-            edge_thresh = 20
+            edge_thresh = 20 # or 30
+            min_slit_length = 5 # insures pinholes are not identified as slits
+
+Object Finding
+++++++++++++++
+
+In most configurations, the spectrum does not illuminate the entire detector. At the blue
+end of the blue channel, the atmosphere cuts off flux; and in dual grating mode, the flux at the 
+red end of the blue channel and the blue end of the red channel is cut off by the dichroic. For 
+continuum objects, object finding works best when limited to the central region of the spectrum. 
+For emission line objects, the user will need to set the region and also insure that the standard 
+star is included in the pypeit file, to be used as a crutch for object tracing.
+
+     [reduce]
+         [[findobj]]
+             find_min_max = 3904,4288  # +/-192 pixels about the central column (as an example)
 
 
 Flux Calibration
