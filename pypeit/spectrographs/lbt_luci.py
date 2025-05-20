@@ -8,8 +8,6 @@ from IPython import embed
 
 import numpy as np
 
-from astropy.coordinates import SkyCoord
-
 from pypeit import msgs
 from pypeit import telescopes
 from pypeit.core import framematch
