@@ -279,11 +279,10 @@ class P200NGPSSpectrograph_r(P200NGPSSpectrograph):
         par = super().default_pypeit_par()
 
         par['calibrations']['slitedges']['sync_predict'] = 'nearest'
-        par['calibrations']['slitedges']['edge_thresh'] = 10. # Lower edge tracing thresdhold to catch leftmost slit
-
+        par['calibrations']['slitedges']['edge_thresh'] = 50. # Lower edge tracing thresdhold to catch leftmost slit
         par['calibrations']['slitedges']['minimum_slit_length'] = 100 # Set minimum slit length 
-
-        par['calibrations']['slitedges']['add_slits'] = ['1:2090:24:153']
+        par['calibrations']['slitedges']['min_edge_side_sep'] = 1.0
+#        par['calibrations']['slitedges']['add_slits'] = ['1:2090:24:153']
         
         par['scienceframe']['process']['combine'] = 'median'
         par['calibrations']['standardframe']['process']['combine'] = 'median'
@@ -445,11 +444,10 @@ class P200NGPSSpectrograph_i(P200NGPSSpectrograph):
         par = super().default_pypeit_par()
 
         par['calibrations']['slitedges']['sync_predict'] = 'nearest'
-        par['calibrations']['slitedges']['edge_thresh'] = 10. # Lower edge tracing thresdhold to catch leftmost slit
-       
+        par['calibrations']['slitedges']['edge_thresh'] = 50. # Lower edge tracing thresdhold to catch leftmost slit
         par['calibrations']['slitedges']['minimum_slit_length'] = 100 # Set minimum slit length 
-
-        par['calibrations']['slitedges']['add_slits'] = ['1:2035:123:251']
+        par['calibrations']['slitedges']['min_edge_side_sep'] = 1.0
+#        par['calibrations']['slitedges']['add_slits'] = ['1:2035:123:251']
         
         par['scienceframe']['process']['combine'] = 'median'
         par['calibrations']['standardframe']['process']['combine'] = 'median'

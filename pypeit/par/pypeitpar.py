@@ -3286,13 +3286,14 @@ class EdgeTracePar(ParSet):
                  pca_order=None, pca_sigrej=None, pca_maxrej=None, pca_maxiter=None,
                  smash_range=None, edge_detect_clip=None, trace_median_frac=None, trace_thresh=None,
                  trace_rms_tol=None, fwhm_uniform=None, niter_uniform=None, fwhm_gaussian=None,
-                 niter_gaussian=None, det_buffer=None, max_nudge=None, sync_predict=None,
-                 sync_center=None, gap_offset=None, sync_to_edge=None, bound_detector=None,
-                 minimum_slit_dlength=None, dlength_range=None, minimum_slit_length=None,
-                 minimum_slit_length_sci=None, length_range=None, minimum_slit_gap=None, clip=None,
-                 order_match=None, order_offset=None, add_missed_orders=None, order_width_poly=None,
-                 order_gap_poly=None, order_fitrej=None, order_outlier=None, order_spat_range=None,
-                 overlap=None, max_overlap=None, use_maskdesign=None, maskdesign_maxsep=None,
+                 niter_gaussian=None, min_edge_side_sep=None, det_buffer=None, max_nudge=None,
+                 sync_predict=None, sync_center=None, gap_offset=None, sync_to_edge=None,
+                 bound_detector=None, minimum_slit_dlength=None, dlength_range=None,
+                 minimum_slit_length=None, minimum_slit_length_sci=None, length_range=None,
+                 minimum_slit_gap=None, clip=None, order_match=None, order_offset=None,
+                 add_missed_orders=None, order_width_poly=None, order_gap_poly=None,
+                 order_fitrej=None, order_outlier=None, order_spat_range=None, overlap=None,
+                 max_overlap=None, use_maskdesign=None, maskdesign_maxsep=None,
                  maskdesign_step=None, maskdesign_sigrej=None, pad=None, add_slits=None,
                  add_predict=None, rm_slits=None, maskdesign_filename=None, mask_off_detector=None):
 
@@ -3528,7 +3529,7 @@ class EdgeTracePar(ParSet):
         dtypes['fwhm_gaussian'] = [int, float]
         descr['fwhm_gaussian'] = 'The `fwhm` parameter to use when using Gaussian weighting in ' \
                                  ':func:`~pypeit.core.trace.fit_trace` when refining the PCA ' \
-                                 'predictions of edges.  See description ' \
+                                 'predictions of edges.  See description of ' \
                                  ':func:`~pypeit.core.trace.peak_trace`.'
 
         defaults['niter_gaussian'] = 6
@@ -3536,6 +3537,15 @@ class EdgeTracePar(ParSet):
         descr['niter_gaussian'] = 'The number of iterations of ' \
                                   ':func:`~pypeit.core.trace.fit_trace` to use when using ' \
                                   'Gaussian weighting.'
+        
+        defaults['min_edge_side_sep'] = 5.0
+        dtypes['min_edge_side_sep'] = [int, float]
+        descr['min_edge_side_sep'] = 'Minimum separation between same-side edges (e.g., the ' \
+                                     'minimum separation between two subsequent right-edge ' \
+                                     'detections) in units of ``fwhm_gaussian``.  For example, ' \
+                                     'if ``fwhm_gaussian = 3.0`` and ``min_edge_sid_sep = 5.``, ' \
+                                     'the separation between subsequent right edges must be at ' \
+                                     'least 15 pixels.'
 
         defaults['det_buffer'] = 5
         dtypes['det_buffer'] = int
@@ -3880,15 +3890,16 @@ class EdgeTracePar(ParSet):
                    'left_right_pca', 'pca_min_edges', 'pca_n', 'pca_var_percent', 'pca_function',
                    'pca_order', 'pca_sigrej', 'pca_maxrej', 'pca_maxiter', 'smash_range',
                    'edge_detect_clip', 'trace_median_frac', 'trace_thresh', 'trace_rms_tol',
-                   'fwhm_uniform', 'niter_uniform', 'fwhm_gaussian', 'niter_gaussian', 'det_buffer',
-                   'max_nudge', 'sync_predict', 'sync_center', 'gap_offset', 'sync_to_edge',
-                   'bound_detector', 'minimum_slit_dlength', 'dlength_range', 'minimum_slit_length',
-                   'minimum_slit_length_sci', 'length_range', 'minimum_slit_gap', 'clip',
-                   'order_match', 'order_offset',  'add_missed_orders', 'order_width_poly',
-                   'order_gap_poly', 'order_fitrej', 'order_outlier', 'order_spat_range','overlap',
-                   'max_overlap', 'use_maskdesign', 'maskdesign_maxsep', 'maskdesign_step',
-                   'maskdesign_sigrej', 'maskdesign_filename', 'pad', 'add_slits', 'add_predict',
-                   'rm_slits', 'mask_off_detector']
+                   'fwhm_uniform', 'niter_uniform', 'fwhm_gaussian', 'niter_gaussian',
+                   'min_edge_side_sep', 'det_buffer', 'max_nudge', 'sync_predict', 'sync_center',
+                   'gap_offset', 'sync_to_edge', 'bound_detector', 'minimum_slit_dlength',
+                   'dlength_range', 'minimum_slit_length', 'minimum_slit_length_sci',
+                   'length_range', 'minimum_slit_gap', 'clip', 'order_match', 'order_offset',
+                   'add_missed_orders', 'order_width_poly', 'order_gap_poly', 'order_fitrej',
+                   'order_outlier', 'order_spat_range','overlap', 'max_overlap', 'use_maskdesign',
+                   'maskdesign_maxsep', 'maskdesign_step', 'maskdesign_sigrej',
+                   'maskdesign_filename', 'pad', 'add_slits', 'add_predict', 'rm_slits',
+                   'mask_off_detector']
 
         # Find the list of keywords provded in `cfg` that are *not* valid
         badkeys = np.array([pk not in parkeys for pk in k])
