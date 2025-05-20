@@ -1320,9 +1320,9 @@ def eval_poly_model(theta, obj_dict):
 
 def sensfunc_telluric(wave, counts, counts_ivar, counts_mask, exptime, airmass, std_dict,
                       telgridfile, log10_blaze_function=None, ech_orders=None, polyorder=8,
-                      tell_npca=4, teltype='pca',
+                      tell_npca=5, teltype='pca',
                       mask_hydrogen_lines=True, mask_helium_lines=False, hydrogen_mask_wid=10.,
-                      resln_guess=None, resln_frac_bounds=(0.6, 1.4), pix_shift_bounds=(-5.0, 5.0),
+                      resln_guess=None, resln_frac_bounds=(0.3, 1.5), pix_shift_bounds=(-5.0, 5.0),
                       delta_coeff_bounds=(-20.0, 20.0), minmax_coeff_bounds=(-5.0, 5.0),
                       sn_clip=30.0, ballsize=5e-4, only_orders=None, maxiter=3, lower=3.0,
                       upper=3.0, tol=1e-3, popsize=30, recombination=0.7, polish=True, disp=False,
@@ -1535,10 +1535,11 @@ def create_bal_mask(wave, bal_wv_min_max):
 
 def qso_telluric(spec1dfile, telgridfile,  pca_file, z_qso, telloutfile, outfile, npca=8,
                  pca_lower=1220.0, pca_upper=3100.0, bal_wv_min_max=None, delta_zqso=0.1,
-                 teltype='pca', tell_npca=4,
+                 teltype='pca', tell_npca=5,
                  bounds_norm=(0.1, 3.0), tell_norm_thresh=0.9, sn_clip=30.0, only_orders=None,
                  maxiter=3, tol=1e-3, popsize=30, recombination=0.7, polish=True, disp=False,
-                 pix_shift_bounds=(-5.0,5.0), debug_init=False, debug=False, show=False,
+                 resln_frac_bounds=(0.6,1.4), pix_shift_bounds=(-5.0,5.0),
+                 debug_init=False, debug=False, show=False,
                  chk_version=True):
     """
     Fit and correct a QSO spectrum for telluric absorption.
@@ -1711,11 +1712,12 @@ def qso_telluric(spec1dfile, telgridfile,  pca_file, z_qso, telloutfile, outfile
 
 def star_telluric(spec1dfile, telgridfile, telloutfile, outfile, star_type=None,
                   star_mag=None, star_ra=None, star_dec=None, func='legendre', model='exp',
-                  polyorder=5, teltype='pca', tell_npca=4, mask_hydrogen_lines=True,
+                  polyorder=5, teltype='pca', tell_npca=5, mask_hydrogen_lines=True,
                   mask_helium_lines=False, hydrogen_mask_wid=10., delta_coeff_bounds=(-20.0, 20.0),
                   minmax_coeff_bounds=(-5.0, 5.0), only_orders=None, sn_clip=30.0, maxiter=3,
                   tol=1e-3, popsize=30, recombination=0.7, polish=True, disp=False,
-                  pix_shift_bounds=(-5.0,5.0), debug_init=False, debug=False, show=False,
+                  resln_frac_bounds=(0.3,1.5), pix_shift_bounds=(-5.0,5.0),
+                  debug_init=False, debug=False, show=False,
                   chk_version=True):
     """
     This needs a doc string.
@@ -1822,9 +1824,10 @@ def star_telluric(spec1dfile, telgridfile, telloutfile, outfile, star_type=None,
 
 def poly_telluric(spec1dfile, telgridfile, telloutfile, outfile, z_obj=0.0, func='legendre',
                   model='exp', polyorder=3, fit_wv_min_max=None, mask_lyman_a=True, teltype='pca',
-                  tell_npca=4, delta_coeff_bounds=(-20.0, 20.0), minmax_coeff_bounds=(-5.0, 5.0),
+                  tell_npca=5, delta_coeff_bounds=(-20.0, 20.0), minmax_coeff_bounds=(-5.0, 5.0),
                   only_orders=None, sn_clip=30.0, maxiter=3, tol=1e-3, popsize=30,
-                  recombination=0.7, polish=True, disp=False, pix_shift_bounds=(-5.0,5.0),
+                  recombination=0.7, polish=True, disp=False,
+                  resln_frac_bounds=(0.3,1.5), pix_shift_bounds=(-5.0,5.0),
                   debug_init=False, debug=False, show=False, chk_version=True):
     """
     This needs a doc string.
@@ -2309,7 +2312,7 @@ class Telluric(datamodel.DataContainer):
                 ]
 
     @staticmethod
-    def empty_model_table(norders, nspec, tell_npca=4, n_obj_par=0):
+    def empty_model_table(norders, nspec, tell_npca=5, n_obj_par=0):
         """
         Construct an empty `astropy.table.Table`_ for the telluric model
         results.
@@ -2370,7 +2373,7 @@ class Telluric(datamodel.DataContainer):
     def __init__(self, wave, flux, ivar, gpm, telgridfile, obj_params, init_obj_model, eval_obj_model,
                  log10_blaze_function=None, ech_orders=None, sn_clip=30.0, teltype='pca', tell_npca=4,
                  airmass_guess=1.5, resln_guess=None, resln_frac_bounds=(0.3, 1.5), pix_shift_bounds=(-5.0, 5.0),
-                 pix_stretch_bounds=(0.9,1.1), maxiter=2, sticky=True, lower=3.0, upper=3.0,
+                 pix_stretch_bounds=(0.98,1.02), maxiter=2, sticky=True, lower=3.0, upper=3.0,
                  seed=777, ballsize = 5e-4, tol=1e-3, diff_evol_maxiter=1000,  popsize=30,
                  recombination=0.7, polish=True, disp=False, sensfunc=False, debug=False):
 

@@ -32,8 +32,8 @@
                             Specify redshift. Used with the --objmodel qso option
                             above.
       -g, --tell_grid TELL_GRID
-                            Telluric grid. You should download the giant grid file
-                            to the pypeit/data/telluric folder. It should only be
+                            Telluric model file. You should download the model file
+                            to thepypeit/data/telluric folder. It should only be
                             passed if you want to overwrite the default tell_grid
                             that is set via each spectrograph file.
       -p, --pca_file PCA_FILE

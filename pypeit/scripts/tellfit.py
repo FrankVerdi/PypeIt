@@ -32,7 +32,7 @@ class TellFit(scriptbase.ScriptBase):
         parser.add_argument("-r", "--redshift", type=float, default=None,
                             help="Specify redshift. Used with the --objmodel qso option above.")
         parser.add_argument("-g", "--tell_grid", type=str,
-                            help='Telluric grid. You should download the giant grid file to the '
+                            help='Telluric model file. You should download the model file to the'
                                  'pypeit/data/telluric folder. It should only be passed if you '
                                  'want to overwrite the default tell_grid that is set via each '
                                  'spectrograph file.')
@@ -166,6 +166,7 @@ class TellFit(scriptbase.ScriptBase):
                                            tell_norm_thresh=par['telluric']['tell_norm_thresh'],
                                            only_orders=par['telluric']['only_orders'],
                                            bal_wv_min_max=par['telluric']['bal_wv_min_max'],
+                                           resln_frac_bounds=par['telluric']['resln_frac_bounds'],
                                            pix_shift_bounds=par['telluric']['pix_shift_bounds'],
                                            maxiter=par['telluric']['maxiter'],
                                            popsize=par['telluric']['popsize'],
@@ -190,6 +191,7 @@ class TellFit(scriptbase.ScriptBase):
                                              hydrogen_mask_wid=par['sensfunc']['hydrogen_mask_wid'],
                                              delta_coeff_bounds=par['telluric']['delta_coeff_bounds'],
                                              minmax_coeff_bounds=par['telluric']['minmax_coeff_bounds'],
+                                             resln_frac_bounds=par['telluric']['resln_frac_bounds'],
                                              pix_shift_bounds=par['telluric']['pix_shift_bounds'],
                                              maxiter=par['telluric']['maxiter'],
                                              popsize=par['telluric']['popsize'],
@@ -210,6 +212,7 @@ class TellFit(scriptbase.ScriptBase):
                                              delta_coeff_bounds=par['telluric']['delta_coeff_bounds'],
                                              minmax_coeff_bounds=par['telluric']['minmax_coeff_bounds'],
                                              only_orders=par['telluric']['only_orders'],
+                                             resln_frac_bounds=par['telluric']['resln_frac_bounds'],
                                              pix_shift_bounds=par['telluric']['pix_shift_bounds'],
                                              maxiter=par['telluric']['maxiter'],
                                              popsize=par['telluric']['popsize'],
