@@ -5,7 +5,34 @@ PypeIt Team
 Leadership
 ----------
 
-In transition ...
+Coordination Committee
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Project Scientist: TBD
+- Developer Committee Chair: TBD
+- End-User Committee Chair: TBD
+- Advisory Council Representative: TBD
+
+Developer Committee
+~~~~~~~~~~~~~~~~~~~
+
+TBD
+
+End-User Committee
+~~~~~~~~~~~~~~~~~~
+
+TBD
+
+Advisory Council
+~~~~~~~~~~~~~~~~
+
+TBD
+
+Other
+~~~~~
+
+Ombudsperson: John O'Meara (WMKO Chief Scientist)
+
 
 Maintainers
 -----------
@@ -21,8 +48,8 @@ Maintainers
 Code/Documentation Contributors
 -------------------------------
 
-The following is a list of contributors to the code repository.  This list is
-provided by GitHub `here <https://github.com/pypeit/PypeIt/graphs/contributors>`__.
+The list of contributors to the code repository below is exactly as provided by
+GitHub `here <https://github.com/pypeit/PypeIt/graphs/contributors>`__.
 
 - Shane Bechtel (@ShaneBechtel)
 - Edward Betts (@EdwardBetts)
