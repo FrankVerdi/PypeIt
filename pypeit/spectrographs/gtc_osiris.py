@@ -15,6 +15,7 @@ from astropy import wcs, units
 import astropy.io.fits as fits
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, EarthLocation
+from IPython import embed
 
 
 class GTCOSIRISPlusSpectrograph(spectrograph.Spectrograph):
@@ -127,6 +128,9 @@ class GTCOSIRISPlusSpectrograph(spectrograph.Spectrograph):
 
         # Turn off the 2D fit - this seems to be giving bad results for OSIRIS
         par['reduce']['skysub']['no_poly'] = True
+
+        # Don't extrapolate the sensitivity function for the low resolution gratings
+        par['fluxcalib']['extrap_sens'] = True
         return par
 
     def init_meta(self):
@@ -437,6 +441,94 @@ class GTCOSIRISPlusSpectrograph(spectrograph.Spectrograph):
             bpm_img[bc[bb][2]:bc[bb][3] + 1, bc[bb][0]:bc[bb][1] + 1] = 1
 
         return bpm_img
+
+    def tweak_standard(self, wave_in, counts_in, counts_ivar_in, gpm_in, meta_table, log10_blaze_function=None, debug=False):
+        """
+
+        This routine is for performing instrument/disperser specific tweaks to standard stars so that sensitivity
+        function fits will be well behaved. For example, masking second order light. For instruments that don't
+        require such tweaks it will just return the inputs, but for instruments that do this function is overloaded
+        with a method that performs the tweaks.
+
+        Parameters
+        ----------
+        wave_in: `numpy.ndarray`_
+            Input standard star wavelengths (:obj:`float`, ``shape = (nspec,)``)
+        counts_in: `numpy.ndarray`_
+            Input standard star counts (:obj:`float`, ``shape = (nspec,)``)
+        counts_ivar_in: `numpy.ndarray`_
+            Input inverse variance of standard star counts (:obj:`float`, ``shape = (nspec,)``)
+        gpm_in: `numpy.ndarray`_
+            Input good pixel mask for standard (:obj:`bool`, ``shape = (nspec,)``)
+        meta_table: :obj:`dict`
+            Table containing meta data that is slupred from the :class:`~pypeit.specobjs.SpecObjs`
+            object.  See :meth:`~pypeit.specobjs.SpecObjs.unpack_object` for the
+            contents of this table.
+        log10_blaze_function: `numpy.ndarray`_ or None
+            Input blaze function to be tweaked, optional. Default=None.
+
+
+        Returns
+        -------
+        wave_out: `numpy.ndarray`_
+            Output standard star wavelengths (:obj:`float`, ``shape = (nspec,)``)
+        counts_out: `numpy.ndarray`_
+            Output standard star counts (:obj:`float`, ``shape = (nspec,)``)
+        counts_ivar_out: `numpy.ndarray`_
+            Output inverse variance of standard star counts (:obj:`float`, ``shape = (nspec,)``)
+        gpm_out: `numpy.ndarray`_
+            Output good pixel mask for standard (:obj:`bool`, ``shape = (nspec,)``)
+        log10_blaze_function_out: `numpy.ndarray`_ or None
+            Output blaze function after being tweaked.
+        """
+
+        # Could check the wavelenghts here to do something more robust to header/meta data issues
+        if 'R300R' in meta_table['DISPNAME']:
+            wave_blue = 4800.0  # blue wavelength below which there is contamination
+            wave_red = 9300.0  # red wavelength above which the spectrum is contaminated
+        elif 'R300B' in meta_table['DISPNAME']:
+            wave_blue = 11170.0  # blue wavelength below which there is contamination
+            wave_red = 12600.0  # red wavelength above which the spectrum is contaminated
+
+        else:
+            # keep everything the same
+            wave_blue = -np.inf
+            wave_red = np.inf
+
+        second_order_region = (wave_in < wave_blue) | (wave_in > wave_red)
+        wave = wave_in.copy()
+        counts = counts_in.copy()
+        counts_ivar = counts_ivar_in.copy()
+        gpm = gpm_in.copy()
+
+        wave[second_order_region] = 0.0
+        counts[second_order_region] = 0.0
+        counts_ivar[second_order_region] = 0.0
+        # By setting the wavelengths to zero, we guarantee that the sensitvity function will only be computed
+        # over the valid wavelength region. While we could mask, this would still produce a wave_min and wave_max
+        # for the zeropoint that includes the bad regions, and the polynomial fits will extrapolate crazily there
+        gpm[second_order_region] = False
+
+        if log10_blaze_function is not None:
+            log10_blaze_function_out = log10_blaze_function.copy()
+            log10_blaze_function_out[second_order_region] = 0.0
+        else:
+            log10_blaze_function_out = None
+
+        debug = True  # TODO :: Remove this before PR merge
+        if debug:
+           from matplotlib import pyplot as plt
+           from pypeit import utils
+           counts_sigma = np.sqrt(utils.inverse(counts_ivar_in))
+           plt.plot(wave_in, counts, color='red', alpha=0.7, label='apodized flux')
+           plt.plot(wave_in, counts_in, color='black', alpha=0.7, label='flux')
+           plt.plot(wave_in, counts_sigma, color='blue', alpha=0.7, label='flux')
+           plt.axvline(wave_blue, color='blue')
+           plt.axvline(wave_red, color='red')
+           plt.legend()
+           plt.show()
+
+        return wave, counts, counts_ivar, gpm, log10_blaze_function_out
 
 
 class GTCMAATSpectrograph(GTCOSIRISPlusSpectrograph):

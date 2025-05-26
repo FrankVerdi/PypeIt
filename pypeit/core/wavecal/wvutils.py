@@ -92,6 +92,8 @@ def get_delta_wave(wave, wave_gpm, frac_spec_med_filter=0.03):
     gauss_kernel = convolution.Gaussian1DKernel(sig_res)
     wave_diff_smooth = convolution.convolve(wave_diff_filt, gauss_kernel, boundary='extend')
     delta_wave[wave_gpm] = wave_diff_smooth
+    # Set any regions with delta_wave = 0 to the median value of the data
+    delta_wave[np.logical_not(wave_gpm)] = np.median(delta_wave[wave_gpm])
     return delta_wave
 
 

@@ -38,6 +38,7 @@ SN2_MAX = (20.0) ** 2
 PYPEIT_FLUX_SCALE = 1e-17
 BB_SCALE_FACTOR = 1.0E-23  # Scale factor used for the tabulated blackbody dimensionless flux scale factor.
 
+
 def zp_unit_const():
     """
     This constant defines the units for the spectroscopic zeropoint. See
@@ -747,7 +748,6 @@ def sensfunc(wave, counts, counts_ivar, counts_mask, exptime, airmass, std_dict,
     out_table['SENS_ZEROPOINT_FIT_GPM'] = zeropoint_fit_gpm.T
     out_table['WAVE_MIN'] = wave_min
     out_table['WAVE_MAX'] = wave_max
-
     return meta_table, out_table
 
 
@@ -1080,6 +1080,7 @@ def get_mask(wave_star, flux_star, ivar_star, mask_star,
     msgs.info(" Masking Below the atmospheric cutoff")
     atms_cutoff = wave_star <= 3000.0
     mask_bad[atms_cutoff] = False
+    gpm = np.where(mask_bad)
 
     if mask_hydrogen_lines:
         mask_recomb = mask_stellar_hydrogen(
@@ -1116,10 +1117,10 @@ def get_mask(wave_star, flux_star, ivar_star, mask_star,
             skytrans_file = dataPaths.skisim.get_file_path('mktrans_zm_10_10.dat')
             skytrans = ascii.read(skytrans_file)
             wave_trans, trans = skytrans['wave'].data*10000.0, skytrans['trans'].data
-            trans_use = (wave_trans>=np.min(wave_star)-100.0) & (wave_trans<=np.max(wave_star)+100.0)
+            trans_use = (wave_trans >= np.min(wave_star[gpm])-100.0) & (wave_trans <= np.max(wave_star[gpm])+100.0)
             # Estimate the resolution of your spectra.
             # I assumed 3 pixels per resolution. This gives an approximate right resolution at the middle point.
-            resolution = np.median(wave_star) / np.median(wave_star - np.roll(wave_star, 1)) / 3
+            resolution = np.median(wave_star[gpm]) / np.median(wave_star[gpm] - np.roll(wave_star[gpm], 1)) / 3
             trans_convolved, px_sigma, px_bin = conv2res(wave_trans[trans_use], trans[trans_use], resolution,
                                                          central_wl='midpt', debug=False)
             trans_final = interpolate.interp1d(wave_trans[trans_use], trans_convolved,
@@ -1577,8 +1578,8 @@ def standard_zeropoint(wave, Nlam, Nlam_ivar, Nlam_gpm, flam_true, mask_recomb=N
     msgs.work("Should pull resolution from arc line analysis")
     msgs.work("At the moment the resolution is taken as the PixelScale")
     msgs.work("This needs to be changed!")
-    std_pix = np.median(np.abs(wave - np.roll(wave, 1)))
-    std_res = np.median(wave/resolution) # median resolution in units of Angstrom.
+    std_pix = np.median(np.abs(wave[zeropoint_data_gpm] - np.roll(wave[zeropoint_data_gpm], 1)))
+    std_res = np.median(wave[zeropoint_data_gpm]/resolution) # median resolution in units of Angstrom.
     if (nresln * std_res) < std_pix:
         msgs.warn("Bspline breakpoints spacing shoud be larger than 1pixel")
         msgs.warn("Changing input nresln to fix this")
@@ -1594,11 +1595,11 @@ def standard_zeropoint(wave, Nlam, Nlam_ivar, Nlam_gpm, flam_true, mask_recomb=N
     kwargs_bspline = {'bkspace': std_res * nresln}
     kwargs_reject = {'maxrej': 5}
     msgs.info("Initialize bspline for flux calibration")
-    init_bspline = bspline.bspline(wave, bkspace=kwargs_bspline['bkspace'])
+    init_bspline = bspline.bspline(wave[zeropoint_data_gpm], bkspace=kwargs_bspline['bkspace'])
     fullbkpt = init_bspline.breakpoints
 
     # remove masked regions from breakpoints
-    msk_bkpt = interpolate.interp1d(wave, zeropoint_fitmask, kind='nearest', fill_value='extrapolate')(fullbkpt)
+    msk_bkpt = interpolate.interp1d(wave[zeropoint_data_gpm], zeropoint_fitmask[zeropoint_data_gpm], kind='nearest', fill_value='extrapolate')(fullbkpt)
     init_breakpoints = fullbkpt[msk_bkpt > 0.999]
 
     # init_breakpoints = fullbkpt
@@ -1608,7 +1609,6 @@ def standard_zeropoint(wave, Nlam, Nlam_ivar, Nlam_gpm, flam_true, mask_recomb=N
                                 kwargs_reject=kwargs_reject)
     zeropoint_bspl, zeropoint_fit_gpm = bset1.value(wave)
     zeropoint_bspl_bkpt, _ = bset1.value(init_breakpoints)
-
     if debug:
         # Check for calibration
         plt.figure(1)
