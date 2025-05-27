@@ -493,10 +493,18 @@ class GTCOSIRISPlusSpectrograph(spectrograph.Spectrograph):
         if 'R300R' in meta_table['DISPNAME']:
             wave_blue = 4800.0  # blue wavelength below which there is contamination
             wave_red = 9300.0  # red wavelength above which the spectrum is contaminated
+        elif 'R500R' in meta_table['DISPNAME']:
+            wave_blue = 4800.0  # blue wavelength below which there is contamination
+            wave_red = 9300.0  # red wavelength above which the spectrum is contaminated
         elif 'R300B' in meta_table['DISPNAME']:
-            wave_blue = 11170.0  # blue wavelength below which there is contamination
-            wave_red = 12600.0  # red wavelength above which the spectrum is contaminated
-
+            wave_blue = 3400.0  # blue wavelength below which there is contamination
+            wave_red = 6500.0  # red wavelength above which the spectrum is contaminated
+        elif 'R500B' in meta_table['DISPNAME']:
+            wave_blue = 3400.0  # blue wavelength below which there is contamination
+            wave_red = 6500.0  # red wavelength above which the spectrum is contaminated
+        elif 'R1000B' in meta_table['DISPNAME']:
+            wave_blue = 3500.0  # blue wavelength below which there is contamination
+            wave_red = 6300.0  # red wavelength above which the spectrum is contaminated
         else:
             # keep everything the same
             wave_blue = -np.inf
@@ -522,7 +530,6 @@ class GTCOSIRISPlusSpectrograph(spectrograph.Spectrograph):
         else:
             log10_blaze_function_out = None
 
-        debug = True  # TODO :: Remove this before PR merge
         if debug:
            from matplotlib import pyplot as plt
            from pypeit import utils

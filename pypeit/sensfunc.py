@@ -650,13 +650,13 @@ class SensFunc(datamodel.DataContainer):
                                   color=(rr, gg, bb), linestyle='-', linewidth=2.5,
                                   label=thru_title[idet], zorder=5 * idet)
 
-                        if np.min(self.wave[wave_gpm, idet]) < _wave_min or _wave_min is None:
+                        if (_wave_min is None) or (np.min(self.wave[wave_gpm, idet]) < _wave_min):
                             _wave_min = np.min(self.wave[wave_gpm, idet])
-                        if np.max(self.wave[wave_gpm, idet]) > _wave_max or _wave_max is None:
+                        if (_wave_max is None) or (np.max(self.wave[wave_gpm, idet]) > _wave_max):
                             _wave_max = np.max(self.wave[wave_gpm, idet])
-                        if (np.min(self.sens['SENS_ZEROPOINT_FIT'][wave_gpm]) < tmin) or tmin is None:
+                        if (tmin is None) or (np.min(self.sens['SENS_ZEROPOINT_FIT'][wave_gpm]) < tmin):
                             tmin = np.min(self.sens['SENS_ZEROPOINT_FIT'][wave_gpm])
-                        if (np.max(self.sens['SENS_ZEROPOINT_FIT'][wave_gpm]) > tmax) or tmax is None:
+                        if (tmax is None) or (np.max(self.sens['SENS_ZEROPOINT_FIT'][wave_gpm]) > tmax):
                             tmax = np.max(self.sens['SENS_ZEROPOINT_FIT'][wave_gpm])
 
                     # If we are splicing, overplot the spliced zeropoint
@@ -695,11 +695,11 @@ class SensFunc(datamodel.DataContainer):
             axis.plot(self.wave[gpm,idet], self.throughput[gpm,idet], color=(rr, gg, bb),
                       linestyle='-', linewidth=2.5, label=thru_title[idet], zorder=5*idet)
             # Determine the wavelength limits for the plot
-            if (np.min(self.wave[gpm,idet]) < _wave_min) or (_wave_min is None):
+            if (_wave_min is None) or (np.min(self.wave[gpm,idet]) < _wave_min):
                 _wave_min = np.min(self.wave[gpm,idet])
-            if (np.max(self.wave[gpm,idet]) > _wave_max) or (_wave_max is None):
+            if (_wave_max is None) or (np.max(self.wave[gpm,idet]) > _wave_max):
                 _wave_max = np.max(self.wave[gpm,idet])
-            if (np.max(self.throughput[gpm,idet]) > tmax) or (tmax is None):
+            if (tmax is None) or (np.max(self.throughput[gpm,idet]) > tmax):
                 tmax = np.max(self.throughput[gpm,idet])
         if self.splice_multi_det:
             axis.plot(self.wave_splice[wave_slice_gpm].flatten(),
@@ -733,7 +733,7 @@ class SensFunc(datamodel.DataContainer):
                       label=thru_title[iorddet], zorder=idet, alpha=0.7)
 
 
-        wave_gpm_global = self.sens['SENS_FLUXED_STD_WAVE'] > 1.0
+        # wave_gpm_global = self.sens['SENS_FLUXED_STD_WAVE'] > 1.0
         wave_min = 0.98*_wave_min #(self.sens['SENS_FLUXED_STD_WAVE'][wave_gpm_global]).min()
         wave_max = 1.02*_wave_max #(self.sens['SENS_FLUXED_STD_WAVE'][wave_gpm_global]).max()
         pix_wave_std = (self.std_dict['wave'].value >= wave_min) & (self.std_dict['wave'].value <= wave_max)
