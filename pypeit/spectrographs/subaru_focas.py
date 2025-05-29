@@ -29,7 +29,7 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
     camera = 'FOCAS'
     header_name = 'FOCAS'
     supported = True
-    comment = 'reasonable progress'
+    comment = 'Supported grisms: 300B, 300R, VPH520, VPH650, VPH850; see :doc:`focas`'
 
 
     @classmethod
@@ -87,8 +87,13 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
         par['calibrations']['biasframe']['exprng'] = [None, 0.001]
         par['calibrations']['pixelflatframe']['exprng'] = [0, None]
         par['calibrations']['traceframe']['exprng'] = [0, None]
+        # Think we needed to change lower bound on this to recognize some arcs
+        #par['calibrations']['arcframe']['exprng'] = [0, None]
         par['calibrations']['arcframe']['exprng'] = [1, None]
+        # Think we needed to change the upper bound on this for some standards
+        #par['calibrations']['standardframe']['exprng'] = [1, None]
         par['calibrations']['standardframe']['exprng'] = [1, 61]
+        #par['scienceframe']['exprng'] = [1, None]
         par['scienceframe']['exprng'] = [61, None]
 
         return par
@@ -321,10 +326,83 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
         # Start with instrument wide
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
-        if self.get_meta_value(scifile, 'dispname') == 'SCFCGRMB01':
+        grism_ID = self.get_meta_value(scifile, 'dispname')
+
+        if grism_ID == 'SCFCGRMB01':
+            # 300B grism
             par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_subaru_focas_SCFCGRMB01.fits'
             par['calibrations']['wavelengths']['method'] = 'full_template'
             par['calibrations']['wavelengths']['stretch_func'] = 'quadratic'
+
+        elif grism_ID == 'SCFCGRMR01':
+            # 300R grism
+            #par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_subaru_focas_SCFCGRMB01.fits'
+            par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_subaru_focas_SCFCGRMR01.fits'
+            par['calibrations']['wavelengths']['method'] = 'full_template'
+            par['calibrations']['wavelengths']['stretch_func'] = 'quadratic'
+
+        # elif grism_ID == 'SCFCGREL01':
+        #     # 75/mm grism
+        #     par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_subaru_focas_SCFCGREL01.fits'
+        #     par['calibrations']['wavelengths']['method'] = 'full_template'
+        #     par['calibrations']['wavelengths']['stretch_func'] = 'quadratic'
+
+        # elif grism_ID == 'SCFCGRHD45':
+        #     # VPH450 grism
+        #     par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_subaru_focas_SCFCGRHD45.fits'
+        #     par['calibrations']['wavelengths']['method'] = 'full_template'
+        #     par['calibrations']['wavelengths']['stretch_func'] = 'quadratic'
+
+        elif grism_ID == 'SCFCGRHD52':
+            # VPH520 grism
+            par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_subaru_focas_SCFCGRHD52.fits'
+            #par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_subaru_focas_SCFCGRMR01.fits'
+            par['calibrations']['wavelengths']['method'] = 'full_template'
+            par['calibrations']['wavelengths']['stretch_func'] = 'quadratic'
+
+        elif grism_ID == 'SCFCGRHD65':
+            # VPH650 grism
+            #par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_subaru_focas_SCFCGRHD65.fits'
+            par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_subaru_focas_SCFCGRMB01.fits'
+            par['calibrations']['wavelengths']['method'] = 'full_template'
+            par['calibrations']['wavelengths']['stretch_func'] = 'quadratic'
+
+        # elif grism_ID == 'SCFCGRHD68':
+        #     # VPH680 grism
+        #     par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_subaru_focas_SCFCGRHD68.fits'
+        #     par['calibrations']['wavelengths']['method'] = 'full_template'
+        #     par['calibrations']['wavelengths']['stretch_func'] = 'quadratic'
+
+        # elif grism_ID == 'SCFCGRHD80':
+        #      # VPH800 grism
+        #     par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_subaru_focas_SCFCGRHD80.fits'
+        #     par['calibrations']['wavelengths']['method'] = 'full_template'
+        #     par['calibrations']['wavelengths']['stretch_func'] = 'quadratic'
+
+        elif grism_ID == 'SCFCGRHD85':
+             # VPH850 grism
+            par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_subaru_focas_SCFCGRHD85.fits'
+            par['calibrations']['wavelengths']['method'] = 'full_template'
+            par['calibrations']['wavelengths']['stretch_func'] = 'quadratic'
+
+        # elif grism_ID == 'SCFCGRHD95':
+        #     # VPH950 grism
+        #     par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_subaru_focas_SCFCGRHD95.fits'
+        #     par['calibrations']['wavelengths']['method'] = 'full_template'
+        #     par['calibrations']['wavelengths']['stretch_func'] = 'quadratic'
+
+        # elif grism_ID == 'SCFCGRLD01':
+        #     # 150/mm grism
+        #     par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_subaru_focas_SCFCGRLD01.fits'
+        #     par['calibrations']['wavelengths']['method'] = 'full_template'
+        #     par['calibrations']['wavelengths']['stretch_func'] = 'quadratic'
+
+        # elif grism_ID == 'SCFCGRHDEC':
+        #     # Echelle grism
+        #     par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_subaru_focas_SCFCGRHDEC.fits'
+        #     par['calibrations']['wavelengths']['method'] = 'full_template'
+        #     par['calibrations']['wavelengths']['stretch_func'] = 'quadratic'
+
         # ---- NOTE: from Debora ----
         # The pypeit_sensfunc script uses the config_specific_par() method
         # with a reduced spec1d file to pull out some info, although the method
@@ -373,6 +451,10 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
             object.
         """
         # TODO -- Consider dispangle
+        # NOTE: FOCAS sometimes substitutes a different slit width for say,
+        #       science than for standard, so we don't want to distingish
+        #       a unique configuration for 'decker'
+        #return ['dispname', 'detector']
         return ['dispname', 'decker', 'detector']
 
     def get_rawimage(self, raw_file, det):
@@ -506,26 +588,6 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
                 oscansec_img[:, rgt_oscan_start:rgt_oscan_end] = n_amp
 
         return (detector, rawdata, hdu_l, exptime, rawdatasec_img, oscansec_img)
-
-
-    @property
-    def allowed_mosaics(self):
-        """
-        Return the list of allowed detector mosaics.
-
-        Subaru FOCAS only allows for mosaicing both detectors.
-
-        Returns:
-            :obj:`list`: List of tuples, where each tuple provides the 1-indexed
-            detector numbers that can be combined into a mosaic and processed by
-            PypeIt.
-        """
-        return [(1,2)]
-
-    @property
-    def default_mosaic(self):
-        return self.allowed_mosaics[0]
-
 
     def raw_header_cards(self):
         """
