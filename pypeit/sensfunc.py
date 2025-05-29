@@ -644,20 +644,23 @@ class SensFunc(datamodel.DataContainer):
                         gg = 0.0
                         bb = (order_or_det[idet] - np.min(order_or_det)) \
                                 / np.maximum(np.max(order_or_det) - np.min(order_or_det), 1)
-                        wave_gpm = self.sens['SENS_WAVE'][idet] > 1.0
-                        axis.plot(self.sens['SENS_WAVE'][idet,wave_gpm],
-                                  self.sens['SENS_ZEROPOINT_FIT'][idet,wave_gpm],
+                        sens_wave_gpm = self.sens['SENS_WAVE'][idet] > 1.0
+                        axis.plot(self.sens['SENS_WAVE'][idet,sens_wave_gpm],
+                                  self.sens['SENS_ZEROPOINT_FIT'][idet,sens_wave_gpm],
                                   color=(rr, gg, bb), linestyle='-', linewidth=2.5,
                                   label=thru_title[idet], zorder=5 * idet)
 
+                        wave_gpm = (self.wave[:, idet] >= self.sens['WAVE_MIN'][idet]) \
+                                   & (self.wave[:, idet] <= self.sens['WAVE_MAX'][idet]) \
+                                   & (self.wave[:, idet] > 1.0)
                         if (_wave_min is None) or (np.min(self.wave[wave_gpm, idet]) < _wave_min):
                             _wave_min = np.min(self.wave[wave_gpm, idet])
                         if (_wave_max is None) or (np.max(self.wave[wave_gpm, idet]) > _wave_max):
                             _wave_max = np.max(self.wave[wave_gpm, idet])
-                        if (tmin is None) or (np.min(self.sens['SENS_ZEROPOINT_FIT'][wave_gpm]) < tmin):
-                            tmin = np.min(self.sens['SENS_ZEROPOINT_FIT'][wave_gpm])
-                        if (tmax is None) or (np.max(self.sens['SENS_ZEROPOINT_FIT'][wave_gpm]) > tmax):
-                            tmax = np.max(self.sens['SENS_ZEROPOINT_FIT'][wave_gpm])
+                        if (tmin is None) or (np.min(self.sens['SENS_ZEROPOINT_FIT'][idet,sens_wave_gpm]) < tmin):
+                            tmin = np.min(self.sens['SENS_ZEROPOINT_FIT'][idet,sens_wave_gpm])
+                        if (tmax is None) or (np.max(self.sens['SENS_ZEROPOINT_FIT'][idet,sens_wave_gpm]) > tmax):
+                            tmax = np.max(self.sens['SENS_ZEROPOINT_FIT'][idet,sens_wave_gpm])
 
                     # If we are splicing, overplot the spliced zeropoint
                     if self.splice_multi_det:
@@ -727,8 +730,9 @@ class SensFunc(datamodel.DataContainer):
             gg = 0.0
             bb = (order_or_det[iorddet] - np.min(order_or_det)) \
                     / np.maximum(np.max(order_or_det) - np.min(order_or_det), 1)
-            wave_gpm = self.sens['SENS_FLUXED_STD_WAVE'][iorddet] > 1.0
-            axis.plot(self.sens['SENS_FLUXED_STD_WAVE'][iorddet][wave_gpm], self.sens['SENS_FLUXED_STD_FLAM'][iorddet][wave_gpm],
+            sens_wave_gpm = self.sens['SENS_FLUXED_STD_WAVE'][iorddet] > 1.0
+            axis.plot(self.sens['SENS_FLUXED_STD_WAVE'][iorddet][sens_wave_gpm],
+                      self.sens['SENS_FLUXED_STD_FLAM'][iorddet][sens_wave_gpm],
                       color=(rr, gg, bb), drawstyle='steps-mid', linewidth=1.0,
                       label=thru_title[iorddet], zorder=idet, alpha=0.7)
 
@@ -752,8 +756,8 @@ class SensFunc(datamodel.DataContainer):
                                                        bounds_error=False, fill_value='extrapolate')
         model_flux_sav = np.zeros_like(self.sens['SENS_FLUXED_STD_FLAM'])
         for iorddet in range(self.sens['SENS_FLUXED_STD_WAVE'].shape[0]):
-            wave_gpm = self.sens['SENS_FLUXED_STD_WAVE'][iorddet] > 1.0
-            model_flux_sav[iorddet][wave_gpm] = model_interp_func(self.sens['SENS_FLUXED_STD_WAVE'][iorddet][wave_gpm])
+            sens_wave_gpm = self.sens['SENS_FLUXED_STD_WAVE'][iorddet] > 1.0
+            model_flux_sav[iorddet][sens_wave_gpm] = model_interp_func(self.sens['SENS_FLUXED_STD_WAVE'][iorddet][sens_wave_gpm])
 
         self.sens['SENS_STD_MODEL_FLAM'] = model_flux_sav
 
