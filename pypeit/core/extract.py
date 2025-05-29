@@ -194,7 +194,7 @@ def extract_optimal(imgminsky, ivar, mask, waveimg, skyimg, thismask, oprof,
     # not for the wavelengths.
     wave_opt = np.nansum(mask_sub*ivar_sub*wave_sub*oprof_sub**2, axis=1)/(mivar_num + (mivar_num == 0.0))
     mask_opt = (tot_weight > 0.0) & (frac_use > min_frac_use) & (mivar_num > 0.0) & (ivar_denom > 0.0) & \
-               np.isfinite(wave_opt) & (wave_opt > 0.0)
+               np.isfinite(wave_opt) & (wave_opt > 0.0) & (np.nansum(mask_sub * oprof_sub, axis=1) > 0.9)
     fwhm_opt = None
     if fwhmimg is not None:
         fwhm_opt = np.nansum(mask_sub*ivar_sub*fwhmimg_sub*oprof_sub, axis=1) * utils.inverse(tot_weight)
