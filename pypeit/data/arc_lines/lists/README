@@ -3,3 +3,13 @@ ThAr_MagE_lines.dat
   -- Generated in the Mage_Wavelengths.ipnyb Notebook
   -- Used R=4100
   -- Vacuum, not air!
+
+ThAr_HARPS_lines.dat
+     The APF uses the same lamps as the HARPS spectrometer
+     by construction. Most lines come from a paper on
+     the lines in the spectrometer.
+     The spectrometer has a gap of ~25 A between 5305 and 5330
+     which is filled in with a theory paper (RNS14) which uses
+     Lovis and Pepe (2007) to calibrate the Th atom model.
+  -- Lovis and Pepe (2007) A&A, 468, 1115
+  -- RNS14 is Redman, Nave, & Sansonetti (2014) ApJS, 211, 4
