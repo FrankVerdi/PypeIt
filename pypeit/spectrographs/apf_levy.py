@@ -45,7 +45,7 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         par = super().default_pypeit_par()
 
         par['calibrations']['slitedges']['edge_thresh'] = 2.
-        par['calibrations']['slitedges']['fit_order'] = 6
+        par['calibrations']['slitedges']['fit_order'] = 4
         par['calibrations']['slitedges']['max_shift_adj'] = 0.5
         par['calibrations']['slitedges']['left_right_pca'] = True
         par['calibrations']['slitedges']['smash_range'] = [0.4,0.6]
@@ -82,7 +82,10 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         # slits and the usual APF target is bright
         par['reduce']['findobj']['skip_skysub'] = True
 
-        par['reduce']['findobj']['find_trim_edge'] = [1, 1]
+        # there can be a 1" overlap between the orders, so we need to
+        # trim the edges of the orders to avoid problems with the
+        # extraction
+        par['reduce']['findobj']['find_trim_edge'] = [3, 3]
         par['reduce']['findobj']['maxnumber_sci'] = 1
         par['reduce']['findobj']['maxnumber_std'] = 1
 
@@ -382,6 +385,8 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
 
         if decker == '3.0':
             par['reduce']['extraction']['boxcar_radius'] = 0.864
+            par['reduce']['skysub']['no_local_sky'] = True
+            par['reduce']['findobj']['find_trim_edge'] = [0, 0]
         return par
 
     @property
