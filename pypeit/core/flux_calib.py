@@ -819,11 +819,11 @@ def get_sensfunc_factor(wave, wave_zp, zeropoint, exptime, tellmodel=None, delta
 
     try:
         zeropoint_obs[wave_mask] \
-                = interpolate.interp1d(wave_zp, zeropoint, bounds_error=True)(wave[wave_mask])
+                = interpolate.interp1d(wave_zp[wave_zp>0], zeropoint[wave_zp>0], bounds_error=True)(wave[wave_mask])
     except ValueError:
         if extrap_sens:
             zeropoint_obs[wave_mask] \
-                    = interpolate.interp1d(wave_zp, zeropoint, bounds_error=False)(wave[wave_mask])
+                    = interpolate.interp1d(wave_zp[wave_zp>0], zeropoint[wave_zp>0], bounds_error=False)(wave[wave_mask])
             msgs.warn("Your data extends beyond the bounds of your sensfunc. You should be "
                       "adjusting the par['sensfunc']['extrap_blu'] and/or "
                       "par['sensfunc']['extrap_red'] to extrapolate further and recreate your "
