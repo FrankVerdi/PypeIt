@@ -24,7 +24,7 @@ from pypeit.core.moment import moment1d
 
 
 def extract_optimal(imgminsky, ivar, mask, waveimg, skyimg, thismask, oprof,
-                    spec, min_frac_use=0.05, fwhmimg=None, flatimg=None,
+                    spec, min_frac_use=0.9, fwhmimg=None, flatimg=None,
                     base_var=None, count_scale=None, noise_floor=None):
 
     r"""
@@ -187,6 +187,7 @@ def extract_optimal(imgminsky, ivar, mask, waveimg, skyimg, thismask, oprof,
 
     tot_weight = np.nansum(mask_sub*ivar_sub*oprof_sub, axis=1)
     prof_norm = np.nansum(oprof_sub, axis=1)
+    # NOTE: Frac_use is also equal to np.nansum(mask_sub * oprof_sub, axis=1)
     frac_use = (prof_norm > 0.0)*np.nansum((mask_sub*ivar_sub > 0.0)*oprof_sub, axis=1)/(prof_norm + (prof_norm == 0.0))
 
     # Use the same weights = oprof^2*mivar for the wavelenghts as the flux.
@@ -194,7 +195,7 @@ def extract_optimal(imgminsky, ivar, mask, waveimg, skyimg, thismask, oprof,
     # not for the wavelengths.
     wave_opt = np.nansum(mask_sub*ivar_sub*wave_sub*oprof_sub**2, axis=1)/(mivar_num + (mivar_num == 0.0))
     mask_opt = (tot_weight > 0.0) & (frac_use > min_frac_use) & (mivar_num > 0.0) & (ivar_denom > 0.0) & \
-               np.isfinite(wave_opt) & (wave_opt > 0.0) & (np.nansum(mask_sub * oprof_sub, axis=1) > 0.9)
+               np.isfinite(wave_opt) & (wave_opt > 0.0)
     fwhm_opt = None
     if fwhmimg is not None:
         fwhm_opt = np.nansum(mask_sub*ivar_sub*fwhmimg_sub*oprof_sub, axis=1) * utils.inverse(tot_weight)
