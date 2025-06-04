@@ -1961,9 +1961,6 @@ class Spectrograph:
             # make sure that the trim_pixs is a list of 2 integers
             if not isinstance(trim_std_pixs, (list, tuple)) or len(trim_std_pixs) != 2:
                 msgs.error("trim_std_pixs must be a list or tuple of two integers.")
-            # make sure that the second number is larger than the first
-            if trim_std_pixs[1] <= trim_std_pixs[0]:
-                msgs.error("The second number in trim_std_pixs must be larger than the first.")
             # Mask the first and last trim_std_pixs pixels
             s = trim_std_pixs[0]
             e = trim_std_pixs[1]
@@ -1971,6 +1968,7 @@ class Spectrograph:
             gpm_out[-e:] = False
             # Set the wave, counts and inverse variance to zero in the masked pixels
             _bpm = np.logical_not(gpm_out)
+            msgs.info('Trimming standard star spectrum by {:d} pixels at the start and {:d} pixels at the end.'.format(s, e))
             wave_out[_bpm] = 0.0
             counts_out[_bpm] = 0.0
             counts_ivar_out[_bpm] = 0.0

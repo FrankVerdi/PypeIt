@@ -2045,9 +2045,9 @@ class SensFuncPar(ParSet):
 
         defaults['trim_std_pixs'] = None
         dtypes['trim_std_pixs'] = [list, tuple]
-        descr['trim_std_pixs'] = 'List or tuple of two integers specifying the number of pixels to trim' \ 
+        descr['trim_std_pixs'] = 'List or tuple of two integers specifying the number of pixels to trim' \
                                  'from the start and end of the 1D standard star spectrum. ' \
-                                 'Example: [10, 5] will trim 10 pixels from the start (blue side)' \  
+                                 'Example: [10, 5] will trim 10 pixels from the start (blue side)' \
                                  'and 5 pixels from the end (red side) of the spectrum. '
 
         defaults['algorithm'] = 'UVIS'
