@@ -1951,7 +1951,33 @@ class Spectrograph:
         log10_blaze_function_out: `numpy.ndarray`_ or None
             Output blaze function after being tweaked.
         """
-        return wave_in, counts_in, counts_ivar_in, gpm_in, log10_blaze_function
+        wave_out = wave_in.copy()
+        counts_out = counts_in.copy()
+        counts_ivar_out = counts_ivar_in.copy()
+        gpm_out = gpm_in.copy()
+        log10_blaze_function_out = log10_blaze_function.copy() if log10_blaze_function is not None else None
+
+        if trim_std_pixs is not None:
+            # make sure that the trim_pixs is a list of 2 integers
+            if not isinstance(trim_std_pixs, (list, tuple)) or len(trim_std_pixs) != 2:
+                msgs.error("trim_std_pixs must be a list or tuple of two integers.")
+            # make sure that the second number is larger than the first
+            if trim_std_pixs[1] <= trim_std_pixs[0]:
+                msgs.error("The second number in trim_std_pixs must be larger than the first.")
+            # Mask the first and last trim_std_pixs pixels
+            s = trim_std_pixs[0]
+            e = trim_std_pixs[1]
+            gpm_out[:s] = False
+            gpm_out[-e:] = False
+            # Set the wave, counts and inverse variance to zero in the masked pixels
+            _bpm = np.logical_not(gpm_out)
+            wave_out[_bpm] = 0.0
+            counts_out[_bpm] = 0.0
+            counts_ivar_out[_bpm] = 0.0
+            if log10_blaze_function_out is not None:
+                log10_blaze_function_out[_bpm] = 0.0
+
+        return wave_out, counts_out, counts_ivar_out, gpm_out, log10_blaze_function_out
 
     def calc_pattern_freq(self, frame, rawdatasec_img, oscansec_img, hdu):
         """
