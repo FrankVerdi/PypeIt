@@ -15,7 +15,7 @@ class ChkEdges(scriptbase.ScriptBase):
         parser = super().get_parser(description='Display trace image and edge traces',
                                     width=width)
 
-        parser.add_argument('trace_file', type=str, default=None,
+        parser.add_argument('edges_file', type=str, default=None,
                             help='PypeIt Edges file [e.g. Edges_A_0_DET01.fits.gz]')
         parser.add_argument('--slits_file', type=str, default=None,
                             help='PypeIt Slits file [e.g. Slits_A_1_01.fits]. If this file does '
@@ -38,7 +38,7 @@ class ChkEdges(scriptbase.ScriptBase):
         chk_version = not args.try_old
 
         # Load
-        edges = edgetrace.EdgeTraceSet.from_file(args.trace_file, chk_version=chk_version)
+        edges = edgetrace.EdgeTraceSet.from_file(args.edges_file, chk_version=chk_version)
 
         if args.mpl:
             edges.show(thin=10, include_img=True, idlabel=True)
