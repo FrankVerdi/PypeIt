@@ -1,21 +1,40 @@
 
+.. _governance:
+
 PypeIt Governance Structure
 ===========================
 
-PypeIt largely follows a do-ocracy structure, where valuable and sustained
-contributions to the project lead to more influence over its development
-direction.
+PypeIt follows a structured do-ocracy governance model, where valuable and
+sustained contributions to the project lead to more influence over its
+development direction via the roles and committees defined below.
 
-We are currently in a transition to a new model that evolves the current
-structure into one that is intended to be more community focused, but remains
-primarily a do-ocracy.  We expect the new governance model will be instituted by
-the end of 2025.  The following is **a working draft** of this governance
-structure.
+.. note::
+
+    We are currently in a transition to a new model that evolves the current
+    structure into one that is intended to be more community focused, but
+    remains primarily a do-ocracy.  We expect the new governance model will be
+    instituted by the end of 2025.  The following is **a working draft** of this
+    governance structure.
 
 Governance Charter
 ------------------
 
+PypeIt's governance model establishes the following, which are defi:
 
+- :ref:`Coordination Committee<governance-coordination>`: Coordinates overall
+  development by setting goals and milestones based on community input.
+
+- :ref:`Developer Committee<governance-devend>`: Developer-focussed 
+- :ref:`End-User Committee<governance-devend>`: 
+- :ref:`Advisory Council<governance-advisory>`
+- :ref:`PypeIt Maintainers<governance-maintain>`
+- :ref:`PypeIt Voting Members<governance-voting>`
+- :ref:`Other Roles<governance-other>`
+
+
+
+
+.. _governance-coordination:
 
 Coordination Committee
 ~~~~~~~~~~~~~~~~~~~~~~
