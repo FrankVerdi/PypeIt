@@ -44,11 +44,11 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         """
         par = super().default_pypeit_par()
 
-        par['calibrations']['slitedges']['edge_thresh'] = 2.
+        par['calibrations']['slitedges']['edge_thresh'] = 1.
         par['calibrations']['slitedges']['fit_order'] = 4
         par['calibrations']['slitedges']['max_shift_adj'] = 0.5
         par['calibrations']['slitedges']['left_right_pca'] = True
-        par['calibrations']['slitedges']['smash_range'] = [0.4,0.6]
+        par['calibrations']['slitedges']['smash_range'] = [0.35,0.65]
 
         par['calibrations']['tilts']['tracethresh'] = 20
 
@@ -387,6 +387,8 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
             par['reduce']['extraction']['boxcar_radius'] = 0.864
             par['reduce']['skysub']['no_local_sky'] = True
             par['reduce']['findobj']['find_trim_edge'] = [0, 0]
+            par['calibrations']['slitedges']['pad'] = 1
+            
         return par
 
     @property
