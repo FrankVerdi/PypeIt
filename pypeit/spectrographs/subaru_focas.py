@@ -48,9 +48,8 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
 
         # Median overscan
         #   IF YOU CHANGE THIS, YOU WILL NEED TO DEAL WITH THE OVERSCAN GOING ALONG ROWS
-        for key in par['calibrations'].keys():
-            if 'frame' in key:
-                par['calibrations'][key]['process']['overscan_method'] = 'median'
+        turn_off_on = dict(overscan_method='median')
+        par.reset_all_processimages_par(**turn_off_on)
 
         # Adjustments to slit and tilts for NIR
         par['calibrations']['slitedges']['edge_thresh'] = 50.
@@ -119,7 +118,7 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
         self.meta['decker'] = dict(ext=0, card='SLIT')
         # Extras for config and frametyping
         self.meta['dispname'] = dict(ext=0, card='DISPERSR', required_ftypes=['science', 'standard'])
-        # TODO - FIX THIS!!
+        # 
         self.meta['dispangle'] = dict(ext=0, card='BZERO', rtol=2.0)#, required_ftypes=['science', 'standard'])
         self.meta['idname'] = dict(ext=0, card='DATA-TYP')
         self.meta['detector'] = dict(ext=0, card='DET-ID')
