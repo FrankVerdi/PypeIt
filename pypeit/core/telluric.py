@@ -2663,36 +2663,36 @@ class Telluric(datamodel.DataContainer):
         self.model['NITER'][iord] = self.result_list[iord].nit
 
     # TODO Purge? This does not appear to be used at the moment.
-    def interpolate_inmask(self, mask, wave_inmask, inmask):
-        """
-        Utitlity routine to interpolate the input mask.
-        """
-
-        if inmask is not None:
-            if wave_inmask is None:
-                msgs.error('If you are specifying a mask you need to pass in the corresponding '
-                           'wavelength grid')
-
-            # TODO we shoudld consider refactoring the interpolator to take a
-            # list of images and masks to remove the the fake zero images in the
-            # call below
-            _, _, inmask_int = coadd.interp_spec(self.wave_grid, wave_inmask,
-                                                 np.ones_like(wave_inmask),
-                                                 np.ones_like(wave_inmask), inmask)
-
-            # If the data mask is 2d, and inmask is 1d, tile to create the
-            # inmask aligned with the data
-            if mask.ndim == 2 & inmask.ndim == 1:
-                inmask_out = np.tile(inmask_int, (self.norders, 1)).T
-            # If the data mask and inmask have the same dimensionlaity,
-            # interpolated mask has correct dimensions
-            elif mask.ndim == inmask.ndim:
-                inmask_out = inmask_int
-            else:
-                msgs.error('Unrecognized shape for data mask')
-            return (mask & inmask_out)
-        else:
-            return mask
+#    def interpolate_inmask(self, mask, wave_inmask, inmask):
+#        """
+#        Utitlity routine to interpolate the input mask.
+#        """
+#
+#        if inmask is not None:
+#            if wave_inmask is None:
+#                msgs.error('If you are specifying a mask you need to pass in the corresponding '
+#                           'wavelength grid')
+#
+#            # TODO we shoudld consider refactoring the interpolator to take a
+#            # list of images and masks to remove the the fake zero images in the
+#            # call below
+#            _, _, inmask_int = coadd.interp_spec(self.wave_grid, wave_inmask,
+#                                                 np.ones_like(wave_inmask),
+#                                                 np.ones_like(wave_inmask), inmask)
+#
+#            # If the data mask is 2d, and inmask is 1d, tile to create the
+#            # inmask aligned with the data
+#            if mask.ndim == 2 & inmask.ndim == 1:
+#                inmask_out = np.tile(inmask_int, (self.norders, 1)).T
+#            # If the data mask and inmask have the same dimensionlaity,
+#            # interpolated mask has correct dimensions
+#            elif mask.ndim == inmask.ndim:
+#                inmask_out = inmask_int
+#            else:
+#                msgs.error('Unrecognized shape for data mask')
+#            return (mask & inmask_out)
+#        else:
+#            return mask
 
     def get_ind_lower_upper(self):
         """
