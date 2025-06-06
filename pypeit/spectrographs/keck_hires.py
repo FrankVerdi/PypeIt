@@ -165,12 +165,12 @@ class KECKHIRESSpectrograph(spectrograph.Spectrograph):
         par['reduce']['findobj']['maxnumber_std'] = 1  # Assume that there is only one object in each order.
 
         # Sensitivity function parameters
-        par['sensfunc']['trim_std_pixs'] = [4, 40]  # Trim 10 pixels from each end of the standard star spectrum
-        par['sensfunc']['mask_hydrogen_lines'] = False  # TODO - REMOVE, FOR TESING
+        par['sensfunc']['trim_std_pixs'] = [4, 40]  # Trim each side of the standard star spectrum
+        par['sensfunc']['mask_hydrogen_lines'] = False
         par['sensfunc']['algorithm'] = 'IR'
-        par['sensfunc']['polyorder'] = 7 #[9, 11, 11, 9, 9, 8, 8, 7, 7, 7, 7, 7, 7, 7, 7]
-        par['sensfunc']['extrap_blu'] = 0.0  # Y-band contaminated by higher order so don't extrap much
-        par['sensfunc']['extrap_red'] = 0.0
+        par['sensfunc']['polyorder'] = 7
+        par['sensfunc']['extrap_blu'] = 0.01
+        par['sensfunc']['extrap_red'] = 0.01
         par['fluxcalib']['extrap_sens'] = True
         par['sensfunc']['IR']['telgridfile'] = 'TellPCA_3000_10500_R120000.fits'
         par['sensfunc']['IR']['pix_shift_bounds'] = (-40.0,40.0)
