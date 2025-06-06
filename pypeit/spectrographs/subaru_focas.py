@@ -29,7 +29,7 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
     camera = 'FOCAS'
     header_name = 'FOCAS'
     supported = True
-    comment = 'Supported grisms: 300B, 300R, VPH520, VPH650, VPH850; see :doc:`focas`'
+    comment = 'Supported grisms: 300B, 300R, VPH520, VPH650, VPH850; see :doc:`subaru_focas`'
 
 
     @classmethod
@@ -141,9 +141,7 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
         if meta_key == 'binning':
             binspatial = headarr[0]['BIN-FCT1'] # X
             binspec = headarr[0]['BIN-FCT2'] # Y
-            # TODO -- CHECK THE FOLLOWING
-            binning = parse.binning2string(binspec, binspatial)
-            return binning
+            return parse.binning2string(binspec, binspatial)
         else:
             msgs.error("Not ready for this compound meta")
 
@@ -174,8 +172,6 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
         if ftype == 'bias':
             return good_exp & (fitstbl['idname'] == 'BIAS')
         if ftype in ['pixelflat', 'trace', 'illumflat']:
-            # Flats and trace frames are typed together
-            # TODO -- Are there internal flats?
             return good_exp & (fitstbl['idname'] == 'DOMEFLAT')
         if ftype in ['arc', 'tilt']:
             return good_exp & (fitstbl['idname'] == 'COMPARISON')
@@ -565,7 +561,9 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
 
         # collect correct data & overscan for binning in spatial (X) axis
         oscan_arr = overscan[bin_x][(det - 1)*4:][:4]
-        assert len(oscan_arr) == 4
+        if len(oscan_arr) != 4:
+            msgs.error(f'FOCAS detector {det} has an unexpected number of overscan regions: {len(oscan_arr)}. '
+                       f'Expected 4 (2 for each chip). Please check the overscan definitions in the code.')
 
         # fill in rawdatasec_img and oscansec_img arrays according to
         # specification above

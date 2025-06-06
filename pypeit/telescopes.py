@@ -53,7 +53,7 @@ class SubaruTelescopePar(TelescopePar):
                                                elevation=loc.height.to(units.m).value,
                                                fratio=12.2,  # CASSEGRAIN
                                                diameter=8.2,
-                                               eff_aperture=52.3782)
+                                               eff_aperture=52.3782)  # This number is somewhat uncertain..
 
 
 class MagellanTelescopePar(TelescopePar):
