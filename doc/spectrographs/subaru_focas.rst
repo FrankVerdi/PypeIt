@@ -28,8 +28,9 @@ settings that are related to the Subaru/FOCAS spectrograph.
           spectroscopic mode or have incompatible readout configurations,
           the method used to read the FOCAS files will fault.
 
-At present,the code only works on DET-ID=2 data, i.e. the second
-of the two detectors.
+At present,the code has only been testd on DET-ID=2 data, 
+i.e. the second of the two detectors, which is where the 
+primary target lands if one uses the longslit.
 
 Deviations
 ==========
