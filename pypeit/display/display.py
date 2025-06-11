@@ -142,7 +142,7 @@ def show_image(inp, chname='Image', waveimg=None, mask=None, exten=0, cuts=None,
         clear_all()
 
     sh = viewer.shell()
-    sh.add_channel_on_demand(chname)
+    sh.get_channel_on_demand(chname)
 
     ch = viewer.channel(chname)
     # Header
