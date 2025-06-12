@@ -46,14 +46,14 @@ def set_qa_filename(root, method, det=None, slit=None, prefix=None, out_dir=None
 #        outfile = 'QA/PNGs/Slit_Trace_{:s}.png'.format(root)
         outfile = 'PNGs/Slit_Trace_{:s}.png'.format(root)
     elif method == 'slit_profile_qa':
-        outfile = 'QA/PNGs/Slit_Profile_{:s}_'.format(root)
+        outfile = 'PNGs/Slit_Profile_{:s}_'.format(root)
     elif method == 'arc_fit_qa':
 #        outfile = 'QA/PNGs/Arc_1dfit_{:s}_S{:04d}.png'.format(root, slit)
         outfile = 'PNGs/Arc_1dfit_{:s}_S{:04d}.png'.format(root, slit)
     elif method == 'arc_fwhm_qa':
         outfile = 'PNGs/Arc_FWHMfit_{:s}_S{:04d}.png'.format(root, slit)
     elif method == 'plot_orderfits_Arc':  # This is root for multiple PNGs
-        outfile = 'QA/PNGs/Arc_lines_{:s}_S{:04d}_'.format(root, slit)
+        outfile = 'PNGs/Arc_lines_{:s}_S{:04d}_'.format(root, slit)
     elif method == 'arc_fit2d_global_qa':
 #        outfile = 'QA/PNGs/Arc_2dfit_global_{:s}'.format(root)
         outfile = 'PNGs/Arc_2dfit_global_{:s}'.format(root)
@@ -70,17 +70,17 @@ def set_qa_filename(root, method, det=None, slit=None, prefix=None, out_dir=None
 #        outfile = 'QA/PNGs/Arc_tilts_2d_{:s}_S{:04d}.png'.format(root, slit)
         outfile = 'PNGs/Arc_tilts_2d_{:s}_S{:04d}.png'.format(root, slit)
     elif method == 'pca_plot':  # This is root for multiple PNGs
-        outfile = 'QA/PNGs/{:s}_pca_{:s}_'.format(prefix, root)
+        outfile = 'PNGs/{:s}_pca_{:s}_'.format(prefix, root)
     elif method == 'pca_arctilt':  # This is root for multiple PNGs
-        outfile = 'QA/PNGs/Arc_pca_{:s}_'.format(root)
+        outfile = 'PNGs/Arc_pca_{:s}_'.format(root)
     elif method == 'plot_orderfits_Blaze':  # This is root for multiple PNGs
-        outfile = 'QA/PNGs/Blaze_{:s}_'.format(root)
+        outfile = 'PNGs/Blaze_{:s}_'.format(root)
     elif method == 'obj_trace_qa':
-        outfile = 'QA/PNGs/{:s}_{:s}_obj_trace.png'.format(root, det)
+        outfile = 'PNGs/{:s}_{:s}_obj_trace.png'.format(root, det)
     elif method == 'obj_profile_qa':
         outfile = 'PNGs/{:s}_{:s}_S{:04d}_obj_prof.png'.format(root, det, slit)
     elif method == 'spat_flexure_qa_corr':
-        outfile = 'QA/PNGs/{:s}_spat_flex_corr.png'.format(root)
+        outfile = 'PNGs/{:s}_spat_flex_corr.png'.format(root)
     elif method == 'spec_flexure_qa_corr':
 #        outfile = 'QA/PNGs/{:s}_D{:02d}_S{:04d}_spec_flex_corr.png'.format(root, det, slit)
         outfile = 'PNGs/{:s}_S{:04d}_spec_flex_corr.png'.format(root, slit)
@@ -91,6 +91,9 @@ def set_qa_filename(root, method, det=None, slit=None, prefix=None, out_dir=None
         outfile = 'PNGs/{:s}_S{:04d}_spatillum_finecorr.png'.format(root, slit)
     elif method == 'detector_structure':
         outfile = 'PNGs/{:s}_{:s}_detector_structure.png'.format(root, det)
+    elif method == 'arc_fwhmfit':
+        # Arc_FWHMfit_A_0_DET01_S0068.png
+        outfile = 'PNGs/Arc_FWHMfit_{:s}_S{:04d}.png'.format(root, slit)
     else:
         raise IOError("NOT READY FOR THIS QA: {:s}".format(method))
     # Return
@@ -259,7 +262,9 @@ def html_mf_pngs(idval):
                                  href='arc_tilts_spat', label='Arc Tilts Spat', slit=True)
     html_dict['arc_tilts_2d'] = dict(fname='arc_tilts_2d_qa', ext='',
                                        href='arc_tilts_2d', label='Arc Tilts 2D', slit=True)
-    html_dict['arc_pca'] = dict(fname='pca_arctilt', ext='*.png',
+    html_dict['arc_FWHMfit'] = dict(fname='arc_fwhmfit', ext='*.png',
+                                       href='arc_fwhmfit', label='Arc FWHM Fits', slit=True)
+    html_dict['arc_pca'] = dict(fname='pca_arctilt', ext='',
                                 href='arc_pca', label='Arc Tilt PCA', slit=False)
     html_dict['arc_fit2d_global'] = dict(fname='arc_fit2d_global_qa', ext='*.png',
                                          href='arc_fit2d_global', label='2D Arc Global', slit=False)
@@ -268,7 +273,7 @@ def html_mf_pngs(idval):
 
     # Generate HTML
     for key in ['strace', 'sprof', 'blaze', 'arc_fit', 'arc_pca', 'arc_fit2d_global', 'arc_fit2d_orders',
-                'arc_tilts_spec', 'arc_tilts_spat', 'arc_tilts_2d']:
+                'arc_tilts_spec', 'arc_tilts_spat', 'arc_tilts_2d', 'arc_FWHMfit']:
         # PNG Root
         png_root = set_qa_filename(idval, html_dict[key]['fname'], slit=9999, out_dir='QA')
         if html_dict[key]['slit']:  # Kludge to handle multiple slits
@@ -478,5 +483,3 @@ def close_qa(pypeit_file, qa_path):
         pass
     else:
         gen_exp_html()
-
-
