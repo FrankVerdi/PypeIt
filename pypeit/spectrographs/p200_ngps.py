@@ -8,19 +8,14 @@ from typing import List, Optional
 import numpy as np
 
 from astropy.io import fits
-from astropy.coordinates import Angle
-from astropy import units as u
 from astropy.time import Time
 
 from pypeit import msgs
-from pypeit import io
 from pypeit import telescopes
 from pypeit.core import framematch
 from pypeit.spectrographs import spectrograph
 from pypeit.core import parse
 from pypeit.images import detector_container
-
-
 
 
 class P200NGPSSpectrograph(spectrograph.Spectrograph):
@@ -241,8 +236,15 @@ class P200NGPSSpectrograph_r(P200NGPSSpectrograph):
             :class:`~pypeit.images.detector_container.DetectorContainer`:
             Object with the detector metadata.
         """
-    
-        binning = self.get_meta_value(self.get_headarr(hdu), 'binning') 
+
+        if hdu is None:
+            binning = '1,1'
+            datasec = None
+            oscansec = None
+        else:
+            binning = self.get_meta_value(self.get_headarr(hdu), 'binning')
+            datasec = np.atleast_1d(parse.flip_fits_slice(hdu[1].header['DATASEC']))
+            oscansec = np.atleast_1d(parse.flip_fits_slice(hdu[1].header['BIASSEC']))
 
         # Detector 1 (r Channel)
         detector_dict1 = dict(
@@ -260,8 +262,8 @@ class P200NGPSSpectrograph_r(P200NGPSSpectrograph):
             numamplifiers   = 1, 
             gain            = np.atleast_1d(2.8),
             ronoise         = np.atleast_1d(8.5),
-            datasec         = np.atleast_1d(parse.flip_fits_slice(hdu[1].header['DATASEC'])),
-            oscansec        = np.atleast_1d(parse.flip_fits_slice(hdu[1].header['BIASSEC']))
+            datasec         = datasec,
+            oscansec        = oscansec,
         )
 
         return detector_container.DetectorContainer(**detector_dict1)
@@ -403,9 +405,16 @@ class P200NGPSSpectrograph_i(P200NGPSSpectrograph):
             :class:`~pypeit.images.detector_container.DetectorContainer`:
             Object with the detector metadata.
         """
-    
-        binning = self.get_meta_value(self.get_headarr(hdu), 'binning') 
-    
+
+        if hdu is None:
+            binning = '1,1'
+            datasec = None
+            oscansec = None
+        else:
+            binning = self.get_meta_value(self.get_headarr(hdu), 'binning')
+            datasec = np.atleast_1d(parse.flip_fits_slice(hdu[2].header['DATASEC']))
+            oscansec = np.atleast_1d(parse.flip_fits_slice(hdu[2].header['BIASSEC']))
+
         # Detector 2 (i Channel)
         detector_dict2 = dict(
             binning         = binning,
@@ -422,8 +431,8 @@ class P200NGPSSpectrograph_i(P200NGPSSpectrograph):
             numamplifiers   = 1, # Updated
             gain            = np.atleast_1d(2.8),
             ronoise         = np.atleast_1d(8.5),
-            datasec         = np.atleast_1d(parse.flip_fits_slice(hdu[2].header['DATASEC'])),
-            oscansec        = np.atleast_1d(parse.flip_fits_slice(hdu[2].header['BIASSEC']))
+            datasec         = datasec,
+            oscansec        = oscansec,
         )
 
         return detector_container.DetectorContainer(**detector_dict2)
