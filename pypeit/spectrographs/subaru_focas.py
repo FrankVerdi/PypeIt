@@ -29,7 +29,7 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
     camera = 'FOCAS'
     header_name = 'FOCAS'
     supported = True
-    comment = 'Supported grisms: 300B, 300R, VPH520, VPH650, VPH850; see :doc:`subaru_focas`'
+    comment = 'Supported grisms: 300B, 300R, VPH520, VPH850; see :doc:`subaru_focas`'
 
 
     @classmethod
