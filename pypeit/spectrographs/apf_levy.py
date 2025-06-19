@@ -66,6 +66,8 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         par['calibrations']['wavelengths']['ech_norder_coeff'] = 4
         par['calibrations']['wavelengths']['ech_sigrej'] = 3.0
 
+        par['calibrations']['flatfield']['slit_illum_finecorr'] = False
+
 
         # Processing steps
         turn_off = dict(use_biasimage=False,
