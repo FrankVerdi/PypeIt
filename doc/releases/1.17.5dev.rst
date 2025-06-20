@@ -37,6 +37,7 @@ Functionality/Performance Improvements and Additions
   parameter.
 - Added `EdgeTracePar` parameter `mask_off_detector` to allow the user to mask spectral
   regions in each slit/order where more than 50% of the slit falls off the detector
+- Adds Subaru/FOCAS to the instrument suite
 
 Instrument-specific Updates
 ---------------------------
