@@ -448,8 +448,6 @@ class SensFunc(datamodel.DataContainer):
         -------
         zeropoint : `numpy.ndarray`_
             The zeropoint evaluated given wavelength array and order/detector
-        wave : `numpy.ndarray`_
-            The wavelength array used for the zeropoint evaluation.
         """
         return None
 

@@ -2149,6 +2149,11 @@ class SensFuncPar(ParSet):
         if self.data['extr'] not in allowed_extractions:
             msgs.error("'extr' must be one of:\n" + ", ".join(allowed_extractions))
 
+        # check trim_std_pixs format
+        if self.data['trim_std_pixs'] is not None:
+            if not isinstance(self.data['trim_std_pixs'], (list, tuple)) or len(self.data['trim_std_pixs']) != 2:
+                msgs.error("`trim_std_pixs` must be a list or tuple of two integers.")
+
     @staticmethod
     def valid_algorithms():
         """
