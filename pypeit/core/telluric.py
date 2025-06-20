@@ -2540,8 +2540,9 @@ class Telluric(datamodel.DataContainer):
             if (indx_only.size == 0) and (only_orders is not None):
                 msgs.warn(f'All the orders provided in `only_orders` are not among the expected orders. '
                           f'Using all orders available in the data.')
-            else:
+            elif indx_only.size > 0:
                 good_orders = indx_only
+                msgs.info(f'Working only on the following orders: {self.ech_orders[indx_only]}')
                 if len(indx_only) != len(only_orders):
                     missing_orders = list(set(only_orders) - set(self.ech_orders[indx_only]))
                     msgs.warn(f'Some orders provided in `only_orders` are not among the expected orders. '
