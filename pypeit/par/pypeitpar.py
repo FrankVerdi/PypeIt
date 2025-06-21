@@ -1991,7 +1991,8 @@ class SensFuncPar(ParSet):
     For a table with the current keywords, defaults, and descriptions,
     see :ref:`parameters`.
     """
-    def __init__(self, use_flat=None, extrap_blu=None, extrap_red=None, samp_fact=None, multi_spec_det=None, algorithm=None, UVIS=None,
+    def __init__(self, use_flat=None, extrap_blu=None, extrap_red=None, samp_fact=None, multi_spec_det=None,
+                 trim_std_pixs=None, algorithm=None, UVIS=None,
                  IR=None, polyorder=None, star_type=None, star_mag=None, star_ra=None, extr=None,
                  star_dec=None, mask_hydrogen_lines=None, mask_helium_lines=None, hydrogen_mask_wid=None):
         # Grab the parameter names and values from the function arguments
@@ -2041,6 +2042,13 @@ class SensFuncPar(ParSet):
                                   'wavelength across detectors (might be ok if there is).  If ' \
                                   'entered as a list of integers, they should be converted to ' \
                                   'the detector name.  **Cannot be used with detector mosaics.**'
+
+        defaults['trim_std_pixs'] = None
+        dtypes['trim_std_pixs'] = [list, tuple]
+        descr['trim_std_pixs'] = 'List or tuple of two integers specifying the number of pixels to trim' \
+                                 'from the start and end of the 1D standard star spectrum. ' \
+                                 'Example: [10, 5] will trim 10 pixels from the start (blue side)' \
+                                 'and 5 pixels from the end (red side) of the spectrum. '
 
         defaults['algorithm'] = 'UVIS'
         dtypes['algorithm'] = str
@@ -2109,9 +2117,10 @@ class SensFuncPar(ParSet):
         k = np.array([*cfg.keys()])
 
         # Single element parameters
-        parkeys = ['use_flat', 'extrap_blu', 'extrap_red', 'samp_fact', 'multi_spec_det', 'algorithm',
-                   'polyorder', 'star_type', 'star_mag', 'star_ra', 'star_dec', 'extr',
-                   'mask_hydrogen_lines', 'mask_helium_lines', 'hydrogen_mask_wid']
+        parkeys = ['use_flat', 'extrap_blu', 'extrap_red', 'samp_fact', 'multi_spec_det',
+                   'trim_std_pixs', 'algorithm', 'polyorder', 'star_type', 'star_mag',
+                   'star_ra', 'star_dec', 'extr',   'mask_hydrogen_lines', 'mask_helium_lines',
+                   'hydrogen_mask_wid']
 
         # All parameters, including nested ParSets
         allkeys = parkeys + ['UVIS', 'IR']
@@ -2139,6 +2148,11 @@ class SensFuncPar(ParSet):
         allowed_extractions = ['BOX', 'OPT']
         if self.data['extr'] not in allowed_extractions:
             msgs.error("'extr' must be one of:\n" + ", ".join(allowed_extractions))
+
+        # check trim_std_pixs format
+        if self.data['trim_std_pixs'] is not None:
+            if not isinstance(self.data['trim_std_pixs'], (list, tuple)) or len(self.data['trim_std_pixs']) != 2:
+                msgs.error("`trim_std_pixs` must be a list or tuple of two integers.")
 
     @staticmethod
     def valid_algorithms():
