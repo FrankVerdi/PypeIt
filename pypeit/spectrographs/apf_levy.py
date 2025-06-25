@@ -98,6 +98,7 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         par['reduce']['findobj']['snr_thresh'] = 3.0       
 
         par['reduce']['extraction']['boxcar_radius'] = 1.6
+        par['reduce']['extraction']['sn_gauss'] = 400 # basically always use the Gaussian model for optimal extraction
         par['reduce']['skysub']['mask_by_boxcar'] = True
 
         return par
