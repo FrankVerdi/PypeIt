@@ -67,11 +67,15 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         par['calibrations']['wavelengths']['ech_sigrej'] = 3.0
 
         par['calibrations']['flatfield']['slit_illum_finecorr'] = False
+        par['calibrations']['flatfield']['tweak_slits'] = False
+        par['calibrations']['flatfield']['spat_samp'] = 0.7
+        par['calibrations']['flatfield']['slit_trim'] = 0
 
 
         # Processing steps
         turn_off = dict(use_biasimage=False,
-                        use_darkimage=False)
+                        use_darkimage=False,
+                        use_illumflat=False)
         par.reset_all_processimages_par(**turn_off)
         # Do not correct for flexure
         par['flexure']['spec_method'] = 'skip'
@@ -391,6 +395,7 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         decker = self.get_meta_value(scifile, 'decker')
 
         if decker == '3.0':
+            par['reduce']['trim_edge'] = [0, 0]
             par['reduce']['extraction']['boxcar_radius'] = 0.864
             par['reduce']['extraction']['model_full_slit'] = True
             par['reduce']['skysub']['no_local_sky'] = True
