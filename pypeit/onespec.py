@@ -10,6 +10,7 @@ from IPython import embed
 
 import numpy as np
 from scipy.interpolate import interp1d
+import astropy
 
 from pypeit import msgs
 from pypeit import utils
@@ -111,6 +112,17 @@ class OneSpec(datamodel.DataContainer):
             self.spectrograph = load_spectrograph(self.PYP_SPEC)
             self.spect_meta = self.spectrograph.parse_spec_header(self.head0)
         return self
+
+    @classmethod
+    def from_xspec_file(cls, ifile:str):
+        # Load up
+        hdul = astropy.io.fits.open(ifile)
+        wave = hdul['WAVELENGTH'].data
+        flux = hdul['FLUX'].data
+        #
+        return cls(wave, None, flux, fluxed=False)
+
+
 
     @property
     def npix(self):

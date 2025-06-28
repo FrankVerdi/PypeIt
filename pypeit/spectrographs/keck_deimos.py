@@ -20,8 +20,6 @@ from astropy.coordinates import SkyCoord, Angle
 from astropy.table import Table
 from astropy import units, time
 
-import linetools
-
 from pypeit import msgs
 from pypeit import telescopes
 from pypeit import io
@@ -34,6 +32,7 @@ from pypeit.images.detector_container import DetectorContainer
 from pypeit import dataPaths
 from pypeit.images.mosaic import Mosaic
 from pypeit.core.mosaic import build_image_mosaic_transform
+from pypeit import utils
 
 from pypeit.spectrographs import slitmask 
 from pypeit.spectrographs.opticalmodel import ReflectionGrating, OpticalModel, DetectorMap
@@ -1960,7 +1959,7 @@ def load_wmko_std_spectrum(fits_file:str, outfile=None, pad = False, split=True)
         sobjs.add_sobj(sobj2)
 
     # Fill in header
-    coord = linetools.utils.radec_to_coord((meta['RA'][0], meta['DEC'][0]))
+    coord = utils.radec_to_coord((meta['RA'][0], meta['DEC'][0]))
     sobjs.header = dict(EXPTIME=1., 
                         AIRMASS=float(meta['AIRMASS'][0]), 
                         DISPNAME=str(meta['GRATING'][0]), 

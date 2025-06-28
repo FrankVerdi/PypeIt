@@ -46,6 +46,7 @@ class Show1DSpec(scriptbase.ScriptBase):
 
         from pypeit import specobjs
         from pypeit import msgs
+        from pypeit.display.display import show_1dspec
 
         sobjs = specobjs.SpecObjs.from_fitsfile(args.file, chk_version=False)
 
@@ -117,25 +118,24 @@ class Show1DSpec(scriptbase.ScriptBase):
             if sobjs[exten]['OPT_WAVE'] is None: #not in sobjs[exten]._data.keys():
                     msgs.error("Spectrum not extracted with OPT.  Try --extract BOX")
 
-        if args.ginga:
+#        if args.ginga:
             # show the 1d spectrum in Ginga
-            from pypeit.display.display import show_1dspec
 
-            show_1dspec(args.file, ext=exten,
+        # Ginga
+        show_1dspec(args.file, ext=exten,
                         masked=args.masked, extraction=args.extract,
                         fluxed=args.flux)
-            return
 
-        spec = sobjs[exten].to_xspec1d(masked=args.masked, extraction=args.extract,
-                                       fluxed=args.flux)
-
-        # Setup
-        app = QApplication(sys.argv)
-        # Screen dimensions
-        width = app.screens()[0].geometry().width()
-        scale = 2. * (width/3200.)
-
-        # Launch
-        gui = XSpecGui(spec)#, screen_scale=scale)
-        gui.show()
-        app.exec_()
+#        spec = sobjs[exten].to_xspec1d(masked=args.masked, extraction=args.extract,
+#                                       fluxed=args.flux)
+#
+#        # Setup
+#        app = QApplication(sys.argv)
+#        # Screen dimensions
+#        width = app.screens()[0].geometry().width()
+#        scale = 2. * (width/3200.)
+#
+#        # Launch
+#        gui = XSpecGui(spec)#, screen_scale=scale)
+#        gui.show()
+#        app.exec_()

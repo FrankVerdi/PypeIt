@@ -11,10 +11,6 @@ from IPython import embed
 
 import numpy as np
 
-from astropy import units
-
-#from linetools.spectra import xspectrum1d
-
 from pypeit import msgs
 from pypeit.core import flexure
 from pypeit.core import flux_calib
@@ -461,7 +457,7 @@ class SpecObj(datamodel.DataContainer):
         Args:
             shift (float):
                 additive spectral flexure in pixels
-            sky_spec (`linetools.spectra.xspectrum1d.XSpectrum1D`_):
+            sky_spec (`pypeit.onespec.OneSpec`_):
                 Sky Spectrum
 
         Returns:
@@ -617,34 +613,33 @@ class SpecObj(datamodel.DataContainer):
         # Return
         return self[swave], self[sflux], self[sivar], self[smask]
 
-    '''
-    def to_xspec1d(self, masked=True, extraction='OPT', fluxed=True):
-        """
-        Create an `XSpectrum1D <linetools.spectra.xspectrum1d.XSpectrum1D>`_
-        using this spectrum.
+#    def to_xspec1d(self, masked=True, extraction='OPT', fluxed=True):
+#        """
+#        Create an `XSpectrum1D <linetools.spectra.xspectrum1d.XSpectrum1D>`_
+#        using this spectrum.
+#
+#        Args:
+#            masked (:obj:`bool`, optional):
+#                If True, only unmasked data are included.
+#            extraction (str):
+#                Extraction method to convert
+#            fluxed:
+#                Use the fluxed tags
+#
+#        Returns:
+#            `linetools.spectra.xspectrum1d.XSpectrum1D`_: Spectrum object
+#        """
+#        wave, flux, ivar, gpm = self.to_arrays(extraction=extraction, fluxed=fluxed)
+#        sig = np.sqrt(utils.inverse(ivar))
+#        wave_gpm = wave > 1.0
+#        wave, flux, sig, gpm = wave[wave_gpm], flux[wave_gpm], sig[wave_gpm], gpm[wave_gpm]
+#        if masked:
+#            flux = flux*gpm
+#            sig = sig*gpm
+#
+#        # Create
+#        return xspectrum1d.XSpectrum1D.from_tuple((wave, flux, sig))
 
-        Args:
-            masked (:obj:`bool`, optional):
-                If True, only unmasked data are included.
-            extraction (str):
-                Extraction method to convert
-            fluxed:
-                Use the fluxed tags
-
-        Returns:
-            `linetools.spectra.xspectrum1d.XSpectrum1D`_: Spectrum object
-        """
-        wave, flux, ivar, gpm = self.to_arrays(extraction=extraction, fluxed=fluxed)
-        sig = np.sqrt(utils.inverse(ivar))
-        wave_gpm = wave > 1.0
-        wave, flux, sig, gpm = wave[wave_gpm], flux[wave_gpm], sig[wave_gpm], gpm[wave_gpm]
-        if masked:
-            flux = flux*gpm
-            sig = sig*gpm
-
-        # Create
-        return xspectrum1d.XSpectrum1D.from_tuple((wave, flux, sig))
-    '''
 
     def ready_for_extraction(self):
         """ Simple method to check all the items are filled

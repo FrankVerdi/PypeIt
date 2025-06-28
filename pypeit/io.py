@@ -998,12 +998,7 @@ def load_sky_spectrum(sky_file: str) -> onespec.OneSpec:
         `onespec.OneSpec`_: Sky spectrum
     """
     path = dataPaths.sky_spec.get_file_path(sky_file)
-    # Load up
-    hdul = astropy.io.fits.open(path)
-    wave = hdul['WAVELENGTH'].data
-    flux = hdul['FLUX'].data
-    #embed(header='load_sky_spectrum 1001 of io')
-    #return xspectrum1d.XSpectrum1D.from_file(str(path))
-    return onespec.OneSpec(wave, None, flux, fluxed=False)
+
+    return onespec.OneSpec.from_xspec_file(path)
 
 

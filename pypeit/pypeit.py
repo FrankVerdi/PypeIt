@@ -48,8 +48,6 @@ from pypeit.metadata import PypeItMetaData
 from pypeit.manual_extract import ManualExtractionObj
 from pypeit.core import skysub
 
-from linetools import utils as ltu
-
 
 class PypeIt:
     """
@@ -1138,7 +1136,7 @@ class PypeIt:
                 and self.par['calibrations']['wavelengths']['reference'] != 'pixel':
             msgs.info("Performing a {0} correction".format(self.par['calibrations']['wavelengths']['refframe']))
             # Calculate correction
-            radec = ltu.radec_to_coord((ra, dec))
+            radec = utils.radec_to_coord((ra, dec))
             vel, vel_corr = wave.geomotion_correct(radec, obstime,
                                                    self.spectrograph.telescope['longitude'],
                                                    self.spectrograph.telescope['latitude'],

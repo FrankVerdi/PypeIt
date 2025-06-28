@@ -144,3 +144,21 @@ def test_occurrences():
     tstarr = np.array([2, 2, 1,  1, 3, 1, 3, 3, 1, 1])
     outarr = utils.occurrences(inparr)
     assert np.array_equal(outarr, tstarr), 'Occurrences has failed'
+
+
+
+def test_radeccoord():
+    lcoord = ['J124511+144523', '124511+144523',
+                  'J12:45:11+14:45:23', ('12:45:11', '+14:45:23'),
+                  ('12:45:11', '14:45:23'), ('12 45 11', '+14 45 23')]
+    for radec in lcoord:
+        coord = utils.radec_to_coord(radec)
+        # Test
+        np.testing.assert_allclose(coord.ra.value, 191.2958333333333)
+    # List
+    coords = utils.radec_to_coord(lcoord)
+    assert len(coords) == 6
+    # Galactic
+    gcoord = utils.radec_to_coord((280.5,-32.9), gal=True) # LMC
+    assert np.isclose(gcoord.icrs.ra.value, 80.8456130588062)
+    assert np.isclose(gcoord.icrs.dec.value, -69.78267074987376)
