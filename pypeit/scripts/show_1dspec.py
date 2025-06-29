@@ -38,6 +38,8 @@ class Show1DSpec(scriptbase.ScriptBase):
         """ Runs the XSpecGui on an input file
         """
         import sys
+        import os
+        import pathlib
         import numpy as np
 
         from qtpy.QtWidgets import QApplication
@@ -121,8 +123,12 @@ class Show1DSpec(scriptbase.ScriptBase):
 #        if args.ginga:
             # show the 1d spectrum in Ginga
 
+        # Pre-pend cwd to filename (in case RC Ginga was launched already)
+        cwd = pathlib.Path.cwd()
+        full_file = os.path.join(cwd, args.file)
+
         # Ginga
-        show_1dspec(args.file, ext=exten,
+        show_1dspec(full_file, ext=exten,
                         masked=args.masked, extraction=args.extract,
                         fluxed=args.flux)
 
