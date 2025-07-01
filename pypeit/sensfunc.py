@@ -260,7 +260,9 @@ class SensFunc(datamodel.DataContainer):
 
         # Perform any instrument tweaks
         wave_twk, counts_twk, counts_ivar_twk, counts_mask_twk, log10_blaze_function_twk = \
-            self.spectrograph.tweak_standard(wave, counts, counts_ivar, counts_mask, self.meta_spec, log10_blaze_function=log10_blaze_function)
+            self.spectrograph.tweak_standard(wave, counts, counts_ivar, counts_mask, self.meta_spec,
+                                             log10_blaze_function=log10_blaze_function,
+                                             trim_std_pixs=self.par['trim_std_pixs'],)
         # Reshape to 2d arrays
         self.wave_cnts, self.counts, self.counts_ivar, self.counts_mask, self.log10_blaze_function, self.nspec_in, \
             self.norderdet = utils.spec_atleast_2d(wave_twk, counts_twk, counts_ivar_twk, counts_mask_twk,
@@ -420,11 +422,34 @@ class SensFunc(datamodel.DataContainer):
         self.sens['SENS_FLUXED_STD_FLAM_IVAR'] = flam_ivar.T
         self.sens['SENS_FLUXED_STD_MASK'] = flam_mask.T
 
+        #save the model that was used
+        model_interp_func = scipy.interpolate.interp1d(self.std_dict['wave'].value, self.std_dict['flux'].value,
+                                                       bounds_error=False, fill_value='extrapolate')
+        model_flux_sav = np.zeros_like(self.sens['SENS_FLUXED_STD_FLAM'])
+        for iorddet in range(self.sens['SENS_FLUXED_STD_WAVE'].shape[0]):
+            wave_gpm = self.sens['SENS_FLUXED_STD_WAVE'][iorddet] > 1.0
+            model_flux_sav[iorddet][wave_gpm] = model_interp_func(self.sens['SENS_FLUXED_STD_WAVE'][iorddet][wave_gpm])
+
+        self.sens['SENS_STD_MODEL_FLAM'] = model_flux_sav
+
     def eval_zeropoint(self, wave, iorddet):
         """
-        Dummy method, overloaded by subclasses
+        Evaluate at a given wavelength the sensitivity function zeropoint for a given order/detector.
+        This is a dummy method, overloaded by subclasses.
+
+        Parameters
+        ----------
+        wave : `numpy.ndarray`_
+            Wavelength array at which to evaluate the zeropoint
+        iorddet : :obj:`int`
+            The order/detector for which to evaluate the zeropoint
+
+        Returns
+        -------
+        zeropoint : `numpy.ndarray`_
+            The zeropoint evaluated given wavelength array and order/detector
         """
-        pass
+        return None
 
     def extrapolate(self, samp_fact=1.5):
         """
@@ -730,9 +755,8 @@ class SensFunc(datamodel.DataContainer):
             gg = 0.0
             bb = (order_or_det[iorddet] - np.min(order_or_det)) \
                     / np.maximum(np.max(order_or_det) - np.min(order_or_det), 1)
-            sens_wave_gpm = self.sens['SENS_FLUXED_STD_WAVE'][iorddet] > 1.0
-            axis.plot(self.sens['SENS_FLUXED_STD_WAVE'][iorddet][sens_wave_gpm],
-                      self.sens['SENS_FLUXED_STD_FLAM'][iorddet][sens_wave_gpm],
+            sens_wave_gpm = (self.sens['SENS_FLUXED_STD_WAVE'][iorddet] > 1.0) & self.sens['SENS_FLUXED_STD_MASK'][iorddet]
+            axis.plot(self.sens['SENS_FLUXED_STD_WAVE'][iorddet][sens_wave_gpm], self.sens['SENS_FLUXED_STD_FLAM'][iorddet][sens_wave_gpm],
                       color=(rr, gg, bb), drawstyle='steps-mid', linewidth=1.0,
                       label=thru_title[iorddet], zorder=idet, alpha=0.7)
 
@@ -888,6 +912,7 @@ class IRSensFunc(SensFunc):
                                                    log10_blaze_function=self.log10_blaze_function,
                                                    polyorder=self.par['polyorder'],
                                                    ech_orders=self.meta_spec['ECH_ORDERS'],
+                                                   only_orders=self.par['IR']['only_orders'],
                                                    resln_guess=self.par['IR']['resln_guess'],
                                                    resln_frac_bounds=self.par['IR']['resln_frac_bounds'],
                                                    pix_shift_bounds=self.par['IR']['pix_shift_bounds'],
@@ -968,7 +993,7 @@ class IRSensFunc(SensFunc):
 
     def eval_zeropoint(self, wave, iorddet):
         """
-        Evaluate the sensitivity function zero-points
+        Evaluate the sensitivity function zero-points at the input wavelength
 
         Parameters
         ----------
@@ -980,6 +1005,8 @@ class IRSensFunc(SensFunc):
         Returns
         -------
         zeropoint : `numpy.ndarray`_, shape is (nspec,)
+            Zeropoint array evaluated at the input wavelength grid and with the gpm applied.
+
         """
         s = self.telluric.model['IND_LOWER']
         e = self.telluric.model['IND_UPPER']+1
@@ -1078,7 +1105,7 @@ class UVISSensFunc(SensFunc):
 
     def eval_zeropoint(self, wave, iorddet):
         """
-        Evaluate the sensitivity function zero-points
+        Evaluate the sensitivity function zero-points  at the input wavelength
 
         Parameters
         ----------
@@ -1090,6 +1117,7 @@ class UVISSensFunc(SensFunc):
         Returns
         -------
         zeropoint : `numpy.ndarray`_, shape is (nspec,)
+            Zeropoint array evaluated at the input wavelength grid and with the gpm applied.
         """
         # This routine can extrapolate
         return scipy.interpolate.interp1d(self.sens['SENS_WAVE'][iorddet,:],
