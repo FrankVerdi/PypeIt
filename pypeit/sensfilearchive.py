@@ -113,7 +113,7 @@ class DEIMOSSensFileArchive(SensFileArchive):
             hdu = fits.open(fitsfile)
             # get echelle orders in this spec1d file
             orders = [h.header['HIERARCH ECH_ORDER'] for h in hdu if h.name.startswith('OBJ')]
-            archived_file = '/Users/dpelliccia/Desktop/adap2020/test_code_newsens/NOscaled/sens_keck_hires_RED_orders_93-35_sensfunc.fits'
+            archived_file = '/Users/dpelliccia/Desktop/adap2020/archival_sensfunc/sens_keck_hires_RED_orders_93-35_sensfunc.fits'
             sensobjs = SensFunc.from_file(archived_file, chk_version=False)
             arx_orders = sensobjs.sens['ECH_ORDERS']
             # check if all orders in the spec1d file are in the archived file
