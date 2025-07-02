@@ -494,6 +494,10 @@ class GTCOSIRISPlusSpectrograph(spectrograph.Spectrograph):
         log10_blaze_function_out: `numpy.ndarray`_ or None
             Output blaze function after being tweaked.
         """
+        # If trim_std_pixs is provided, use the base class method to trim the standard star
+        if trim_std_pixs is not None:
+            return super().tweak_standard(wave_in, counts_in, counts_ivar_in, gpm_in, meta_table,
+                                          trim_std_pixs=trim_std_pixs, log10_blaze_function=log10_blaze_function)
 
         # Could check the wavelenghts here to do something more robust to header/meta data issues
         if 'R300R' in meta_table['DISPNAME']:
@@ -1181,7 +1185,6 @@ class GTCOSIRISSpectrograph(spectrograph.Spectrograph):
         log10_blaze_function: `numpy.ndarray`_ or None
             Input blaze function to be tweaked, optional. Default=None.
 
-
         Returns
         -------
         wave_out: `numpy.ndarray`_
@@ -1195,6 +1198,10 @@ class GTCOSIRISSpectrograph(spectrograph.Spectrograph):
         log10_blaze_function_out: `numpy.ndarray`_ or None
             Output blaze function after being tweaked.
         """
+        # If trim_std_pixs is provided, use the base class method to trim the standard star
+        if trim_std_pixs is not None:
+            return super().tweak_standard(wave_in, counts_in, counts_ivar_in, gpm_in, meta_table,
+                                          trim_std_pixs=trim_std_pixs, log10_blaze_function=log10_blaze_function)
 
         # Could check the wavelenghts here to do something more robust to header/meta data issues
         if 'R300R' in meta_table['DISPNAME']:
