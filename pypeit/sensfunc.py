@@ -492,7 +492,7 @@ class SensFunc(datamodel.DataContainer):
                       + np.outer(np.ones(nspec_extrap), wave_extrap_min)
         zeropoint_extrap = np.zeros_like(wave_extrap)
 
-        # Evaluate extrapolated zerpoint for all orders detectors
+        # Evaluate extrapolated zeropoint for all orders detectors
         for iorddet in range(self.norderdet):
             zeropoint_extrap[:, iorddet] = self.eval_zeropoint(wave_extrap[:,iorddet], iorddet)
 
@@ -660,6 +660,8 @@ class SensFunc(datamodel.DataContainer):
                     else:
                         axis=ax1
                         ax2.remove()
+                    # Initialise these variables to None values
+                    _wave_min, _wave_max, tmin, tmax = None, None, None, None
                     for idet in range(self.norderdet):
                         # define the color
                         rr = (np.max(order_or_det) - order_or_det[idet]) \
@@ -667,14 +669,23 @@ class SensFunc(datamodel.DataContainer):
                         gg = 0.0
                         bb = (order_or_det[idet] - np.min(order_or_det)) \
                                 / np.maximum(np.max(order_or_det) - np.min(order_or_det), 1)
-                        wave_gpm = self.sens['SENS_WAVE'][idet] > 1.0
-                        axis.plot(self.sens['SENS_WAVE'][idet,wave_gpm],
-                                  self.sens['SENS_ZEROPOINT_FIT'][idet,wave_gpm],
+                        sens_wave_gpm = self.sens['SENS_WAVE'][idet] > 1.0
+                        axis.plot(self.sens['SENS_WAVE'][idet,sens_wave_gpm],
+                                  self.sens['SENS_ZEROPOINT_FIT'][idet,sens_wave_gpm],
                                   color=(rr, gg, bb), linestyle='-', linewidth=2.5,
                                   label=thru_title[idet], zorder=5 * idet)
 
-                    _wave_min = np.amin(self.sens['WAVE_MIN'])
-                    _wave_max = np.amax(self.sens['WAVE_MAX'])
+                        wave_gpm = (self.wave[:, idet] >= self.sens['WAVE_MIN'][idet]) \
+                                   & (self.wave[:, idet] <= self.sens['WAVE_MAX'][idet]) \
+                                   & (self.wave[:, idet] > 1.0)
+                        if (_wave_min is None) or (np.min(self.wave[wave_gpm, idet]) < _wave_min):
+                            _wave_min = np.min(self.wave[wave_gpm, idet])
+                        if (_wave_max is None) or (np.max(self.wave[wave_gpm, idet]) > _wave_max):
+                            _wave_max = np.max(self.wave[wave_gpm, idet])
+                        if (tmin is None) or (np.min(self.sens['SENS_ZEROPOINT_FIT'][idet,sens_wave_gpm]) < tmin):
+                            tmin = np.min(self.sens['SENS_ZEROPOINT_FIT'][idet,sens_wave_gpm])
+                        if (tmax is None) or (np.max(self.sens['SENS_ZEROPOINT_FIT'][idet,sens_wave_gpm]) > tmax):
+                            tmax = np.max(self.sens['SENS_ZEROPOINT_FIT'][idet,sens_wave_gpm])
 
                     # If we are splicing, overplot the spliced zeropoint
                     if self.splice_multi_det:
@@ -686,10 +697,8 @@ class SensFunc(datamodel.DataContainer):
                                   linestyle='-', linewidth=2.5, label='Spliced Zeropoint',
                                   zorder=30, alpha=0.3)
 
-                    wave_gpm = self.sens['SENS_WAVE'] > 1.0
                     axis.set_xlim((0.98 * _wave_min, 1.02 * _wave_max))
-                    axis.set_ylim((0.95 * np.amin(self.sens['SENS_ZEROPOINT_FIT'][wave_gpm]),
-                                   1.05 * np.amax(self.sens['SENS_ZEROPOINT_FIT'][wave_gpm])))
+                    axis.set_ylim((0.95 * tmin, 1.05 * tmax))
                     axis.legend(fontsize=14)
                     axis.set_xlabel('Wavelength (Angstroms)')
                     axis.set_ylabel('Zeropoint (AB mag)')
@@ -701,6 +710,8 @@ class SensFunc(datamodel.DataContainer):
         # Plot throughput curve(s) for all orders/det
         fig = plt.figure(figsize=(12,8))
         axis = fig.add_axes([0.1, 0.1, 0.8, 0.8])
+        # Initialise these variables to None values
+        _wave_min, _wave_max, tmax = None, None, None
         for idet in range(self.wave.shape[1]):
             # define the color
             rr = (np.max(order_or_det) - order_or_det[idet]) \
@@ -711,15 +722,21 @@ class SensFunc(datamodel.DataContainer):
             gpm = (self.throughput[:, idet] >= 0.0)
             axis.plot(self.wave[gpm,idet], self.throughput[gpm,idet], color=(rr, gg, bb),
                       linestyle='-', linewidth=2.5, label=thru_title[idet], zorder=5*idet)
+            # Determine the wavelength limits for the plot
+            if (_wave_min is None) or (np.min(self.wave[gpm,idet]) < _wave_min):
+                _wave_min = np.min(self.wave[gpm,idet])
+            if (_wave_max is None) or (np.max(self.wave[gpm,idet]) > _wave_max):
+                _wave_max = np.max(self.wave[gpm,idet])
+            if (tmax is None) or (np.max(self.throughput[gpm,idet]) > tmax):
+                tmax = np.max(self.throughput[gpm,idet])
         if self.splice_multi_det:
             axis.plot(self.wave_splice[wave_slice_gpm].flatten(),
                       self.throughput_splice[wave_slice_gpm].flatten(), color='black',
                       linestyle='-', linewidth=2.5, label='Spliced Throughput', zorder=30,
                       alpha=0.3)
 
-        axis.set_xlim((0.98*self.wave[self.throughput >=0.0].min(),
-                       1.02*self.wave[self.throughput >=0.0].max()))
-        axis.set_ylim((0.0, 1.05*self.throughput[self.throughput >=0.0].max()))
+        axis.set_xlim((0.98*_wave_min, 1.02*_wave_max))
+        axis.set_ylim((0.0, 1.05*tmax))
         axis.legend()
         axis.set_xlabel('Wavelength (Angstroms)')
         axis.set_ylabel('Throughput')
@@ -738,15 +755,18 @@ class SensFunc(datamodel.DataContainer):
             gg = 0.0
             bb = (order_or_det[iorddet] - np.min(order_or_det)) \
                     / np.maximum(np.max(order_or_det) - np.min(order_or_det), 1)
-            wave_gpm = (self.sens['SENS_FLUXED_STD_WAVE'][iorddet] > 1.0) & self.sens['SENS_FLUXED_STD_MASK'][iorddet]
-            axis.plot(self.sens['SENS_FLUXED_STD_WAVE'][iorddet][wave_gpm], self.sens['SENS_FLUXED_STD_FLAM'][iorddet][wave_gpm],
+            sens_wave_gpm = (self.sens['SENS_FLUXED_STD_WAVE'][iorddet] > 1.0) & self.sens['SENS_FLUXED_STD_MASK'][iorddet]
+            axis.plot(self.sens['SENS_FLUXED_STD_WAVE'][iorddet][sens_wave_gpm], self.sens['SENS_FLUXED_STD_FLAM'][iorddet][sens_wave_gpm],
                       color=(rr, gg, bb), drawstyle='steps-mid', linewidth=1.0,
                       label=thru_title[iorddet], zorder=idet, alpha=0.7)
 
-
-        wave_gpm_global = self.sens['SENS_FLUXED_STD_WAVE'] > 1.0
-        wave_min = 0.98*(self.sens['SENS_FLUXED_STD_WAVE'][wave_gpm_global]).min()
-        wave_max = 1.02*(self.sens['SENS_FLUXED_STD_WAVE'][wave_gpm_global]).max()
+        if _wave_min is None or _wave_max is None:
+            wave_gpm_global = self.sens['SENS_FLUXED_STD_WAVE'] > 1.0
+            wave_min = (self.sens['SENS_FLUXED_STD_WAVE'][wave_gpm_global]).min()
+            wave_max = (self.sens['SENS_FLUXED_STD_WAVE'][wave_gpm_global]).max()
+        else:
+            wave_min = 0.98*_wave_min
+            wave_max = 1.02*_wave_max
         pix_wave_std = (self.std_dict['wave'].value >= wave_min) & (self.std_dict['wave'].value <= wave_max)
         flux_min = -1.0
         flux_max = 1.10*self.std_dict['flux'][pix_wave_std].value.max()
@@ -757,6 +777,7 @@ class SensFunc(datamodel.DataContainer):
         axis.set_ylabel(r'$f_{{\lambda}}~~~(10^{{-17}}~{{\rm erg~s^{-1}~cm^{{-2}}~\AA^{{-1}}}})$')
         axis.set_title('Fluxed Std Compared to True Spectrum:' + spec_str)
         fig.savefig(self.fstdfile)
+
 
     @classmethod
     def sensfunc_weights(cls, sensfile, waves, ech_order_vec=None, debug=False, extrap_sens=True, chk_version=True):

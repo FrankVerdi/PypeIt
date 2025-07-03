@@ -18,6 +18,8 @@ Installation Changes
 Dependency Changes
 ------------------
 
+- Bump dependency to specutils>=2.0
+
 
 Functionality/Performance Improvements and Additions
 ----------------------------------------------------

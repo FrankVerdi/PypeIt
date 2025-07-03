@@ -968,6 +968,7 @@ Key                      Type                                            Options
 ``star_mag``             float                                           ..                ..                           Magnitude of the standard star (for near-IR mainly)                                                                                                                                                                                                                                                                                                                                         
 ``star_ra``              float                                           ..                ..                           RA of the standard star. This will override values in the header (`i.e.`, if they are wrong or absent)                                                                                                                                                                                                                                                                                      
 ``star_type``            str                                             ..                ..                           Spectral type of the standard star (for near-IR mainly)                                                                                                                                                                                                                                                                                                                                     
+``trim_std_pixs``        list, tuple                                     ..                ..                           List or tuple of two integers specifying the number of pixels to trimfrom the start and end of the 1D standard star spectrum. Example: [10, 5] will trim 10 pixels from the start (blue side)and 5 pixels from the end (red side) of the spectrum.                                                                                                                                          
 ``use_flat``             bool                                            ..                False                        If True, the flatfield spectrum will be used when computing the sensitivity function.                                                                                                                                                                                                                                                                                                       
 =======================  ==============================================  ================  ===========================  ============================================================================================================================================================================================================================================================================================================================================================================================
 
@@ -2369,9 +2370,17 @@ Alterations to the default parameters are:
           skip_extraction = True
   [flexure]
       spec_maxshift = 3
+  [fluxcalib]
+      extrap_sens = True
   [sensfunc]
+      extrap_blu = 0.0
+      extrap_red = 0.0
+      algorithm = IR
+      polyorder = 13
       [[UVIS]]
           extinct_correct = False
+      [[IR]]
+          telgridfile = TellPCA_3000_26000_R10000.fits
 
 .. _instr_par-gtc_osiris:
 
@@ -2477,6 +2486,15 @@ Alterations to the default parameters are:
           maxnumber_std = 1
       [[skysub]]
           no_poly = True
+  [fluxcalib]
+      extrap_sens = True
+  [sensfunc]
+      extrap_blu = 0.0
+      extrap_red = 0.0
+      algorithm = IR
+      polyorder = 13
+      [[IR]]
+          telgridfile = TellPCA_3000_26000_R10000.fits
 
 .. _instr_par-gtc_osiris_plus:
 
@@ -2582,6 +2600,15 @@ Alterations to the default parameters are:
           maxnumber_std = 1
       [[skysub]]
           no_poly = True
+  [fluxcalib]
+      extrap_sens = True
+  [sensfunc]
+      extrap_blu = 0.0
+      extrap_red = 0.0
+      algorithm = IR
+      polyorder = 13
+      [[IR]]
+          telgridfile = TellPCA_3000_26000_R10000.fits
 
 .. _instr_par-jwst_nircam:
 
@@ -3173,10 +3200,17 @@ Alterations to the default parameters are:
           global_sky_std = False
       [[extraction]]
           model_full_slit = True
+  [fluxcalib]
+      extrap_sens = True
   [coadd1d]
       wave_method = log10
   [sensfunc]
+      extrap_blu = 0.01
+      extrap_red = 0.01
+      trim_std_pixs = 4, 40,
       algorithm = IR
+      polyorder = 7
+      mask_hydrogen_lines = False
       [[IR]]
           telgridfile = TellPCA_3000_10500_R120000.fits
           pix_shift_bounds = (-40.0, 40.0)
