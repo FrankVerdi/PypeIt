@@ -239,8 +239,12 @@ class SpecObjs:
         none_flux = [f is None for f in getattr(self, flux_key)]
         other = 'OPT' if extract_type == 'BOX' else 'BOX'
         if np.any(none_flux):
-            msg = f"{extract_type} extracted flux is not available for all slits/orders. " \
-                  f"Consider trying the {other} extraction."
+            if flux_attr == 'FLAM':
+                msg = f"{flux_key} is not available for all slits/orders." \
+                      "Your data may not have been fluxed, check your input files, or use unfluxed data. "
+            else:
+                msg = f"{extract_type} extracted flux is not available for all slits/orders. " \
+                      f"Consider trying the {other} extraction."
             if not remove_missing:
                 msgs.error(msg)
             else:
