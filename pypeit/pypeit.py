@@ -292,19 +292,8 @@ class PypeIt:
             # Loop on Detectors
             for self.det in detectors:
                 msgs.info(f'Working on detector {self.det}')
-                # Instantiate Calibrations class
-                user_slits = slittrace.merge_user_slit(self.par['rdx']['slitspatnum'],
-                                                       self.par['rdx']['maskIDs'])
-                self.caliBrate = calibrations.Calibrations.get_instance(
-                    self.fitstbl, self.par['calibrations'], self.spectrograph,
-                    self.calibrations_path, qadir=self.qa_path, reuse_calibs=self.reuse_calibs,
-                    show=self.show, user_slits=user_slits,
-                    chk_version=self.par['rdx']['chk_version'])
-                # Do it
-                # These need to be separate to accommodate COADD2D
-                self.caliBrate.set_config(grp_frames[0], self.det, self.par['calibrations'])
 
-                self.caliBrate.run_the_steps()
+                self.caliBrate = self.calib_one(grp_frames, self.det)
                 if not self.caliBrate.success:
                     msgs.warn(f'Calibrations for detector {self.det} were unsuccessful!  The step '
                               f'that failed was {self.caliBrate.failed_step}.  Continuing to next '
@@ -690,16 +679,19 @@ class PypeIt:
                                                    self.spectrograph.get_det_name(det))
         return objtype_out, calib_key, obstime, basename, binning
 
-    def calib_one(self, frames, det):
+    def calib_one(self, frames, det, stop_at_step:str=None):
         """
         Run Calibration for a single exposure/detector pair
 
         Args:
             frames (:obj:`list`):
-                List of frames to extract; stacked if more than one
-                is provided
+                List of frames (rows) to calibrate
+                Only used to idetify the setup and calibration group
             det (:obj:`int`):
                 Detector number (1-indexed)
+            stop_at_step (:obj:`str`, optional):
+                Run only up to this calibration step.
+                
 
         Returns:
             caliBrate (:class:`pypeit.calibrations.Calibrations`)
@@ -715,9 +707,16 @@ class PypeIt:
             self.calibrations_path, qadir=self.qa_path,
             reuse_calibs=self.reuse_calibs, show=self.show, user_slits=user_slits,
             chk_version=self.par['rdx']['chk_version'])
+
+        # Check
+        if stop_at_step is not None and stop_at_step not in caliBrate.steps:
+            msgs.error(f"Requested stop_at_step={stop_at_step} is not a valid calibration step.\n Allowed steps are: {caliBrate.steps}")
+            
         # These need to be separate to accomodate COADD2D
         caliBrate.set_config(frames[0], det, self.par['calibrations'])
-        caliBrate.run_the_steps()
+
+        # Run
+        caliBrate.run_the_steps(stop_at_step=stop_at_step)
 
         return caliBrate
 
@@ -1029,10 +1028,6 @@ class PypeIt:
 
         if not self.par['reduce']['extraction']['skip_extraction']:
             msgs.info(f"Extraction begins for {self.basename} on det={det}")
-            # set the flatimg, if it exists
-            flatimg = None if self.caliBrate.flatimages is None else self.caliBrate.flatimages.pixelflat_model
-            if flatimg is None:
-                msgs.warn("No flat image was found. A spectrum of the flatfield will not be extracted!")
             # Instantiate Reduce object
             # Required for pipeline specific object
             # At instantiation, the fullmask in self.sciImg is modified
@@ -1040,7 +1035,7 @@ class PypeIt:
             self.exTract = extraction.Extract.get_instance(
                 sciImg, slits, sobjs_obj, self.spectrograph,
                 self.par, self.objtype, global_sky=final_global_sky, bkg_redux_global_sky=bkg_redux_global_sky,
-                waveTilts=self.caliBrate.wavetilts, wv_calib=self.caliBrate.wv_calib, flatimg=flatimg,
+                waveTilts=self.caliBrate.wavetilts, wv_calib=self.caliBrate.wv_calib, flatimages=self.caliBrate.flatimages,
                 bkg_redux=self.bkg_redux, return_negative=self.par['reduce']['extraction']['return_negative'],
                 std_redux=self.std_redux, basename=self.basename, show=self.show)
             # Perform the extraction
