@@ -43,8 +43,9 @@ Functionality/Performance Improvements and Additions
 - Added `SensfuncPar` parameter `trim_std_pixs` to allow the user to "trim" the
   standard star 1D spectrum by a user-defined number of pixels before computing the
   sensitivity function.
-- We include new, brighter blackbody standard stars, as
-  reported in Cooke, Suzuki and Prochaska (2025).
+- We include new, brighter blackbody standard stars, as reported in Cooke, Suzuki and Prochaska (2025).
+- We have removed J1255p1924 as a blackbody flux calibration standard star. Based on X-SHOOTER
+  observations by Cooke, Suzuki and Prochaska (2025), this white dwarf star has Ca II absorption.
 
 Instrument-specific Updates
 ---------------------------
