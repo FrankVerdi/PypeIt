@@ -6,7 +6,6 @@ Class for organizing PypeIt setup
 
 """
 from pathlib import Path
-import time
 import os
 
 from IPython import embed
@@ -15,7 +14,6 @@ from pypeit import msgs
 from pypeit.metadata import PypeItMetaData
 from pypeit import inputfiles
 from pypeit.par import PypeItPar
-from pypeit import io
 from pypeit.spectrographs.util import load_spectrograph
 
 

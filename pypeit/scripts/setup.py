@@ -5,7 +5,6 @@ This script generates files to setup a PypeIt run
 .. include:: ../include/links.rst
 """
 import argparse
-import pathlib
 from IPython import embed
 
 from pypeit.scripts import scriptbase
@@ -107,11 +106,13 @@ class Setup(scriptbase.ScriptBase):
         ps = PypeItSetup.from_file_root(args.root, args.spectrograph, extension=args.extension)
         # Add any additional user parameters
         if args.param_block_file is not None:
-            user_pars = pathlib.Path(args.param_block_file)
-            if user_pars.exists():
-                with open(user_pars, 'r', encoding='utf-8') as par_file:
-                    user_cfgs = [l.rstrip() for l in par_file.readlines()]
+            if (user_par_fn := Path(args.param_block_file)).exists():
+                with open(user_par_fn, 'r', encoding='utf-8') as user_par_fobj:
+                    user_cfgs = [l.rstrip() for l in user_par_fobj.readlines()]
                 ps.update_user_cfg(user_cfgs)
+            else:
+                msgs.warn(f"Could not open param_block file {args.param_block_file}. "
+                          "Not adding any additional user parameters to the .pypeit file.")
         # Run the setup
         ps.run(setup_only=True, clean_config=not args.keep_bad_frames)
 
