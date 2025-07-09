@@ -23,8 +23,7 @@ if "CONDA_PREFIX" in os.environ:
 
 if "darwin" in sys.platform:
     # On macOS, we need manually add the -Xclang and -fopenmp flags to unlock OpenMP.
-    extra_compile_args.append("-Xclang")
-    extra_compile_args.append("-fopenmp")
+    extra_compile_args.extend(["-Xclang", "-fopenmp"])
 
 def get_extensions():
     extension = Extension(
