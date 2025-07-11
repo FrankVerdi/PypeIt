@@ -249,7 +249,7 @@ def fetch_remote_file(
         cache_fn = astropy.utils.data.download_file(
             remote_url,
             sources=sources,
-            timeout=10,
+            timeout=100,
             cache="update" if force_update else True,
             pkgname="pypeit",
         )
