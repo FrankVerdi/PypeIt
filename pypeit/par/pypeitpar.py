@@ -4595,7 +4595,7 @@ class ExtractionPar(ParSet):
         dtypes['min_frac_prof'] = float
         descr['min_frac_prof'] = 'For each spectral pixel, if the sum of the normalized object profile' \
                                  ' across the spatial direction is less than this value,' \
-                                 ' the optimal extraction will also be masked. The default value is 0.05. '
+                                 ' the optimal extraction will also be masked. '
 
         defaults['sn_gauss'] = 4.0
         dtypes['sn_gauss'] = [int, float]
