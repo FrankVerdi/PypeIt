@@ -18,6 +18,28 @@ which can be either 3 or 8 arc-seconds, and the
 binning used on the the detector which cab be
 either 1x1 or 2x2.
 
+Frame Types
+-----------
+
+There are a set of standard cailibrations frames that 
+are acquired each night. These include:
+- wide flat 
+- dark
+- arc lamp (ThAr)
+- narrow flat
+- iodine cell flats
+
+The arc frames are usually taken with the pinhole, 3 and
+8 arc-second long slits. The wide flats are taken
+with the 8 arc-second long slit that are 2 arcseconds in width,
+while the narrow flats are taken with the 3 arc-second long slit.
+
+Currently the wide flats AND the narrow flats are identified 
+as trace frames in the PypeIt file. *EDIT the PypeIt file to
+use the wide flats for the trace images for  8 arc-second
+long slit science frames and the narrow flats for the trace 
+frames for the 3 arc-second long slit science frames.*
+
 
 Flat Fielding
 -------------
