@@ -629,6 +629,7 @@ def ech_fill_in_orders(sobjs:specobjs.SpecObjs,
                     thisobj.TRACE_SPAT = slit_left[:, iord] + slit_width[:, iord] * frac_mean_new[iord]  # new trace
                 thisobj.trace_spec = spec_vec
                 thisobj.SPAT_PIXPOS = thisobj.TRACE_SPAT[specmid]
+                thisobj.SPAT_PIXPOS_ID = int(np.rint(thisobj.SPAT_PIXPOS))
                 # Use the real detections of this objects for the FWHM
                 this_obj_id = obj_id == uni_obj_id[iobj]
                 # Assign to the fwhm of the nearest detected order

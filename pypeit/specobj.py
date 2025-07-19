@@ -55,7 +55,7 @@ class SpecObj(datamodel.DataContainer):
             Running index for the order.
     """
 
-    version = '1.1.11'
+    version = '1.1.12'
     """
     Current datamodel version number.
     """
@@ -167,6 +167,9 @@ class SpecObj(datamodel.DataContainer):
                  'OBJTYPE': dict(otype=str, descr='Object type (e.g., standard, science)'),
                  'SPAT_PIXPOS': dict(otype=(float, np.floating),
                                      descr='Spatial location of the trace on detector (pixel) at half-way'),
+                 'SPAT_PIXPOS_ID': dict(otype=(int, np.integer),
+                                     descr='Nearest integer spatial location of the trace on detector (pixel) at half-way '
+                                           'used for the naming model'),                 
                  'SPAT_FRACPOS': dict(otype=(float, np.floating),
                                       descr='Fractional location of the object on the slit'),
                  'trace_spec': dict(otype=np.ndarray, atype=(int,np.integer),
@@ -430,10 +433,12 @@ class SpecObj(datamodel.DataContainer):
         elif self.PYPELINE in ['MultiSlit', 'SlicerIFU']:
             # Spat
             name = naming_model['spat']
-            if self['SPAT_PIXPOS'] is None:
+            if self['SPAT_PIXPOS_ID'] is None:
                 name += '----'
             else:
-                name += '{:04d}'.format(int(np.rint(self.SPAT_PIXPOS)))
+                name += '{:04d}'.format(self.SPAT_PIXPOS_ID))
+                #name += '{:04d}'.format(int(np.rint(self.SPAT_PIXPOS)))
+
             # Slit
             name += '-'+naming_model['slit']
             name += '{:04d}'.format(self.SLITID)

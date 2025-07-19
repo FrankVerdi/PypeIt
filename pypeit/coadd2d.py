@@ -207,10 +207,10 @@ class CoAdd2D:
         self.stack_dict = None
         self.pseudo_dict = None
 
-        self.objid_bri = None
-        self.spat_pixpos_bri = None
-        self.slitidx_bri = None
-        self.snr_bar_bri = None
+        # Brightest object attributes used for both MultislitCoAdd2D and EchelleCoAdd2D
+        self.objid_bri = None # This will be an array with shape = (nexp,) containing objid of the brightest object in each exposure
+        self.snr_bar_bri = None # This will be an array with shape = (nexp,) containing the S/N of the brightest object in each exposure
+
         self.use_weights = None # This is a list of length self.nexp that is assigned by the compute_weights method
         self.wave_grid = None
         self.good_slits = None
@@ -1303,6 +1303,12 @@ class MultiSlitCoAdd2D(CoAdd2D):
                          show=show, show_peaks=show_peaks, debug_offsets=debug_offsets,
                          debug=debug)
 
+        # Attributes specifically used by MultislitCoAdd2D
+        self.spatid_bri = None # This is an integer, which is the spatial slid id of the slit with the brightest object. 
+                               # Used for both offsets (if offsets='auto') and weights (if weights='auto'). 
+                               # Can be user specified if user_obj is provided
+        self.spat_pixpos_weights = None # This will be an array of the spatial pixel positions of the object used for auto weights in each exposure
+
         # maskdef offset
         self.maskdef_offset = np.array([slits.maskdef_offset for slits in self.stack_dict['slits_list']])
 
@@ -1338,14 +1344,13 @@ class MultiSlitCoAdd2D(CoAdd2D):
                     msgs.error('Object provided through `user_obj` does not exist in all the exposures.')
                 # get the needed info about the user object
                 self.objid_bri = np.repeat(user_objid, self.nexp)
-                self.spat_pixpos_bri = spat_pixpos
-                self.slitidx_bri = np.where(np.abs(self.spat_ids - user_slit) <= self.par['coadd2d']['spat_toler'])[0][0]
+                self.spat_pixpos_weights = spat_pixpos
                 self.spatid_bri = user_slit
                 self.snr_bar_bri, _ = coadd.calc_snr(fluxes, ivars, gpms)
 
         # otherwise, find if there is a bright object we could use
         elif len(self.stack_dict['specobjs_list']) > 0 and (offsets == 'auto' or weights == 'auto'):
-            self.objid_bri, self.spat_pixpos_bri, self.slitidx_bri, self.spatid_bri, self.snr_bar_bri = \
+            self.objid_bri, self.spat_pixpos_weights, self.spatid_bri, self.snr_bar_bri = \
                 self.get_brightest_obj(self.stack_dict['specobjs_list'], self.spat_ids)
 
         # get self.use_weights
@@ -1383,8 +1388,9 @@ class MultiSlitCoAdd2D(CoAdd2D):
             msgs.info(f'Determining offsets using {offsets_method}')
             thismask_stack = [np.abs(slitmask - self.spatid_bri) <= self.par['coadd2d']['spat_toler'] for slitmask in self.stack_dict['slitmask_stack']]
 
+            slitidx_bri = np.where(np.abs(self.spat_ids - self.spatid_bri) <= self.par['coadd2d']['spat_toler'])[0][0]
             # TODO Need to think abbout whether we have multiple tslits_dict for each exposure or a single one
-            trace_stack_bri = [slits.center[:, self.slitidx_bri]
+            trace_stack_bri = [slits.center[:, slitidx_bri]
                                     for slits in self.stack_dict['slits_list']]
 #            trace_stack_bri = []
 #            for slits in self.stack_dict['slits_list']:
@@ -1438,6 +1444,7 @@ class MultiSlitCoAdd2D(CoAdd2D):
             pixscale = parse.parse_binning(self.stack_dict['detectors'][0].binning)[1]*self.stack_dict['detectors'][0].platescale
             self.offsets_report(self.offsets, pixscale, offsets_method)
 
+
     def compute_weights(self, weights):
         """
         Determine the weights to be used in the coadd2d.
@@ -1463,7 +1470,8 @@ class MultiSlitCoAdd2D(CoAdd2D):
                 msgs.info(f'Weights computed using a unique reference object in slit={self.spatid_bri} provided by the user')
             else:
                 msgs.info(f'Weights computed using a unique reference object in slit={self.spatid_bri} with the highest S/N')
-            self.snr_report(self.spatid_bri, self.spat_pixpos_bri, self.snr_bar_bri)
+            self.snr_report(self.spatid_bri, self.spat_pixpos_weights, self.snr_bar_bri)
+            embed()
 
     def get_brightest_obj(self, specobjs_list, slit_spat_ids):
 
@@ -1484,8 +1492,6 @@ class MultiSlitCoAdd2D(CoAdd2D):
                 - spatid_pixpos: ndarray, float, shape=(len(specobjs_list),):
                   Array of spatial pixel positions of the brightest reference object
                   in each exposure
-                - slit_idx (int): 
-                  A zero-based index for the slit that the brightest object is on
                 - spat_id (int): 
                   The SPAT_ID for the slit that the highest S/N ratio object is on
                 - snr_bar: ndarray, float, shape (len(list),): Average
@@ -1548,7 +1554,7 @@ class MultiSlitCoAdd2D(CoAdd2D):
             objid = objid_max[slitid, :]
             spat_pixpos = spat_pixpos_max[slitid, :]
 
-        return objid, spat_pixpos, slitid, slit_spat_ids[slitid], snr_bar
+        return objid, spat_pixpos, slit_spat_ids[slitid], snr_bar
 
     def snr_report(self, slitid, spat_pixpos, snr_bar):
         """
@@ -1728,10 +1734,10 @@ class EchelleCoAdd2D(CoAdd2D):
                     msgs.error('Object provided through `user_obj` does not exist in all the exposures.')
 
                 # get the needed info about the user object
-                self.objid_bri, self.slitidx_bri, self.snr_bar_bri = np.repeat(user_objid, self.nexp), None, None
+                self.objid_bri, self.snr_bar_bri = np.repeat(user_objid, self.nexp), None
 
         elif len(self.stack_dict['specobjs_list']) > 0 and (offsets == 'auto' or weights == 'auto'):
-            self.objid_bri, self.slitidx_bri, self.snr_bar_bri = \
+            self.objid_bri, self.snr_bar_bri = \
                 self.get_brightest_obj(self.stack_dict['specobjs_list'], self.nslits_single)
 
         # get self.use_weights
@@ -1849,8 +1855,8 @@ class EchelleCoAdd2D(CoAdd2D):
         if 0 in snr_bar:
             msgs.warn('You do not appear to have a unique reference object that was traced as the highest S/N '
                       'ratio for every exposure')
-            return None, None, None
-        return objid, None, snr_bar
+            return None, None
+        return objid, snr_bar
 
     def snr_report(self, snr_bar):
         """
