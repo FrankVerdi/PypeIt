@@ -1307,7 +1307,7 @@ class MultiSlitCoAdd2D(CoAdd2D):
         self.spatid_bri = None # This is an integer, which is the spatial slid id of the slit with the brightest object. 
                                # Used for both offsets (if offsets='auto') and weights (if weights='auto'). 
                                # Can be user specified if user_obj is provided
-        self.spat_pixpos_weights = None # This will be an array of the spatial pixel positions of the object used for auto weights in each exposure
+        self.spat_pixpos_id_weights = None # This will be an array of the spatial pixel positions of the object used for auto weights in each exposure
 
         # maskdef offset
         self.maskdef_offset = np.array([slits.maskdef_offset for slits in self.stack_dict['slits_list']])
@@ -1316,42 +1316,73 @@ class MultiSlitCoAdd2D(CoAdd2D):
         wave_method = 'linear' if self.par['coadd2d']['wave_method'] is None else self.par['coadd2d']['wave_method']
         self.wave_grid, self.wave_grid_mid, self.dsamp = self.get_wave_grid(wave_method)
 
-        # If a user-input object to compute offsets and weights is provided, check if it exists and get the needed info
-        if len(self.stack_dict['specobjs_list']) > 0 and self.par['coadd2d']['user_obj'] is not None:
-            if len(self.par['coadd2d']['user_obj']) != 2:
-                msgs.error('Parameter `user_obj` must include both SLITID and OBJID.')
-            else:
-                user_slit, user_objid = self.par['coadd2d']['user_obj']
-                # does it exists?
+        # # If a user-input object to compute offsets and weights is provided, check if it exists and get the needed info
+        # if len(self.stack_dict['specobjs_list']) > 0 and self.par['coadd2d']['user_obj'] is not None:
+        #     if len(self.par['coadd2d']['user_obj']) != 2:
+        #         msgs.error('Parameter `user_obj` must include both SLITID and OBJID.')
+        #     else:
+        #         user_slit, user_objid = self.par['coadd2d']['user_obj']
+        #         # does it exists?
+        #         user_obj_exist = np.zeros(self.nexp, dtype=bool)
+        #         # get the flux, ivar, gpm, and spatial pixel position of the user object
+        #         fluxes, ivars, gpms, spat_pixpos = [], [], [], []
+        #         for i, sobjs in enumerate(self.stack_dict['specobjs_list']):
+        #             user_idx = sobjs.slitorder_objid_indices(user_slit, user_objid,
+        #                                                      toler=self.par['coadd2d']['spat_toler'])
+        #             if np.any(user_idx):
+        #                 this_sobj = sobjs[user_idx][0]
+        #                 flux_iobj, ivar_iobj, gpm_iobj = self.unpack_specobj(this_sobj)
+        #                 spat_pixpos_iobj = this_sobj.SPAT_PIXPOS
+        #                 if flux_iobj is not None and ivar_iobj is not None and gpm_iobj is not None:
+        #                     fluxes.append(flux_iobj)
+        #                     ivars.append(ivar_iobj)
+        #                     gpms.append(gpm_iobj)
+        #                     spat_pixpos.append(spat_pixpos_iobj)
+        #                     user_obj_exist[i] = True
+        #         # check if the user object exists in all the exposures
+        #         if not np.all(user_obj_exist):
+        #             msgs.error('Object provided through `user_obj` does not exist in all the exposures.')
+        #         # get the needed info about the user object
+        #         self.objid_bri = np.repeat(user_objid, self.nexp)
+        #         self.spat_pixpos_weights = spat_pixpos
+        #         self.spatid_bri = user_slit
+        #         self.snr_bar_bri, _ = coadd.calc_snr(fluxes, ivars, gpms)
+
+        # otherwise, find if there is a bright object we could use
+        if len(self.stack_dict['specobjs_list']) > 0 and (offsets == 'auto' or weights == 'auto'):
+            
+            if self.pars['coadd2d']['multi_spatidpixposid4weights'] is not None:
+                if weights != 'auto':
+                    msgs.error('Parameter `multi_spatpixposid4weights` can only be used if weights are set to `auto`.')
+                if len(self.pars['coadd2d']['multi_spatpixposid4weights']) != self.nexp:
+                    msgs.error('Parameter `multi_spatpixposid4weights` must have the same number of elements as exposures.')
                 user_obj_exist = np.zeros(self.nexp, dtype=bool)
                 # get the flux, ivar, gpm, and spatial pixel position of the user object
-                fluxes, ivars, gpms, spat_pixpos = [], [], [], []
+                fluxes, ivars, gpms, spatid = [], [], [], []
+                self.spat_pixpos_id_weights = self.pars['coadd2d']['multi_spatpixposid4weights']
                 for i, sobjs in enumerate(self.stack_dict['specobjs_list']):
-                    user_idx = sobjs.slitorder_objid_indices(user_slit, user_objid,
-                                                             toler=self.par['coadd2d']['spat_toler'])
+                    user_idx = sobjs.slitorder_spatpixposid_indices(self.spat_pixpos_id_weights[i],toler=self.par['coadd2d']['spat_toler'])
                     if np.any(user_idx):
                         this_sobj = sobjs[user_idx][0]
                         flux_iobj, ivar_iobj, gpm_iobj = self.unpack_specobj(this_sobj)
-                        spat_pixpos_iobj = this_sobj.SPAT_PIXPOS
                         if flux_iobj is not None and ivar_iobj is not None and gpm_iobj is not None:
                             fluxes.append(flux_iobj)
                             ivars.append(ivar_iobj)
                             gpms.append(gpm_iobj)
-                            spat_pixpos.append(spat_pixpos_iobj)
+                            spatid.append(this_sobj.SLITID)
                             user_obj_exist[i] = True
                 # check if the user object exists in all the exposures
                 if not np.all(user_obj_exist):
-                    msgs.error('Object provided through `user_obj` does not exist in all the exposures.')
+                    msgs.error('Not all of the spatids provided through `multi_spatpixposid4weights` exist in all of the exposures.')
                 # get the needed info about the user object
-                self.objid_bri = np.repeat(user_objid, self.nexp)
-                self.spat_pixpos_weights = spat_pixpos
-                self.spatid_bri = user_slit
-                self.snr_bar_bri, _ = coadd.calc_snr(fluxes, ivars, gpms)
+                #self.objid_bri = np.repeat(user_objid, self.nexp)
+                #self.spat_pixpos_weights = spat_pixpos
+                self.spatid_weights = np.array(spatid)
+                self.snr_bar_weights, _ = coadd.calc_snr(fluxes, ivars, gpms)                
+            else:
+                self.objid_bri, self.spat_pixpos_id_bri, self.spatid_bri, self.snr_bar_bri = self.get_brightest_obj(self.stack_dict['specobjs_list'], self.spat_ids)
 
-        # otherwise, find if there is a bright object we could use
-        elif len(self.stack_dict['specobjs_list']) > 0 and (offsets == 'auto' or weights == 'auto'):
-            self.objid_bri, self.spat_pixpos_weights, self.spatid_bri, self.snr_bar_bri = \
-                self.get_brightest_obj(self.stack_dict['specobjs_list'], self.spat_ids)
+
 
         # get self.use_weights
         self.compute_weights(weights)
@@ -1489,7 +1520,7 @@ class MultiSlitCoAdd2D(CoAdd2D):
                 - objid: ndarray, int, shape=(len(specobjs_list),):
                   Array of object ids representing the brightest reference object
                   in each exposure
-                - spatid_pixpos: ndarray, float, shape=(len(specobjs_list),):
+                - spatid_pixpos_id: ndarray, float, shape=(len(specobjs_list),):
                   Array of spatial pixel positions of the brightest reference object
                   in each exposure
                 - spat_id (int): 
@@ -1514,7 +1545,7 @@ class MultiSlitCoAdd2D(CoAdd2D):
                 ithis = np.abs(sobjs.SLITID - spat_id) <= self.par['coadd2d']['spat_toler']
                 if np.any(ithis):
                     objid_this = sobjs[ithis].OBJID
-                    spat_pixpos_this = sobjs[ithis].SPAT_PIXPOS
+                    spat_pixpos_this = sobjs[ithis].SPAT_PIXPOS_ID
                     fluxes, ivars, gpms = [], [], []
                     for spec in sobjs[ithis]:
                         flux_iobj, ivar_iobj, gpm_iobj = self.unpack_specobj(spec, spatord_id=spat_id)
@@ -1552,9 +1583,9 @@ class MultiSlitCoAdd2D(CoAdd2D):
             snr_bar_mean = slit_snr[slitid]
             snr_bar = slit_snr_max[slitid, :]
             objid = objid_max[slitid, :]
-            spat_pixpos = spat_pixpos_max[slitid, :]
+            spat_pixpos_id = spat_pixpos_max[slitid, :]
 
-        return objid, spat_pixpos, slit_spat_ids[slitid], snr_bar
+        return objid, spat_pixpos_id, slit_spat_ids[slitid], snr_bar
 
     def snr_report(self, slitid, spat_pixpos, snr_bar):
         """
@@ -1811,7 +1842,7 @@ class EchelleCoAdd2D(CoAdd2D):
 
         Returns:
             tuple: Returns the following:
-                - objid: ndarray, int, shape (len(specobjs_list),):
+                - fracpos_id: ndarray, int, shape (len(specobjs_list),):
                   Array of object ids representing the brightest object
                   in each exposure
                 - snr_bar: ndarray, float, shape (len(list),): Average
@@ -1820,17 +1851,17 @@ class EchelleCoAdd2D(CoAdd2D):
         msgs.info('Finding brightest object')
         nexp = len(specobjs_list)
 
-        objid = np.zeros(nexp, dtype=int)
+        fracpos_id = np.zeros(nexp, dtype=int)
         snr_bar = np.zeros(nexp)
         for iexp, sobjs in enumerate(specobjs_list):
             msgs.info("Working on exposure {}".format(iexp))
-            uni_objid = np.unique(sobjs.ECH_OBJID)
-            nobjs = len(uni_objid)
+            uni_fracpos_id = np.unique(sobjs.ECH_FRACPOS_ID)
+            nobjs = len(uni_fracpos_id)
             order_snr = np.zeros((nslits, nobjs), dtype=float)
             bpm = np.ones((nslits, nobjs), dtype=bool)
             for iord in range(nslits):
                 for iobj in range(nobjs):
-                    ind = (sobjs.ECH_ORDERINDX == iord) & (sobjs.ECH_OBJID == uni_objid[iobj])
+                    ind = (sobjs.ECH_ORDERINDX == iord) & (sobjs.ECH_FRACPOS_ID == uni_fracpos_id[iobj])
                     flux, ivar, mask = self.unpack_specobj(sobjs[ind][0], spatord_id=sobjs[ind][0].ECH_ORDER)
 
                     if flux is not None and ivar is not None and mask is not None:
@@ -1850,13 +1881,13 @@ class EchelleCoAdd2D(CoAdd2D):
                 # mask the bpm
                 order_snr_masked = np.ma.array(order_snr, mask=bpm)
                 snr_bar_vec = np.mean(order_snr_masked, axis=0)
-                objid[iexp] = uni_objid[snr_bar_vec.argmax()]
+                fracpos_id[iexp] = uni_fracpos_id[snr_bar_vec.argmax()]
                 snr_bar[iexp] = snr_bar_vec[snr_bar_vec.argmax()]
         if 0 in snr_bar:
             msgs.warn('You do not appear to have a unique reference object that was traced as the highest S/N '
                       'ratio for every exposure')
             return None, None
-        return objid, snr_bar
+        return fracpos_id, snr_bar
 
     def snr_report(self, snr_bar):
         """

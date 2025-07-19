@@ -542,6 +542,7 @@ def ech_fill_in_orders(sobjs:specobjs.SpecObjs,
         for iord in order_vec:
             on_order = (obj_id == uni_obj_id[iobj]) & (sobjs_align.ECH_ORDER == iord)
             sobjs_align[on_order].ECH_FRACPOS = uni_frac[iobj]
+            sobjs_align[on_order].ECH_FRACPOS_ID = int(np.rint(1000*uni_frac[iobj]))
             sobjs_align[on_order].ECH_OBJID = uni_obj_id[iobj]
             sobjs_align[on_order].OBJID = uni_obj_id[iobj]
             sobjs_align[on_order].ech_frac_was_fit = False
@@ -641,6 +642,7 @@ def ech_fill_in_orders(sobjs:specobjs.SpecObjs,
                 thisobj.smash_snr = sobjs_align[imin].smash_snr
                 thisobj.BOX_RADIUS = sobjs_align[imin].BOX_RADIUS
                 thisobj.ECH_FRACPOS = uni_frac[iobj]
+                thisobj.ECH_FRACPOS_ID = int(np.rint(1000*uni_frac[iobj]))
                 thisobj.ECH_OBJID = uni_obj_id[iobj]
                 thisobj.OBJID = uni_obj_id[iobj]
                 thisobj.SLITID = slit_spat_id[iord]
