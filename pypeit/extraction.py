@@ -410,11 +410,12 @@ class Extract:
         if len(remove_idx) > 0:
             self.sobjs.remove_sobj(remove_idx)
 
-        # Add the DETECTOR container, S/N ratio, and FWHM in ARCSEC for each extracted object
+        # Add the DETECTOR container, S/N ratio, FWHM and BOX_RADIUS in ARCSEC for each extracted object
         for sobj in self.sobjs:
             sobj.DETECTOR = self.sciImg.detector
             sobj.S2N = sobj.med_s2n()
-            sobj.SPAT_FWHM = sobj.med_fwhm()
+            sobj.SPAT_FWHM = sobj.med_fwhm(sobj.platescale(spectrograph=self.spectrograph))
+            sobj.SPAT_BOX_RADIUS = sobj.boxcar_arcsec(sobj.platescale(spectrograph=self.spectrograph))
 
         # Return
         return self.skymodel, self.bkg_redux_skymodel, self.objmodel, self.ivarmodel, self.outmask, self.sobjs

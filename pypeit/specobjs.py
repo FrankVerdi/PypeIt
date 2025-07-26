@@ -924,14 +924,9 @@ class SpecObjs:
         wave_rms = []
         maskdef_extract = []
         manual_extract = []
-        # binspectral, binspatial = parse.parse_binning(binning)
         for specobj in self.specobjs:
-            det = specobj.DET
             if specobj is None:
                 continue
-            # Detector items
-            binspectral, binspatial = parse.parse_binning(specobj.DETECTOR.binning)
-            platescale = specobj.DETECTOR.platescale
             # Append
             spat_pixpos.append(specobj.SPAT_PIXPOS)
             if pypeline == 'MultiSlit':
@@ -949,19 +944,7 @@ class SpecObjs:
             # Wave RMS
             wave_rms.append(specobj.WAVE_RMS)
             # Boxcar width
-            if specobj.BOX_RADIUS is not None:
-                slit_pix = 2.0 * specobj.BOX_RADIUS
-                # Convert to arcsec
-                binspectral, binspatial = parse.parse_binning(specobj.DETECTOR.binning)
-                #binspectral, binspatial = parse.parse_binning(binning)
-                # JFH TODO This should be using the order_platescale for each order. Furthermore, not all detectors
-                # have the same platescale, i.e. with GNIRS it is the same detector but a different camera hence a
-                # different attribute. platescale should be a spectrograph attribute determined on the fly.
-                # boxsize.append(slit_pix*binspatial*spectrograph.detector[specobj.DET-1]['platescale'])
-                boxsize.append(slit_pix * binspatial * platescale)
-            else:
-                boxsize.append(0.)
-
+            boxsize.append(2*specobj.SPAT_BOX_RADIUS)
             # Optimal profile (FWHM)
             opt_fwhm.append(specobj.SPAT_FWHM)
             # S2N -- default to boxcar

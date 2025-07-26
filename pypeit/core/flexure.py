@@ -35,6 +35,7 @@ from pypeit.core import extract
 from pypeit.core import fitting
 from pypeit.core import qa
 from pypeit.core import trace
+from pypeit.core import parse
 from pypeit.datamodel import DataContainer
 from pypeit.images.detector_container import DetectorContainer
 from pypeit.images.mosaic import Mosaic
@@ -1031,8 +1032,10 @@ def spec_flexure_slit_global(sciImg, waveimg, global_sky, par, slits, slitmask, 
     """
     # TODO :: Need to think about spatial flexure - is the appropriate spatial flexure already included in trace_spat via left/right slits?
     slit_specs = []
-    # get boxcar radius
-    box_radius = par['reduce']['extraction']['boxcar_radius']
+    # get boxcar radius. Needs to be in pixels
+    _, binspat = parse.parse_binning(sciImg.detector.binning)
+    box_radius = par['reduce']['extraction']['boxcar_radius'] * sciImg.detector.platescale * binspat
+    embed()
     for ss in range(slits.nslits):
         if not gd_slits[ss]:
             slit_specs.append(None)

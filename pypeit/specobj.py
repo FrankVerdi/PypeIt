@@ -55,7 +55,7 @@ class SpecObj(datamodel.DataContainer):
             Running index for the order.
     """
 
-    version = '1.1.11'
+    version = '1.1.12'
     """
     Current datamodel version number.
     """
@@ -138,6 +138,7 @@ class SpecObj(datamodel.DataContainer):
                  'BOX_CHI2': dict(otype=np.ndarray, atype=float,
                                   descr='Reduced chi2 of the model fit for this spectral pixel'),
                  'BOX_RADIUS': dict(otype=float, descr='Size of boxcar radius (pixels)'),
+                 'SPAT_BOX_RADIUS': dict(otype=float, descr='Size of boxcar radius (arcsec)'),
                  'S2N': dict(otype=float, descr='Median signal to noise ratio of the extracted spectrum'
                                                 '(OPT if available, otherwise BOX)'),
                  #
@@ -372,17 +373,55 @@ class SpecObj(datamodel.DataContainer):
                 break
         return SN
 
-    def med_fwhm(self):
+    def med_fwhm(self, platescale):
         """Return median spatial FWHM of the spectrum
 
+        Args:
+            platescale (float):
+                Platescale in arcsec/pixel. Required to convert FWHM from pixels to arcsec.
+
         Returns:
-            float
+            float: Median spatial FWHM in arcsec
         """
         FWHM = 0.
         if self['FWHMFIT'] is not None and self['OPT_COUNTS'] is not None:
-            _, binspatial = parse.parse_binning(self['DETECTOR']['binning'])
-            FWHM = np.median(self['FWHMFIT']) * binspatial * self['DETECTOR']['platescale']
+            FWHM = np.median(self['FWHMFIT']) * platescale
         return FWHM
+
+    def boxcar_arcsec(self, platescale):
+        """Return the boxcar radius in arcsec
+
+        Args:
+            platescale (float):
+                Platescale in arcsec/pixel. Required to convert boxcar radius from pixels to arcsec.
+
+        Returns:
+            float: Boxcar radius in arcsec
+        """
+
+        boxcar_arcsec = 0.
+        if self['BOX_RADIUS'] is not None and self['BOX_COUNTS'] is not None:
+            boxcar_arcsec = self['BOX_RADIUS'] * platescale
+        return boxcar_arcsec
+
+    def platescale(self, spectrograph=None):
+        """Return the platescale in arcsec/pixel and includes the binning factor
+
+        Args:
+            spectrograph (:class:`pypeit.spectrographs.spectrograph.Spectrograph`, optional):
+                Spectrograph object. Required for Echelle data to calculate platescale in arcsec/pixel.
+
+        Returns:
+            float: Platescale in arcsec/pixel
+        """
+        if self.PYPELINE == 'Echelle' and spectrograph is None:
+            msgs.error("Spectrograph must be provided for Echelle data to calculate platescale in arcsec/pixel.")
+        elif self.PYPELINE == 'Echelle':
+            idx = np.where(spectrograph.orders==self['ECH_ORDER'])[0][0]
+            return spectrograph.order_platescale(spectrograph.orders, self['DETECTOR']['binning'])[idx]
+        else:
+            _, binspatial = parse.parse_binning(self['DETECTOR']['binning'])
+            return self['DETECTOR']['platescale'] * binspatial
 
     def set_name(self):
         """
