@@ -76,6 +76,10 @@ Wavelength Calibration
 The wavelength calibration is done using ThAr lamps, which
 are also used to compute the Tilt frames.
 
+The wavelength solution, as is standard for PypeIt, is
+in vacuum wavelengths. The wavelength solution is computed
+using the HARPS line list.
+
 Iodine cell observations are not used for the wavelength
 calibration. To correctly use the iodine cell requires 
 specialized software which is not supported by PypeIt.
