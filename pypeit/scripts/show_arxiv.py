@@ -4,6 +4,7 @@ Wrapper to matplotlib to show an archived arc spectrum
 .. include common links, assuming primary doc root is up one directory
 .. include:: ../include/links.rst
 """
+import argparse
 
 from pypeit.scripts import scriptbase
 from pypeit import data
@@ -18,23 +19,26 @@ class ShowArxiv(scriptbase.ScriptBase):
                                     width=width)
         parser.add_argument("file", type=str, help="Arxiv filename, e.g. gemini_gmos_r831_ham.fits")
         parser.add_argument('--det', default=1, type=int, help='Detector number')
+        parser.add_argument('--test', default=False, action='store_true',
+                            help=argparse.SUPPRESS)
         return parser
 
     @staticmethod
     def main(args):
         """ Shows the spectrum
         """
-        import os
-
         from matplotlib import pyplot as plt
         from pypeit.core.wavecal import waveio
 
         # NOTE: Path is checked within load_template()
-        wave, flux, binspec = waveio.load_template(args.file, args.det)
+        items = waveio.load_template(args.file, args.det)
+        wave, flux = items[0], items[1]
 
-        plt.clf()
-        ax = plt.gca()
-        ax.plot(wave, flux)
-        plt.show()
+        # Show
+        if not args.test:
+            plt.clf()
+            ax = plt.gca()
+            ax.plot(wave, flux)
+            plt.show()
 
 
