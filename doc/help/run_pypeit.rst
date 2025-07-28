@@ -6,12 +6,16 @@
     
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     ##  [1;37;42mPypeIt : The Python Spectroscopic Data Reduction Pipeline v1.17.4.dev290+g77cb49b5e[0m
 =======
     ##  [1;37;42mPypeIt : The Python Spectroscopic Data Reduction Pipeline v1.17.4.dev2+g459e75db7.d20250610[0m
 >>>>>>> upstream/release
 =======
     ##  [1;37;42mPypeIt : The Python Spectroscopic Data Reduction Pipeline v1.17.5.dev377+g03bb2083f[0m
+>>>>>>> develop
+=======
+    ##  [1;37;42mPypeIt : The Python Spectroscopic Data Reduction Pipeline v1.17.5.dev360+g2073c2334.d20250701[0m
 >>>>>>> develop
     ##  
     ##  Available spectrographs include:
