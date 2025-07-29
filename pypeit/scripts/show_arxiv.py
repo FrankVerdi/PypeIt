@@ -31,14 +31,15 @@ class ShowArxiv(scriptbase.ScriptBase):
         from pypeit.core.wavecal import waveio
 
         # NOTE: Path is checked within load_template()
-        items = waveio.load_template(args.file, args.det)
-        wave, flux = items[0], items[1]
+        wave, flux = waveio.load_template(args.file, args.det)[:2]
+
+        # We're done if this is a test
+        if args.test:
+            return
 
         # Show
-        if not args.test:
-            plt.clf()
-            ax = plt.gca()
-            ax.plot(wave, flux)
-            plt.show()
-
+        plt.clf()
+        ax = plt.gca()
+        ax.plot(wave, flux)
+        plt.show()
 
