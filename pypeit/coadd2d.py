@@ -1782,8 +1782,8 @@ class EchelleCoAdd2D(CoAdd2D):
         # If a user-input object to compute offsets and weights is provided, check if it exists and get the needed info
         if len(self.stack_dict['specobjs_list']) > 0 and self.par['coadd2d']['user_obj_ids'] is not None:
             if len(self.par['coadd2d']['user_obj_ids']) != self.nexp:
-                msgs.error(f"Parameter `user_obj_ids` {self.par['coadd2d']['user_obj_ids']} must have the same number "
-                           f"of elements as exposures {self.nexp}.")
+                msgs.error(f'Parameter `user_obj_ids` {self.par["coadd2d"]["user_obj_ids"]} must have the same number '
+                           f'of elements as exposures {self.nexp}.')
             else:
                 # does it exists?
                 user_obj_exist = np.zeros((self.nexp,self.nslits_single), dtype=bool)
@@ -1794,7 +1794,7 @@ class EchelleCoAdd2D(CoAdd2D):
                         ind = sobjs.slitorder_uniq_id_indices(self.par['coadd2d']['user_obj_ids'][iexp], order=ord)
                         #ind = (sobjs.ECH_ORDERINDX == iord) & (sobjs.ECH_OBJID == user_objid)
                         if (len(ind) == 0) or (not np.any(ind)): 
-                            msgs.error(f"Object with user_obj_id {self.par["coadd2d"]["user_obj_ids"][iexp]} does not exist in exposure {iexp+1} for order {ord}.")
+                            msgs.error(f'Object with user_obj_id {self.par["coadd2d"]["user_obj_ids"][iexp]} does not exist in exposure {iexp+1} for order {ord}.')
                         flux, ivar, mask = self.unpack_specobj(sobjs[ind][0])
                         if flux is not None and ivar is not None and mask is not None:
                                 user_obj_exist[iexp, iord] = True
