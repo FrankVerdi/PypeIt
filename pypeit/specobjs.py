@@ -952,8 +952,8 @@ class SpecObjs:
         """
         # TODO -- Deal with update_det
         # Lists for a Table
-        slits, names, maskdef_id, objname, objra, objdec, spat_pixpos, spat_fracpos, boxsize, opt_fwhm, s2n = \
-            [], [], [], [], [], [], [], [], [], [], []
+        slits, names, obj_ids, maskdef_id, objname, objra, objdec, spat_pixpos, spat_fracpos, boxsize, opt_fwhm, s2n = \
+            [], [], [], [], [], [], [], [], [], [], [], []
         wave_rms = []
         maskdef_extract = []
         manual_extract = []
@@ -971,14 +971,17 @@ class SpecObjs:
                 spat_fracpos.append(specobj.SPAT_FRACPOS)
                 slits.append(specobj.SLITID)
                 names.append(specobj.NAME)
+                obj_ids.append(specobj.SPAT_PIXPOS_ID)
             elif pypeline == 'SlicerIFU':
                 spat_fracpos.append(specobj.SPAT_FRACPOS)
                 slits.append(specobj.SLITID)
                 names.append(specobj.NAME)
+                obj_ids.append(specobj.SPAT_PIXPOS_ID)
             elif pypeline == 'Echelle':
                 spat_fracpos.append(specobj.ECH_FRACPOS)
                 slits.append(specobj.ECH_ORDER)
                 names.append(specobj.ECH_NAME)
+                obj_ids.append(specobj.ECH_FRACPOS_ID)
             # Wave RMS
             wave_rms.append(specobj.WAVE_RMS)
             # Boxcar width
@@ -1024,6 +1027,7 @@ class SpecObjs:
                 obj_tbl['order'] = slits
                 obj_tbl['order'].format = 'd'
             obj_tbl['name'] = names
+            obj_tbl['obj_id'] = obj_ids
             if not np.all(np.array(maskdef_id) == None):
                 obj_tbl['maskdef_id'] = maskdef_id
             if not np.all(np.array(objname) == None):
