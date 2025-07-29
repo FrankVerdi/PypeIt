@@ -1035,7 +1035,7 @@ def spec_flexure_slit_global(sciImg, waveimg, global_sky, par, slits, slitmask, 
     # get boxcar radius. Needs to be in pixels
     _, binspat = parse.parse_binning(sciImg.detector.binning)
     box_radius = par['reduce']['extraction']['boxcar_radius'] * sciImg.detector.platescale * binspat
-    embed()
+
     for ss in range(slits.nslits):
         if not gd_slits[ss]:
             slit_specs.append(None)

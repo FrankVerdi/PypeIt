@@ -611,8 +611,6 @@ def ech_fill_in_orders(sobjs:specobjs.SpecObjs,
                                              OBJTYPE=sobjs_align[0].OBJTYPE,
                                              ECH_ORDERINDX=iord,
                                              ECH_ORDER=this_order)
-                #thisobj.ECH_ORDERINDX = iord
-                #thisobj.ech_order = order_vec[iord]
                 thisobj.SPAT_FRACPOS = uni_frac[iobj]
                 # Assign traces using the fractional position fit above
                 if std_trace is not None and 'ECH_ORDER' in std_trace.keys() and \
@@ -631,14 +629,15 @@ def ech_fill_in_orders(sobjs:specobjs.SpecObjs,
                 thisobj.SPAT_PIXPOS = thisobj.TRACE_SPAT[specmid]
                 # Use the real detections of this objects for the FWHM
                 this_obj_id = obj_id == uni_obj_id[iobj]
+                this_salign = sobjs_align[this_obj_id]
                 # Assign to the fwhm of the nearest detected order
-                imin = np.argmin(np.abs(sobjs_align[this_obj_id].ECH_ORDER - this_order))
-                thisobj.FWHM = sobjs_align[imin].FWHM
-                thisobj.hand_extract_flag = sobjs_align[imin].hand_extract_flag
-                thisobj.maskwidth = sobjs_align[imin].maskwidth
-                thisobj.smash_peakflux = sobjs_align[imin].smash_peakflux
-                thisobj.smash_snr = sobjs_align[imin].smash_snr
-                thisobj.BOX_RADIUS = sobjs_align[imin].BOX_RADIUS
+                imin = np.argmin(np.abs(this_salign.ECH_ORDER - this_order))
+                thisobj.FWHM = this_salign[imin].FWHM
+                thisobj.hand_extract_flag = this_salign[imin].hand_extract_flag
+                thisobj.maskwidth = this_salign[imin].maskwidth
+                thisobj.smash_peakflux = this_salign[imin].smash_peakflux
+                thisobj.smash_snr = this_salign[imin].smash_snr
+                thisobj.BOX_RADIUS = this_salign[imin].BOX_RADIUS
                 thisobj.ECH_FRACPOS = uni_frac[iobj]
                 thisobj.ECH_OBJID = uni_obj_id[iobj]
                 thisobj.OBJID = uni_obj_id[iobj]
