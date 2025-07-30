@@ -9,19 +9,9 @@ Coordination Committee
 ~~~~~~~~~~~~~~~~~~~~~~
 
 - Project Scientist: TBD
-- Developer Committee Chair: TBD
-- End-User Committee Chair: TBD
+- Developer Representative: TBD
+- End-User Representative: TBD
 - Advisory Council Representative: TBD
-
-Developer Committee
-~~~~~~~~~~~~~~~~~~~
-
-TBD
-
-End-User Committee
-~~~~~~~~~~~~~~~~~~
-
-TBD
 
 Advisory Council
 ~~~~~~~~~~~~~~~~
@@ -33,7 +23,6 @@ Other
 
 Ombudsperson: John O'Meara (WMKO Chief Scientist)
 
-
 Maintainers
 -----------
 
@@ -44,6 +33,18 @@ Maintainers
 - J. Xavier Prochaska (@profxj)
 - Dusty Reichwein (@badpandabear)
 - Kyle Westfall (@kbwestfall)
+
+Voting Members
+--------------
+
+- Ryan Cooke
+- Joseph Hennawi
+- Brad Holden
+- Debora Pelliccia
+- J. Xavier Prochaska
+- Dusty Reichwein
+- Kyle Westfall
+- ... quite a few more ...
 
 Code/Documentation Contributors
 -------------------------------

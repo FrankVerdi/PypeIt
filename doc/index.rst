@@ -137,6 +137,7 @@ PypeIt BibTeX Entries
    :hidden:
 
    governance
+   pac_charter
    team
 
 .. toctree::
