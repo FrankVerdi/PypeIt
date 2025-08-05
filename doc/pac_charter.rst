@@ -75,12 +75,15 @@ PypeIt Advisory Council Representative
 
 - Election and removal of the PAC Representative follows a procedure similar to
   other members of the PCC (see :ref:`here<governance-appointments>`).  The
-  differences are (1) nominations can only come from the PAC and (2) the PAC can
-  choose to remove the PAC Representative at any time.  If the PypeIt Voting
-  Members vote to remove the PAC Representative from the PCC, the PAC must
-  accept this result and provide nominations for a replacement.
+  differences are (1) nominations for the PAC Representative must come from the
+  PAC and (2) the PAC can choose to remove the PAC Representative according to
+  their own procedures at any time.  If the PypeIt Voting Members vote to remove
+  the PAC Representative from the PCC, the PAC must accept this result and
+  provide nominations for a replacement.  However, this does not prohibit that
+  person from continuing to be a part of the PAC.
 
 - The term of the PAC Representative should be no less than two years, and
-  elections should ideally be staggered with the PypeIt Project Scientist.
+  elections should be staggered with the PypeIt Project Scientist for
+  leadership continuity.
 
 

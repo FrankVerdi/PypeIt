@@ -1,4 +1,6 @@
 
+.. _pypeit_team:
+
 PypeIt Team
 ===========
 

@@ -31,17 +31,18 @@ Date         Status       Authors       Comments
 Project Committees and Team Roles
 ---------------------------------
 
-PypeIt's governance model establishes the following committees and team roles,
-further defined below.  The process of appointing each role is discussed
+The PypeIt governance model establishes the following committees and team roles,
+as defined by this section.  The process of appointing each role is discussed
 :ref:`below<governance-appointments>`.
 
 - :ref:`Coordination Committee<governance-coordination>`: Provides overall
   project management and coordinates development efforts by setting goals and
-  milestones based on community input.
+  milestones that incorporate community input.
 
-- :ref:`Advisory Council<governance-advisory>`: A self-governing body that
-  provides outward-focused reviews of PypeIt's impact and success, as needed to
-  ensure PypeIt is able to meet the needs of the larger astronomy community.
+- :ref:`Advisory Council<governance-advisory>`: A self-governing body that, in
+  part, provides outward-focused reviews of PypeIt's impact and success, as
+  needed to ensure PypeIt is able to meet the needs of the larger astronomy
+  community.  See their full charter :ref:`here<advisory-council-charter>`.
 
 - :ref:`PypeIt Maintainers<governance-maintain>`: Individuals with write access
   to the main repository that supervise and contribute to code development.
@@ -63,7 +64,7 @@ PypeIt project.  Its responsibilities include:
 - Maintaining the health of the project, as assessed by the continued use of the
   code and timely attention to issues and pull requests.
     
-- Recruitment for and maintenance of team membership
+- Recruitment for and management of the :ref:`pypeit_team`
 
 - Establishing high-level development milestones
 
@@ -72,8 +73,8 @@ PypeIt project.  Its responsibilities include:
 
 The PCC has four members:
 
-#. **Project Scientist (PS)**: Guides the overall scientific direction of the
-   project, elected for a term of three years.
+#. **Project Scientist (PS)**: The chair of the PCC, who guides the overall
+   scientific direction of the project, elected for a term of three years.
 
 #. **Developer Representative (DR)**: Presents and advocates for priorities of
    the developer community, elected for a term of two years.
@@ -100,7 +101,7 @@ are reaching the end of their term.  Nominations can only come from
 :ref:`governance-voting-members`, and Voting Members can self-nominate.  The
 current PCC will vet the nominees and contact each nominee to ensure they accept
 the nomination.  See further information :ref:`here<governance-appointments>`.
-The procedure for removal of a PCC members is discussed
+The procedure for removal of PCC members is discussed
 :ref:`here<governance-removals>`.
 
 Developer and End-User Representatives
@@ -156,7 +157,8 @@ to the PypeIt repository.  Maintainers are expected to:
 
 - Ensure the documentation is up-to-date
 
-- Review pull requests, and potentially execute the suite of tests in the cloud
+- Review pull requests, and potentially execute the suite of tests needed for
+  pull-request reviews
 
 Pull requests must be approved by at least one maintainer; however,
 these maintainers may delegate the review to other community members without
@@ -165,8 +167,8 @@ requirement for the merge to continue) must indicate that they are basing their
 approval on the designated review.
 
 Although maintainers are not designated as experts in specific parts of the
-code, the PCC must ensure that the group of maintainers as a whole provides
-expertise in all aspects of the code.
+code, the PCC should make every effort to ensure that the group of maintainers,
+as a whole, provides expertise spanning the full code base.
 
 Maintainers are appointed by consensus of the PCC, or by vote if the PCC does
 not come to consensus.  Maintainers are not appointed for a fixed term.
@@ -187,7 +189,8 @@ acknowledge contributions take many forms, including but not limited to
 participating in discussions in our Users Slack Workspace; reporting issues to
 our GitHub repository; submitting pull requests with small bug fixes,
 documentation or testing improvements, or large feature improvements; and
-participating in project maintenance and governance.
+participating in project maintenance and governance.  The PypeIt team should
+maintain no fewer than 10 Voting Members.
 
 Nominations for voting members can be sent to the PCC at any time for
 consideration.  The PCC will vet the nominees and contact the nominee to ensure
