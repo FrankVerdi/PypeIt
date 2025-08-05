@@ -12,7 +12,7 @@
     
     options:
       -h, --help            show this help message and exit
-      -s SPECTROGRAPH, --spectrograph SPECTROGRAPH
+      -s, --spectrograph SPECTROGRAPH
                             A valid spectrograph identifier: aat_uhrf, bok_bc,
                             gemini_flamingos1, gemini_flamingos2,
                             gemini_gmos_north_e2v, gemini_gmos_north_ham,
@@ -29,12 +29,13 @@
                             mdm_modspec, mdm_osmos_mdm4k, mdm_osmos_r4k,
                             mmt_binospec, mmt_bluechannel, mmt_mmirs, not_alfosc,
                             not_alfosc_vert, ntt_efosc2, p200_dbsp_blue,
-                            p200_dbsp_red, p200_tspec, shane_kast_blue,
-                            shane_kast_red, shane_kast_red_ret, soar_goodman_blue,
-                            soar_goodman_red, tng_dolores, vlt_fors2, vlt_sinfoni,
-                            vlt_xshooter_nir, vlt_xshooter_uvb, vlt_xshooter_vis,
-                            wht_isis_blue, wht_isis_red (default: None)
-      -e EXTENSION, --extension EXTENSION
+                            p200_dbsp_red, p200_ngps_i, p200_ngps_r, p200_tspec,
+                            shane_kast_blue, shane_kast_red, shane_kast_red_ret,
+                            soar_goodman_blue, soar_goodman_red, subaru_focas,
+                            tng_dolores, vlt_fors2, vlt_sinfoni, vlt_xshooter_nir,
+                            vlt_xshooter_uvb, vlt_xshooter_vis, wht_isis_blue,
+                            wht_isis_red (default: None)
+      -e, --extension EXTENSION
                             File extension to use. Must include the period (e.g.,
                             ".fits") and it must be one of the allowed extensions
                             for this spectrograph. If None, root directory will be

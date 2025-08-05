@@ -618,11 +618,8 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
         offsets = np.sqrt(
                 mask_tbl['slitpos_x'].to('arcsec').value**2 +
                 mask_tbl['slitpos_y'].to('arcsec').value**2)
-        # NOT READY FOR TILTS
-        if np.any(np.invert(np.isclose(mask_tbl['slittilt'].value, 0.))):
-            msgs.error('NOT READY FOR TILTED SLITS')
-        # NOT SURE WE HAVE THE TILT SIGN CORRECT
-        slit_pas = posx_pa + mask_tbl['slittilt'].to('deg').value
+        # Sign here checked by Jack O'Donnell
+        slit_pas = posx_pa - mask_tbl['slittilt'].to('deg').value
         off_signs = np.ones_like(slit_pas)
         negy = mask_tbl['slitpos_y'] < 0.
         off_signs[negy] = -1.
@@ -685,17 +682,17 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
         # Parse
         maskfile = filename[0]
         wcs_file = filename[1]
-        # Add path?
-        if not os.path.isfile(maskfile):
-            maskfile = os.path.join(trc_path, maskfile)
-        if not os.path.isfile(wcs_file):
-            wcs_file = os.path.join(trc_path, wcs_file)
-
-        # Slurp in the slitmask info
-        self.get_slitmask(maskfile)
+#         # Add path?
+#         if not os.path.isfile(maskfile):
+#             maskfile = os.path.join(trc_path, maskfile)
+#         if not os.path.isfile(wcs_file):
+#             wcs_file = os.path.join(trc_path, wcs_file)
+#
+#         # Slurp in the slitmask info
+#         self.get_slitmask(maskfile)
 #
 #         # Binning of flat
-#         _, bin_spat= parse.parse_binning(binning)
+#         _, bin_spat = parse.parse_binning(binning)
 #
 #         # Slit center
 #         slit_coords = SkyCoord(ra=self.slitmask.onsky[:,0],
@@ -712,15 +709,16 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
 #         left_edges = []
 #         right_edges = []
 #         for islit in range(self.slitmask.nslits):
-#             # DEBUGGING
-#             #islit = 14  # 10043
+#             # JOD: Need to adjust predicted images by slit tilt (which is
+#             # slit PA relative to mask PA)
+#             slittilt = self.slitmask.onsky[islit,4] - self.slitmask.posx_pa
 #             # Left coord
 #             left_coord = slit_coords[islit].directional_offset_by(
 #                 self.slitmask.onsky[islit,4]*units.deg - 180.*units.deg,
-#                 self.slitmask.onsky[islit,2]*units.arcsec/2.)
+#                 self.slitmask.onsky[islit,2]*units.arcsec/2./np.cos(np.radians(slittilt)))
 #             right_coord = slit_coords[islit].directional_offset_by(
 #                 self.slitmask.onsky[islit,4]*units.deg,
-#                 self.slitmask.onsky[islit,2]*units.arcsec/2.)
+#                 self.slitmask.onsky[islit,2]*units.arcsec/2./np.cos(np.radians(slittilt)))
 #
 #             got_it = False
 #             for kk, iwcs in enumerate(wcss):
