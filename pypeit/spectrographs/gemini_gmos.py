@@ -139,6 +139,9 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
 
         self.meta['datasec'] = dict(ext=1, card='DATASEC')
         self.meta['instrument'] = dict(ext=0, card='INSTRUME')
+        # Dithering
+        self.meta['dithpos'] = dict(ext=0, card='QOFFSET')
+        self.meta['dithoff'] = dict(card=None, compound=True)
 
     def compound_meta(self, headarr, meta_key):
         """
@@ -154,7 +157,12 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
         Returns:
             object: Metadata value read from the header(s).
         """
-        if meta_key == 'binning':
+        if meta_key == 'dithoff':
+            if headarr[0].get('OBSTYPE') == 'OBJECT':
+                return round(headarr[0].get('QOFFSET'),2)
+            else:
+                return 0.0
+        elif meta_key == 'binning':
             # binning in the raw frames
             ccdsum = headarr[1].get('CCDSUM')
             if ccdsum is not None:
@@ -229,6 +237,17 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
             be propagated in output files.
         """
         return ['GRATING', 'FILTER1', 'MASKNAME', 'CENTWAVE', 'CCDSUM', 'OBSEPOCH', 'NODPIX']
+
+    def pypeit_file_keys(self):
+        """
+        Define the list of keys to be output into a standard ``PypeIt`` file.
+
+        Returns:
+            :obj:`list`: The list of keywords in the relevant
+            :class:`~pypeit.metadata.PypeItMetaData` instance to print to the
+            :ref:`pypeit_file`.
+        """
+        return super().pypeit_file_keys() + ['dithoff']
 
     def check_frame_type(self, ftype, fitstbl, exprng=None):
         """
@@ -1029,6 +1048,8 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
             par['calibrations']['wavelengths']['method'] = 'reidentify'
         elif self.get_meta_value(scifile, 'dispname')[0:4] == 'B480':
             par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_north_ham_b480.fits'
+        elif self.get_meta_value(scifile, 'dispname')[0:4] == 'R150':
+            par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_r150_ham.fits'
 
         # The bad amp needs a larger follow_span for slit edge tracing
         obs_epoch = time.Time(self.get_meta_value(scifile, 'mjd'), format='mjd').jyear
@@ -1205,8 +1226,10 @@ class GeminiGMOSNHamSpectrograph(GeminiGMOSNSpectrograph):
             par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_b600_ham.fits'
         elif self.get_meta_value(scifile, 'dispname')[0:4] == 'R831':
             par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_r831_ham.fits'
-        if self.get_meta_value(scifile, 'dispname')[0:4] == 'B480':
+        elif self.get_meta_value(scifile, 'dispname')[0:4] == 'B480':
             par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_north_ham_b480.fits'
+        elif self.get_meta_value(scifile, 'dispname')[0:4] == 'R150':
+            par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_r150_ham.fits'
 
         return par
 
