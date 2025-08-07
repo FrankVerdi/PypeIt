@@ -28,6 +28,8 @@ Ombudsperson: John O'Meara (WMKO Chief Scientist)
 Maintainers
 -----------
 
+TBD.  Likely to include:
+
 - Ryan Cooke (@rcooke-ast)
 - Joseph Hennawi (@jhennawi)
 - Brad Holden (@bpholden)
@@ -39,14 +41,7 @@ Maintainers
 Voting Members
 --------------
 
-- Ryan Cooke
-- Joseph Hennawi
-- Brad Holden
-- Debora Pelliccia
-- J. Xavier Prochaska
-- Dusty Reichwein
-- Kyle Westfall
-- ... quite a few more ...
+TBD
 
 Code/Documentation Contributors
 -------------------------------
