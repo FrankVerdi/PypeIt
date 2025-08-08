@@ -2,12 +2,12 @@
 Dynamically build example files included in the documentation.
 """
 
-from pathlib import Path
-import sys
+from importlib import resources
 import os
-import time
+import pathlib
 import shutil 
-import glob
+import sys
+import time
 
 from pypeit import dataPaths
 from pypeit.scripts import setup
@@ -17,9 +17,8 @@ from pypeit.cache import git_most_recent_tag
 
 from IPython import embed
 
-from pypeit.tests.tstutils import data_path
-from pypeit.scripts import setup
-from pypeit import pypeitsetup
+PYP_ROOT = resources.files('pypeit').parent
+DEV_ROOT = pathlib.Path(os.getenv('PYPEIT_DEV')).resolve()
 
 #-----------------------------------------------------------------------------
 
@@ -140,8 +139,7 @@ def make_example_gnirs_pypeit_files(version, date):
     shutil.rmtree(sroot)
 
     # Copy over the one that is actually used by the dev-suite
-    dev = Path(os.getenv('PYPEIT_DEV')).resolve() \
-                / 'pypeit_files' / 'gemini_gnirs_echelle_32_sb_sxd.pypeit'
+    dev = DEV_ROOT / 'pypeit_files' / 'gemini_gnirs_echelle_32_sb_sxd.pypeit'
 
     ofile = oroot / 'gemini_gnirs_echelle_A_corrected.pypeit.rst'
     verbatim_to_rst(dev, ofile)
@@ -176,8 +174,7 @@ def make_example_nires_pypeit_files(version, date):
     shutil.rmtree(sroot)
 
     # Copy over the one that is actually used by the dev-suite
-    dev = Path(os.getenv('PYPEIT_DEV')).resolve() \
-                / 'pypeit_files' / 'keck_nires_abba_wstandard.pypeit'
+    dev = DEV_ROOT / 'pypeit_files' / 'keck_nires_abba_wstandard.pypeit'
 
     ofile = oroot / 'keck_nires_A_corrected.pypeit.rst'
     verbatim_to_rst(dev, ofile)
@@ -185,9 +182,9 @@ def make_example_nires_pypeit_files(version, date):
 
 def make_example_sorted_file():
 
-    root = os.path.join(os.environ['PYPEIT_DEV'], 'RAW_DATA', 'keck_deimos')
-    files = glob.glob(os.path.join(root, '830G_L_8100', '*fits*'))
-    files += glob.glob(os.path.join(root, '830G_L_8400', '*fits*'))
+    root = DEV_ROOT / 'RAW_DATA' / 'keck_deimos'
+    files = list(root.joinpath('830G_L_8100').glob('*fits*'))
+    files += list(root.joinpath('830G_L_8400').glob('*fits*'))
 
     ps = pypeitsetup.PypeItSetup(files, spectrograph_name='keck_deimos')
     ps.run(setup_only=True)
@@ -196,16 +193,15 @@ def make_example_sorted_file():
     sorted_file = pathlib.Path().absolute() / ps.pypeit_file.replace('.pypeit', '.sorted')
     ps.fitstbl.write_sorted(sorted_file)
 
-    oroot = Path(resource_filename('pypeit', '')).resolve().parent / 'doc' / 'include'
+    oroot = PYP_ROOT / 'doc' / 'include'
     ofile = oroot / 'keck_deimos.sorted.rst'
     verbatim_to_rst(sorted_file, ofile)
 
     os.remove(sorted_file)
 
 def make_meta_examples():
-
-    ofile = Path(resource_filename('pypeit', '')).resolve().parent \
-                / 'doc' / 'include' / 'deimos_meta_key_map.rst'
+    oroot = PYP_ROOT / 'doc' / 'include'
+    ofile = oroot / 'deimos_meta_key_map.rst'
     otmp = ofile.parent / 'tmp_meta'
     if otmp.exists():
         otmp.unlink()
@@ -221,6 +217,7 @@ def make_meta_examples():
 
     if otmp.exists():
         otmp.unlink()
+
 
 if __name__ == '__main__':
     t = time.perf_counter()

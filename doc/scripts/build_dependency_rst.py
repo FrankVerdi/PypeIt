@@ -9,6 +9,8 @@ import numpy
 
 from pypeit.utils import string_table
 
+from IPython import embed
+
 
 def write_dependency_table(project_file, path):
     ofile = path / 'dependencies_table.rst'
@@ -32,9 +34,9 @@ def write_dependency_table(project_file, path):
 
 
 def main():
-    output_root = os.path.join(os.path.split(os.path.abspath(resource_filename('pypeit', '')))[0],
-                               'doc', 'include')
-    if not os.path.isdir(output_root):
+    pypeit_root = resources.files('pypeit').parent
+    output_root = pypeit_root / 'doc' / 'include'
+    if not output_root.is_dir():
         raise NotADirectoryError(f'{output_root} does not exist!')
 
     project_file = pypeit_root / 'pyproject.toml'
