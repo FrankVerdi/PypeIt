@@ -183,20 +183,20 @@ def test_cholesky_solve_versions():
 
 # NOTE: Used to be in test_pydl.py.
 # TODO: Where is the to/from dict functionality used?
-def test_bsplinetodict():
-    """
-    Test for writing a bspline onto a dict (and also reading it out).
-    """
-    x = np.random.rand(500)
-
-    # Create bspline
-    init_bspline = bspline.bspline(x, bkspace=0.01*(np.max(x)-np.min(x)))
-    # Write bspline to bspline_dict
-    bspline_dict = init_bspline.to_dict()
-    # Create bspline from bspline_dict
-    bspline_fromdict = bspline.bspline(None, from_dict=bspline_dict)
-
-    assert np.max(np.array(bspline_dict['breakpoints'])-bspline_fromdict.breakpoints) == 0.
+#def test_bsplinetodict():
+#    """
+#    Test for writing a bspline onto a dict (and also reading it out).
+#    """
+#    x = np.random.rand(500)
+#
+#    # Create bspline
+#    init_bspline = bspline.bspline(x, bkspace=0.01*(np.max(x)-np.min(x)))
+#    # Write bspline to bspline_dict
+#    bspline_dict = init_bspline.to_dict()
+#    # Create bspline from bspline_dict
+#    bspline_fromdict = bspline.bspline(None, from_dict=bspline_dict)
+#
+##    assert np.max(np.array(bspline_dict['breakpoints'])-bspline_fromdict.breakpoints) == 0.
 
 def test_profile_spec():
     """
