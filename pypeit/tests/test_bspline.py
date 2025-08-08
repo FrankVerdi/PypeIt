@@ -1,5 +1,4 @@
 
-import time
 import os
 import timeit
 
@@ -11,6 +10,7 @@ from pypeit import dataPaths
 from pypeit import bspline
 from pypeit.tests.tstutils import bspline_ext_required, data_output_path
 from pypeit.core import fitting
+
 
 @bspline_ext_required
 def test_model_versions_time():
@@ -92,6 +92,7 @@ def test_solution_array_versions_time():
     pytime = min(timeit.repeat(stmt=command, setup=py_setup, number=10))
     ctime = min(timeit.repeat(stmt=command, setup=c_setup, number=10))
     assert ctime < pytime, 'C is less efficient!'
+
 
 @bspline_ext_required
 def test_solution_array_versions():
@@ -181,23 +182,6 @@ def test_cholesky_solve_versions():
     assert np.allclose(b, _b), 'Differences in cholesky_solve'
 
 
-# NOTE: Used to be in test_pydl.py.
-# TODO: Where is the to/from dict functionality used?
-#def test_bsplinetodict():
-#    """
-#    Test for writing a bspline onto a dict (and also reading it out).
-#    """
-#    x = np.random.rand(500)
-#
-#    # Create bspline
-#    init_bspline = bspline.bspline(x, bkspace=0.01*(np.max(x)-np.min(x)))
-#    # Write bspline to bspline_dict
-#    bspline_dict = init_bspline.to_dict()
-#    # Create bspline from bspline_dict
-#    bspline_fromdict = bspline.bspline(None, from_dict=bspline_dict)
-#
-##    assert np.max(np.array(bspline_dict['breakpoints'])-bspline_fromdict.breakpoints) == 0.
-
 def test_profile_spec():
     """
     Test that bspline_profile (1) is successful and (2) produces the
@@ -218,6 +202,7 @@ def test_profile_spec():
                                   kwargs_bspline={'bkspace': spec_samp_fine},
                                   kwargs_reject={'groupbadpix': True, 'maxrej': 5}, quiet=True)
         assert np.allclose(d['spec_flat_fit'], spec_flat_fit), 'Bad spectral bspline result'
+
 
 def test_io():
     """
