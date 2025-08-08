@@ -77,12 +77,16 @@ Datamodel Changes
 Under-the-hood Improvements
 ---------------------------
 
- - Updates the ``pypeit_trace_edges`` script to use ``lampoffflats``, if they're
-   provided by the pypeit file passed to the script.
- - Moved ``deprecated``, ``paper``, ``presentations``, and ``proposals``
-   directories into a new repository ``PypeIt-misc``.
- - Abstracted generation of GitHub remote paths in the cache system to make sure
-   functionality works when working in a fork of the code.
+- Updates the ``pypeit_trace_edges`` script to use ``lampoffflats``, if they're
+  provided by the pypeit file passed to the script.
+- Moved ``deprecated``, ``paper``, ``presentations``, and ``proposals``
+  directories into a new repository ``PypeIt-misc``.
+- Abstracted generation of GitHub remote paths in the cache system to make sure
+  functionality works when working in a fork of the code.
+- Basic maintenance on :class:`~pypeit.bspline.bspline.bspline`: Removed
+  ``*kwargs`` from instantiation call, removed redundant (``placed`` vs.
+  ``bkpts``) arguments, removed unused to/from dict functionality, cleaned up
+  construction of breakpoints, added docs.
 
 Bug Fixes
 ---------
