@@ -9,7 +9,6 @@ Implements the bspline class
 
 """
 
-import copy
 import warnings
 
 from IPython import embed
@@ -18,7 +17,6 @@ import numpy as np
 
 from pypeit.core import basis
 from pypeit import datamodel
-from pypeit import msgs
 
 try:
     from pypeit.bspline.utilc import cholesky_band, cholesky_solve, solution_arrays, intrv, \
