@@ -84,7 +84,7 @@ class bspline(datamodel.DataContainer):
     nbkpts : int, optional
         Defines the number of breakpoints used to span the full range of ``x``.
         Only used if ``bkspace`` is None.  If provided, ``everyn`` is ignored.
-    everyn : int, optional
+    everyn : int, float, optional
         Places a breakpoint at every Nth value of ``x``.  Only used if
         ``bkspace`` and ``nbkpts`` are both None.
     funcname : str, optional
@@ -212,7 +212,7 @@ class bspline(datamodel.DataContainer):
             Defines the number of breakpoints used to span the full range of
             ``x``.  Only used if ``bkspace`` is None.  If provided, ``everyn``
             is ignored.
-        everyn : int, optional
+        everyn : int, float, optional
             Places a breakpoint at every Nth value of ``x``.  Only used if
             ``bkspace`` and ``nbkpts`` are both None.
 
@@ -249,11 +249,14 @@ class bspline(datamodel.DataContainer):
             elif nbkpts is not None:
                 _bkpt = np.linspace(sx, ex, max(nbkpts,2))
             elif everyn is not None:
-                if everyn > x.size:
-                    _bkpt = np.array([sx, ex])
+                # NOTE: There are places in the code where everyn is a float.
+                # Need to continue to allow this.
+                if everyn < x.size:
+                    _nbkpts = max(x.size/everyn, 2.)
+                    indx = (x.size/_nbkpts) * np.arange(int(_nbkpts))
+                    _bkpt = np.interp(indx, np.arange(x.size, dtype=float), x)
                 else:
-                    sortedx = np.sort(x, kind='heapsort')
-                    _bkpt = np.append(sortedx[::int(everyn)], ex)
+                    _bkpt = np.array([sx, ex])
             else:
                 raise ValueError('Insufficient information to set bkpts.')
         else:
