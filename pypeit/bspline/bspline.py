@@ -253,7 +253,7 @@ class bspline(datamodel.DataContainer):
                 # Need to continue to allow this.
                 if everyn < x.size:
                     _nbkpts = max(x.size/everyn, 2.)
-                    indx = (x.size/_nbkpts) * np.arange(int(_nbkpts))
+                    indx = (x.size/_nbkpts) * np.arange(_nbkpts)
                     _bkpt = np.interp(indx, np.arange(x.size, dtype=float), x)
                 else:
                     _bkpt = np.array([sx, ex])
