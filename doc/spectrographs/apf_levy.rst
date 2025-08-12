@@ -65,7 +65,7 @@ slit.
 The WideFlat images should also be used for slit tracing 
 for data taken with the 8 arc-second long slit.
 
-**Note**: The WideFlat images will be automatically
+.. note:: The WideFlat images will be automatically
 assigned as a Trace images for both the 8 arc-second long slit
 configuration and the 3 arc-second long slit configuration.
 
@@ -87,13 +87,16 @@ specialized software which is not supported by PypeIt.
 Object detection
 ----------------
 
-The sky subtraction is turned off during the object 
-detection step. The pixel sampling is coarse, with 
-the pixels having a size of 0.4" in the spatial 
-direction. Typical object sizes are a full-width
-at half maximum of  4 pixels  in the spectrum while a 3 
-arc-second long slit has only 8 pixels in the spatial 
-direction.
+The sky subtraction is turned off by default during the object 
+detection step. This can be turned by on by the user
+but is not recommend for 3 arc-second slits, only for
+8 arc-second slits. 
+
+The pixel sampling is coarse, with the pixels having 
+a size of 0.4" in the spatial direction. Typical object
+sizes are a full-width at half maximum of  4 pixels 
+in the spectrum while a 3 arc-second long slit has 
+only 8 pixels in the spatial direction.
 
 For faint objects observed with the 8 arc-second long
 slit, turning on the sky subtraction in the object 
