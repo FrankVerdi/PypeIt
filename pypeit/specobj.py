@@ -405,7 +405,7 @@ class SpecObj(datamodel.DataContainer):
         Returns:
             float: Platescale in arcsec/pixel
         """
-        embed()
+
         if self.PYPELINE == 'Echelle' and self.spectrograph is None:
             msgs.error("Spectrograph must be provided for Echelle data to calculate platescale in arcsec/pixel.")
         elif self.PYPELINE == 'Echelle':
