@@ -537,37 +537,6 @@ class SpecObjs:
         
         return indx
 
-    # def slitorder_objid_indices(self, slitorder, objid, toler=5):
-    #     """
-    #     Return the set of indices matching the input slit/order and the input
-    #     objid
-        
-    #     Args:
-    #         slitorder (int):
-    #             Order/Spatial pixel value for slit of interest.
-    #         objid (int):
-    #             ID value for object of interest.
-    #         toler (int, optional):
-    #             Tolerance for slit spatial pixel values used for slit
-    #             identification. Default = 5
-
-    #     Returns:
-    #         :obj:`int`: Index value for input slit/order and object ID values
-    #         for specobjs object.
-
-    #     """
-
-    #     if self[0].PYPELINE == 'Echelle':
-    #         indx = (self.ECH_ORDER == slitorder) & (self.ECH_OBJID == objid)
-    #     elif self[0].PYPELINE == 'MultiSlit':
-    #         indx = (np.abs(self.SLITID - slitorder) <= toler) & (self.OBJID == objid)
-    #     elif self[0].PYPELINE == 'SlicerIFU':
-    #         indx = (self.SLITID == slitorder) & (self.OBJID == objid)
-    #     else:
-    #         msgs.error("The '{0:s}' PYPELINE is not defined".format(self[0].PYPELINE))
-    #     #
-    #     return indx
-
     def set_names(self):
         """
         Simple method to (re)set the names of all the SpecObj

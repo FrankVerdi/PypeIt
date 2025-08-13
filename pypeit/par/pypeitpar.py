@@ -1539,26 +1539,30 @@ class Coadd2DPar(ParSet):
         defaults['weights'] = 'auto'
         dtypes['weights'] = [str, list]
         descr['weights'] = 'Mode for the weights used to coadd images. Options are: ' \
-                           '``auto``, ``uniform``, or a list of weights. If ``auto`` is used, ' \
-                           'PypeIt will try to compute the weights using a reference object ' \
-                           'with the highest S/N, or using a list of object ids selected by the user indicating the reference object in each ' \
-                           'exposure (see ``user_obj_ids``), ' \
-                           'if ``uniform`` is used, uniform weights will be applied. If a list of weights ' \
-                           'is provided, PypeIt will use it.'
+                           '``auto``, ``uniform``, or a list of weights. ' \
+                           'If a list of weights is provided, PypeIt will use it.' \
+                           'if ``uniform`` is used, uniform weights will be applied.' \
+                           'If ``auto`` is used, PypeIt will try to compute the weights ' \
+                           'using a reference object with the highest S/N, or using a list ' \
+                           'of object ids selected by the user indicating a reference object ' \
+                           'in each exposure (see ``user_obj_ids``). If the reference object ' \
+                           'is not found, the code will use uniform weights. '
 
         # object to use for weights and offsets
         defaults['user_obj_ids'] = None
         dtypes['user_obj_ids'] = list
-        descr['user_obj_ids'] = 'Unique object id identifier that the user wants to use to compute the weights and/or the ' \
-                            'offsets for coadding images. For longslit/multislit spectroscopy, provide the ' \
-                            '``SPAT_PIXPOS_ID`` of the object in each of the exposures. ' \
-                            'For echelle spectroscopy, provide the ``ECH_FRACPOS_ID`` of the object in each exposure. ' \
-                            'These unique object identifiers can be found in the spec1d*.txt files for each exposure. ' \
-                            'See :doc:`out_spec1D` for more info about ``SPAT_PIXPOS_ID`` and ``ECH_FRACPOS_ID``. ' \
-                            'This parameter must have the same length as the number of exposures being coadded. ' \
-                            'If this parameter is not ``None``, it will be used to compute the offsets ' \
-                            'only if ``offsets = auto``, and it will used to compute ' \
-                            'the weights only if ``weights = auto``.'
+        descr['user_obj_ids'] = 'List of unique object identifiers that the user wants to use '\
+                                'to compute the weights and/or the offsets for coadding images. '\
+                                'For longslit/multislit spectroscopy, provide the ``SPAT_PIXPOS_ID`` '\
+                                'of the object in each of the exposures. For echelle spectroscopy, '\
+                                'provide the ``ECH_FRACPOS_ID`` of the object in each exposure. ' \
+                                'These unique object identifiers can be found in the spec1d*.txt ' \
+                                'files for each exposure. See :doc:`out_spec1D` for more info about ' \
+                                '``SPAT_PIXPOS_ID`` and ``ECH_FRACPOS_ID``. This parameter must always ' \
+                                'be a list of the same length as the number of exposures being coadded. ' \
+                                'If this parameter is not ``None``, it will be used to compute the offsets ' \
+                                'only if ``offsets = auto``, and it will used to compute the weights ' \
+                                'only if ``weights = auto``.'
 
 
         # TODO: Why is this spat:spec and not spec:spat like everything else??
