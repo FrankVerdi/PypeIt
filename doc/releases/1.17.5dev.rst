@@ -53,6 +53,8 @@ Functionality/Performance Improvements and Additions
 Instrument-specific Updates
 ---------------------------
 
+- Added support for the Levy spectrograph on the Automated Planet Finder at Lick
+  Observatory (APF/Levy)
 
 Script Changes
 --------------

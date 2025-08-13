@@ -25,7 +25,7 @@
                             default mosaic. (default: None)
       -s, --spectrograph SPECTROGRAPH
                             A valid spectrograph identifier, which is only used if
-                            providing files directly: aat_uhrf, bok_bc,
+                            providing files directly: aat_uhrf, apf_levy, bok_bc,
                             gemini_flamingos1, gemini_flamingos2,
                             gemini_gmos_north_e2v, gemini_gmos_north_ham,
                             gemini_gmos_north_ham_ns, gemini_gmos_south_ham,

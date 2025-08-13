@@ -65,9 +65,11 @@ slit.
 The WideFlat images should also be used for slit tracing 
 for data taken with the 8 arc-second long slit.
 
-.. note:: The WideFlat images will be automatically
-assigned as a Trace images for both the 8 arc-second long slit
-configuration and the 3 arc-second long slit configuration.
+.. note::
+    
+    The WideFlat images will be automatically assigned as a Trace images for
+    both the 8 arc-second long slit configuration and the 3 arc-second long slit
+    configuration.
 
 
 Wavelength Calibration
