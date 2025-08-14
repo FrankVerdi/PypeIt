@@ -52,6 +52,7 @@ Functionality/Performance Improvements and Additions
 
 Instrument-specific Updates
 ---------------------------
+- Added wavelength template for Gemini GMOS-N/GMOS-S R150 grating.
 
 
 Script Changes
