@@ -131,6 +131,7 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
         self.meta['binning'] = dict(card=None, compound=True)  # Uses CCDSUM
 
         self.meta['mjd'] = dict(card=None, compound=True)
+        self.meta['dateobs'] = dict(ext=0, card='DATE-OBS')
         self.meta['exptime'] = dict(ext=0, card='EXPTIME')
         self.meta['airmass'] = dict(ext=0, card='AIRMASS')
         # Extras for config and frametyping
@@ -193,7 +194,7 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
             keywords that can be used to assign the frames to a configuration
             group.
         """
-        return {'bias': 'datasec', 'dark': 'datasec'}
+        return {'bias': ['datasec', 'binning'], 'dark': ['datasec', 'binning']}
 
     def configuration_keys(self):
         """
@@ -209,7 +210,7 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
             and used to constuct the :class:`~pypeit.metadata.PypeItMetaData`
             object.
         """
-        return super().configuration_keys() + ['dispangle', 'datasec']
+        return super().configuration_keys() + ['dispangle', 'datasec', 'binning']
 
     def raw_header_cards(self):
         """
