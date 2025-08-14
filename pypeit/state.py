@@ -15,7 +15,7 @@ class BaseCalibState(BaseModel):
     det: int | List[int]  # Detector number or mosaic tuple
     step: str
     input_files: Optional[List[str]] = None
-    output_files: Optional[List[str]] = None
+    output_file: Optional[str] = None
     qa_files: Optional[List[str]] = None
     status: Literal["complete", "fail", "undone", "running", "success"] = "undone"
 

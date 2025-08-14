@@ -530,7 +530,7 @@ class Calibrations:
         self.state.update_calib('bias', self.calib_ID, self.det, 
                                 'input_files', self.raw_files)
         self.state.update_calib('bias', self.calib_ID, self.det, 
-                                'output_files', [str(outfile)])
+                                'output_file', outfile)
         self.state.update_calib('bias', self.calib_ID, self.det, 'mean', self.msbias.image.mean())
         self.state.update_calib('bias', self.calib_ID, self.det, 'std', self.msbias.image.std())
 
@@ -772,17 +772,6 @@ class Calibrations:
 
         return self.msscattlight
 
-    def flats_state(self, outfile:str):
-        if self.state is None:
-            return
-        #
-        #self.state.update_calib('bias', self.calib_ID, self.det, 
-        #                        'input_files', self.raw_files)
-        #self.state.update_calib('bias', self.calib_ID, self.det, 
-        #                        'output_files', [str(outfile)])
-        #self.state.update_calib('bias', self.calib_ID, self.det, 'mean', self.msbias.image.mean())
-        #self.state.update_calib('bias', self.calib_ID, self.det, 'std', self.msbias.image.std())
-
 
     def get_flats(self, force:str=None):
         """
@@ -1013,6 +1002,9 @@ class Calibrations:
             self.flatimages.to_file()
             # Save slits too, in case they were tweaked
             self.slits.to_file()
+            # State
+            self.state.update_calib('flats', self.calib_ID, self.det, 
+                                'output_file', self.flatimages.get_path())
 
         # Apply user-supplied images
         # NOTE: These are the *final* images, not just a stack, and it will
@@ -1160,7 +1152,7 @@ class Calibrations:
         self.state.update_calib('slits', self.calib_ID, self.det, 
                                 'input_files', self.raw_files)
         self.state.update_calib('slits', self.calib_ID, self.det, 
-                                'output_files', [str(outfile)])
+                                'output_file', outfile)
         self.state.update_calib('slits', self.calib_ID, self.det, 
                                 'nslits', self.slits.nslits)
 
@@ -1178,7 +1170,7 @@ class Calibrations:
             return
         # Update
         self.state.update_calib('wv_calib', self.calib_ID, self.det, 
-                                'output_files', [str(outfile)])
+                                'output_file', outfile)
         for islit in range(self.slits.nslits):
             slit_ID = int(self.slits.slitord_id[islit])
             # Status
@@ -1297,7 +1289,7 @@ class Calibrations:
             return
         # Update
         self.state.update_calib('tilts', self.calib_ID, self.det, 
-                                'output_files', [str(outfile)])
+                                'output_file', outfile)
         for islit in range(self.slits.nslits):
             slit_ID = int(self.slits.slitord_id[islit])
             # Status
