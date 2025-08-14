@@ -102,7 +102,10 @@ class PypeIt:
         self.pypeit_file = pypeit_file
 
         # State
-        self.run_state = state.RunPypeItState(pypeit_file=pypeit_file, current_step='init')
+        self.run_state = state.RunPypeItState(pypeit_file=pypeit_file, 
+                                              current_step='init',
+                                              current_det=-1,
+                                              current_calibID=-1)
         self.run_state = self.run_state.load()
         
         self.msgs_reset()

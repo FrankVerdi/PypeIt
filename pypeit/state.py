@@ -73,9 +73,18 @@ slit_classes = {
 }
 
 class RunPypeItState(BaseModel):
+    """ State of the PypeIt run """
+
+    # Required
     pypeit_file: str
     current_step: str
+    current_det: int
+    current_calibID: int
+
+    # Optional
     previous_step: str = 'none'
+
+    # Calibrations
     bias: Optional[List[BiasCalibState]] = Field(default_factory=list)
     slits: Optional[List[SlitEdgesState]] = Field(default_factory=list)
     wv_calib: Optional[List[WvCalibState]] = Field(default_factory=list)

@@ -1425,6 +1425,13 @@ class Calibrations:
         """
         Run full the full recipe of calibration steps.
         """
+
+        # State
+        if self.state is not None:
+            self.state.current_det = self.det
+            self.state.current_calibID = self.calib_ID
+            self.state.write()
+
         self.success = True
         for step in self.steps:
             if stop_at_step is not None and step == stop_at_step:
