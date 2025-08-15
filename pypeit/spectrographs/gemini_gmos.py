@@ -305,7 +305,7 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
         par['calibrations']['slitedges']['follow_span'] = 80
         par['calibrations']['slitedges']['edge_thresh'] = 100.
         par['calibrations']['slitedges']['fit_order'] = 3
-        par['calibrations']['slitedges']['minimum_slit_length'] = 3.
+        par['calibrations']['slitedges']['minimum_slit_length'] = 1.8
 
         # 1D wavelength solution
         par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 0.08  # Might be grating dependent..
