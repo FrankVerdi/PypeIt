@@ -305,6 +305,7 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
         par['calibrations']['slitedges']['follow_span'] = 80
         par['calibrations']['slitedges']['edge_thresh'] = 100.
         par['calibrations']['slitedges']['fit_order'] = 3
+        par['calibrations']['slitedges']['minimum_slit_length'] = 3.
 
         # 1D wavelength solution
         par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 0.08  # Might be grating dependent..
@@ -700,11 +701,12 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
             Two arrays are the predictions of the slit edges from the slitmask design and
             one contains the indices to order the slits from left to right in the PypeIt orientation
         """
-        if not isinstance(filename, list):
-            msgs.error('The mask design file input should be a comma separated list of two files')
+        # if not isinstance(filename, list):
+        #     msgs.error('The mask design file input should be a comma separated list of two files')
 
         # Parse
-        maskfile = filename[0]
+        maskfile = filename
+        # maskfile = filename[0]
         # wcs_file = filename[1]
         # Add path?
         if not os.path.isfile(maskfile):
