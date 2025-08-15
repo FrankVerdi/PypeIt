@@ -378,6 +378,8 @@ class Spec1dView(GingaPlugin.LocalPlugin):
                              x_axis="Wavelength (Ang)", y_axis="Flux")
         self.plot.set_grid(True)
 
+        self.plot_lines()
+
     def range_changed_cb(self, viewer, ranges):
         if not self.plot_shelf.is_blocked():
             self.plot_lines()
