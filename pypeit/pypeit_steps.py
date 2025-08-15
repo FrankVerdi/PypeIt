@@ -1,9 +1,18 @@
 import numpy as np
+import copy
 
 from pypeit import msgs
 from pypeit.calibframe import CalibFrame
 from pypeit.images import buildimage
-from pypeit import spec2dobj
+from pypeit import specobjs
+from pypeit import find_objects
+from pypeit import extraction
+from pypeit.core import parse
+
+from pypeit import slittrace
+from pypeit import calibrations
+
+from IPython import embed
 
 def get_sci_metadata(spectrograph, fitstbl, frame, det):
     """
@@ -41,10 +50,11 @@ def get_sci_metadata(spectrograph, fitstbl, frame, det):
     return objtype_out, calib_key, obstime, basename, binning
 
 
-def process_one(spectrograph, fitstbl, caliBrate, par, frames, 
-                det, bg_frames=None, std_outfile=None, science_path:str=None):
+
+def process_one_det(spectrograph, fitstbl, caliBrate, par, frames:list, 
+                det, bg_frames:list=None): 
     """
-    Reduce Objects in a single exposure/detector pair
+    Process one set of files
 
     sci_ID and det need to have been set internally prior to calling this method
 
@@ -137,22 +147,398 @@ def process_one(spectrograph, fitstbl, caliBrate, par, frames,
             bkg_redux_sciimg.to_file(outfile_bkg, overwrite=True)
     '''
 
+    # Return
+    return sciImg, bkg_redux_sciimg
+
+def findobj_on_det(sciImg, spectrograph, fitstbl, par, frames:list, 
+                        det, calibrations_path:str, std_outfile:str=None, 
+                        show:bool=False,
+                        **findobj_kwargs):
+
+    # Grab some meta-data needed for the reduction from the fitstbl
+    objtype, setup, obstime, basename, binning \
+            = get_sci_metadata(spectrograph, fitstbl, frames[0], det)
+
+
+    # Is this a standard star?
+    std_redux = objtype == 'standard'
+    if std_redux is False and std_outfile is not None:
+        std_trace = specobjs.get_std_trace(spectrograph.get_det_name(det), 
+                                        std_outfile)
+    else:
+        std_trace = None
+    msgs.info("Object finding begins for {} on det={}".format(basename, det))
+
+    # Load the image?
+    
+
+    caliBrate = load_calibrations_for_frame(
+        spectrograph, fitstbl, par, frames[0], det, calibrations_path)
+
+    if par['reduce']['skysub']['user_regions'] in [None, '']:
+        initial_skymask = None
+    else:
+        # Build the initial sky mask
+        initial_skymask = load_skyregions(
+            initial_slits=spectrograph.pypeline != 'SlicerIFU',
+            scifile=sciImg.files[0], frame=frames[0])
+
+    msgs.info(f'Reducing detector {det}')
+
+    # Instantiate Reduce object
+    # Required for pypeline specific object
+    # At instantiaton, the fullmask in self.sciImg is modified
+    objFind = find_objects.FindObjects.get_instance(
+        sciImg, caliBrate.slits,
+        spectrograph, par, objtype,
+        wv_calib=caliBrate.wv_calib,
+        waveTilts=caliBrate.wavetilts,
+        initial_skymask=initial_skymask,
+        std_redux=std_redux,
+        basename=basename,
+        show=show,
+        **findobj_kwargs)
+        #bkg_redux=self.bkg_redux,
+        #manual=manual_obj,
+        #find_negative=self.find_negative,
+
+    # Do it
+    initial_sky, sobjs_obj = objFind.run(std_trace=std_trace, 
+                                         show_peaks=show)
+
+    return initial_sky, sobjs_obj, objFind
+
+
+def load_calibrations_for_frame(spectrograph, fitstbl, par, frame, det,
+                                calibrations_path:str):
+
+    # Instantiate Calibrations class
+    user_slits = slittrace.merge_user_slit(par['rdx']['slitspatnum'],
+                                            par['rdx']['maskIDs'])
+    caliBrate = calibrations.Calibrations.get_instance(
+        fitstbl, par['calibrations'], spectrograph,
+        calibrations_path, 
+        reuse_calibs=True, user_slits=user_slits,
+        chk_version=par['rdx']['chk_version'])
+    caliBrate.set_config(frame, det, par['calibrations'])
+    caliBrate.run_the_steps(reload_only=True)
+
+    return caliBrate
+
+
+def load_skyregions(initial_slits=False, scifile=None, frame=None):
+    """
+    Generate or load sky regions, if defined by the user.
+
+    Sky regions are defined by the internal provided parameters; see
+    ``user_regions`` in :class:`~pypeit.par.pypeitpar.SkySubPar`.  If
+    included in the pypeit file like so,
+
+    .. code-block:: ini
+
+        [reduce]
+            [[skysub]]
+                user_regions = :25,75:
+
+    The first and last 25% of all slits are used as sky.  If the user has
+    used the ``pypeit_skysub_regions`` GUI to generate a sky mask for a
+    given frame, this can be searched for and loaded by setting the
+    parameter to ``user``:
+
+    .. code-block:: ini
+
+        [reduce]
+            [[skysub]]
+                user_regions = user
+
+    Parameters
+    ----------
+    initial_slits : :obj:`bool`, optional
+        Flag to use the initial slits before any tweaking based on the
+        slit-illumination profile; see
+        :func:`~pypeit.slittrace.SlitTraceSet.select_edges`.
+    scifile : :obj:`str`, optional
+        The file name used to define the user-based sky regions.  Only used
+        if ``user_regions = user``.
+    frame : :obj:`int`, optional
+        The index of the frame used to construct the calibration key.  Only
+        used if ``user_regions = user``.
+    spat_flexure : :obj:`float`, None, optional
+        The spatial flexure (measured in pixels) of the science frame relative to the trace frame.
+
+    Returns
+    -------
+    skymask : `numpy.ndarray`_
+        A boolean array used to select sky pixels; i.e., True is a pixel
+        that corresponds to a sky region.  If the ``user_regions`` parameter
+        is not set (or an empty string), the returned value is None.
+    """
+    if par['reduce']['skysub']['user_regions'] in [None, '']:
+        return None
+
     # Flexure
     spat_flexure = None
     # use the flexure correction in the "shift" column
-    manual_flexure = fitstbl[frames[0]]['shift']
-    if (objtype == 'science' and par['scienceframe']['process']['spat_flexure_correct']) or \
-            (objtype == 'standard' and par['calibrations']['standardframe']['process']['spat_flexure_correct']) or \
+    manual_flexure = self.fitstbl[frames[0]]['shift']
+    if (self.objtype == 'science' and self.par['scienceframe']['process']['spat_flexure_correct']) or \
+            (self.objtype == 'standard' and self.par['calibrations']['standardframe']['process']['spat_flexure_correct']) or \
                 manual_flexure:
-        if (manual_flexure or manual_flexure == 0) and not (np.issubdtype(fitstbl[frames[0]]["shift"], np.integer)):
+        if (manual_flexure or manual_flexure == 0) and not (np.issubdtype(self.fitstbl[frames[0]]["shift"], np.integer)):
             msgs.info(f'Implementing manual flexure of {manual_flexure}')
             spat_flexure = np.float64(manual_flexure)
             sciImg.spat_flexure = spat_flexure
         else:
             msgs.info(f'Using auto-computed flexure')
             spat_flexure = sciImg.spat_flexure
-    #msgs.info(f'Flexure being used is: {spat_flexure}')
+    msgs.info(f'Flexure being used is: {spat_flexure}')
+    # Build the initial sky mask
+    initial_skymask = self.load_skyregions(initial_slits=self.spectrograph.pypeline != 'SlicerIFU',
+                                            scifile=sciImg.files[0], frame=frames[0], spat_flexure=spat_flexure)
 
+    # Deal with manual extraction
+    row = self.fitstbl[frames[0]]
+    manual_obj = ManualExtractionObj.by_fitstbl_input(
+        row['filename'], row['manual'], self.spectrograph) if len(row['manual'].strip()) > 0 else None
+
+
+    # First priority given to user_regions first
+    if self.par['reduce']['skysub']['user_regions'] == 'user':
+        # Build the file name
+        calib_key = CalibFrame.construct_calib_key(
+                            self.fitstbl['setup'][frame],
+                            CalibFrame.ingest_calib_id(self.fitstbl['calib'][frame]),
+                            self.spectrograph.get_det_name(self.det))
+        regfile = buildimage.SkyRegions.construct_file_name(calib_key,
+                                                            calib_dir=self.calibrations_path,
+                                                            basename=io.remove_suffix(scifile))
+        regfile = Path(regfile).absolute()
+        if not regfile.exists():
+            msgs.error(f'Unable to find SkyRegions file: {regfile} . Create a SkyRegions '
+                        'frame using pypeit_skysub_regions, or change the user_regions to '
+                        'the percentage format.  See documentation.')
+        msgs.info(f'Loading SkyRegions file: {regfile}')
+        return buildimage.SkyRegions.from_file(regfile).image.astype(bool)
+
+    skyregtxt = self.par['reduce']['skysub']['user_regions']
+    if isinstance(skyregtxt, list):
+        skyregtxt = ",".join(skyregtxt)
+    msgs.info(f'Generating skysub mask based on the user defined regions: {skyregtxt}')
+    # NOTE : Do not include spatial flexure here!
+    #        It is included when generating the mask in the return statement below
+    slits_left, slits_right, _ \
+        = self.caliBrate.slits.select_edges(initial=initial_slits, flexure=None)
+
+    maxslitlength = np.max(slits_right-slits_left)
+    # Get the regions
+    status, regions = skysub.read_userregions(skyregtxt, self.caliBrate.slits.nslits, maxslitlength)
+    if status == 1:
+        msgs.error("Unknown error in sky regions definition. Please check the value:" + msgs.newline() + skyregtxt)
+    elif status == 2:
+        msgs.error("Sky regions definition must contain a percentage range, and therefore must contain a ':'")
+    # Generate and return image
+    return skysub.generate_mask(self.spectrograph.pypeline, regions, self.caliBrate.slits,
+                                slits_left, slits_right, spat_flexure=spat_flexure)
+
+
+def adjust_for_slitmask(sciImg_dict, spectrograph, fitstbl, par, detectors,
+                        frame0, binning, all_specobjs_objfind):
+    # get object positions from slitmask design and slitmask offsets for all the detectors
+    spat_flexure = np.array([ss.spat_flexure for ss in sciImg_dict])
+    # Grab platescale with binning
+    bin_spec, bin_spat = parse.parse_binning(binning)
+    platescale = np.array([ss.detector.platescale*bin_spat for ss in sciImg_dict])
+    # get the dither offset if available and if desired
+    dither_off = None
+    if par['reduce']['slitmask']['use_dither_offset']:
+        if 'dithoff' in fitstbl.keys():
+            dither_off = fitstbl['dithoff'][frame0]
+
+    calib_slits = slittrace.get_maskdef_objpos_offset_alldets(
+        all_specobjs_objfind, calib_slits, spat_flexure, platescale,
+        par['calibrations']['slitedges']['det_buffer'],
+        par['reduce']['slitmask'], dither_off=dither_off)
+    # determine if slitmask offsets exist and compute an average offsets over all the detectors
+    calib_slits = slittrace.average_maskdef_offset(
+        calib_slits, platescale[0], spectrograph.list_detectors(mosaic='MSC' in calib_slits[0].detname))
+    # slitmask design matching and add undetected objects
+    all_specobjs_objfind = slittrace.assign_addobjs_alldets(
+        all_specobjs_objfind, calib_slits, spat_flexure, platescale,
+        par['reduce']['slitmask'], par['reduce']['findobj']['find_fwhm'])
+
+def extract_one(spectrograph, fitstbl, par, 
+                frames, det, caliBrate, sciImg, bkg_redux_sciimg, 
+                objFind, initial_sky, sobjs_obj, 
+                bkg_redux:bool=False,
+                show:bool=False):
+    """
+    Extract Objects in a single exposure/detector pair
+
+    sci_ID and det need to have been set internally prior to calling this method
+
+    Args:
+        frames (:obj:`list`):
+            List of frames to extract; stacked if more than one
+            is provided
+        det (:obj:`int`):
+            Detector number (1-indexed)
+        sciImg (:class:`~pypeit.images.pypeitimage.PypeItImage`):
+            Data container that holds a single image from a
+            single detector and its related images (e.g. ivar, mask)
+        bkg_redux_sciimg (:class:`~pypeit.images.pypeitimage.PypeItImage`, optional):
+            Data container that holds a single image from a
+            single detector and its related images (e.g. ivar, mask)
+            before background subtraction if self.bkg_redux is True,
+            otherwise None. It's used to generate a global sky
+            model without bkg subtraction.
+        objFind : :class:`~pypeit.find_objects.FindObjects`
+            Object finding object
+        initial_sky (`numpy.ndarray`_):
+            Initial global sky model
+        sobjs_obj (:class:`pypeit.specobjs.SpecObjs`):
+            List of objects found during `run_objfind`
+
+    Returns:
+        tuple: Returns six `numpy.ndarray`_ objects and a
+        :class:`pypeit.specobjs.SpecObjs` object with the
+        extracted spectra from this exposure/detector pair. The
+        six `numpy.ndarray`_ objects are (1) the science image,
+        (2) its inverse variance, (3) the sky model, (4) the
+        object model, (5) the model inverse variance, and (6) the
+        mask.
+    """
+    # Grab some meta-data needed for the reduction from the fitstbl
+    #self.objtype, self.setup, self.obstime, self.basename, self.binning \
+    #        = self.get_sci_metadata(frames[0], det)
+    objtype, setup, obstime, basename, binning \
+            = get_sci_metadata(spectrograph, fitstbl, frames[0], det)
+    # Is this a standard star?
+    std_redux = 'standard' in objtype
+
+    ## TODO JFH I think all of this about determining the final global sky should be moved out of this method
+    ## and preferably into the FindObjects class. I see why we are doing it like this since for multislit we need
+    # to find all of the objects first using slitmask meta data,  but this comes at the expense of a much more complicated
+    # control structure.
+
+    # Update the global sky
+    skymask = None
+    if 'standard' in fitstbl['frametype'][frames[0]] or \
+            par['reduce']['findobj']['skip_skysub'] or \
+            par['reduce']['findobj']['skip_final_global'] or \
+            par['reduce']['skysub']['user_regions'] is not None:
+        final_global_sky = initial_sky
+    else:
+        # Update the skymask
+        skymask = objFind.create_skymask(sobjs_obj)
+        final_global_sky = objFind.global_skysub(previous_sky=initial_sky,
+                                                    skymask=skymask, show=show,
+                                                    reinit_bpm=False)
+    # get the bkg_redux_global_sky
+    bkg_redux_global_sky = None
+    if bkg_redux:
+        skymask = objFind.create_skymask(sobjs_obj) if skymask is None else skymask
+        # DO NOT reinit_bpm, nor update_crmask
+        bkg_redux_global_sky = objFind.global_skysub(skymask=skymask, bkg_redux_sciimg=bkg_redux_sciimg,
+                                                    reinit_bpm=False, update_crmask=False, show=self.show)
+
+    scaleImg = objFind.scaleimg
+
+    # Each spec2d file includes the slits object with unique flagging
+    #  for extraction failures.  So we make a copy here before those flags
+    #  are modified.
+    maskdef_designtab = caliBrate.slits.maskdef_designtab
+    slits = copy.deepcopy(caliBrate.slits)
+    slits.maskdef_designtab = None
+
+    # update here slits.mask since global_skysub modify reduce_bpm and we need to propagate it into extraction
+    flagged_slits = np.where(objFind.reduce_bpm)[0]
+    if len(flagged_slits) > 0:
+        slits.mask[flagged_slits] = \
+            slits.bitmask.turn_on(slits.mask[flagged_slits], 'BADSKYSUB')
+
+    if not par['reduce']['extraction']['skip_extraction']:
+        msgs.info(f"Extraction begins for {basename} on det={det}")
+        # Instantiate Reduce object
+        # Required for pipeline specific object
+        # At instantiation, the fullmask in self.sciImg is modified
+        # TODO Are we repeating steps in the init for FindObjects and Extract??
+        exTract = extraction.Extract.get_instance(
+            sciImg, slits, sobjs_obj, spectrograph,
+            par, objtype, global_sky=final_global_sky, 
+            bkg_redux_global_sky=bkg_redux_global_sky,
+            waveTilts=caliBrate.wavetilts, wv_calib=caliBrate.wv_calib, 
+            flatimages=caliBrate.flatimages,
+            bkg_redux=bkg_redux, 
+            return_negative=par['reduce']['extraction']['return_negative'],
+            std_redux=std_redux, basename=basename, show=show)
+        # Perform the extraction
+        skymodel, bkg_redux_skymodel, objmodel, ivarmodel, outmask, sobjs, waveImg, tilts, slits = exTract.run()
+        slitgpm = np.logical_not(exTract.extract_bpm)
+        slitshift = exTract.slitshift
+    else:
+        msgs.info(f"Extraction skipped for {basename} on det={det}")
+        # Since the extraction was not performed, fill the arrays with the best available information
+        skymodel, bkg_redux_skymodel, objmodel, ivarmodel, outmask, sobjs, waveImg, tilts = \
+            final_global_sky, \
+            bkg_redux_global_sky, \
+            np.zeros_like(objFind.sciImg.image), \
+            np.copy(objFind.sciImg.ivar), \
+            objFind.sciImg.fullmask, \
+            sobjs_obj, \
+            objFind.waveimg, \
+            objFind.tilts
+        slitgpm = (slits.mask == 0)
+        slitshift = objFind.slitshift
+        # If waveImg has not yet been created, make it now
+        if waveImg is None:
+            waveImg = caliBrate.wv_calib.build_waveimg(tilts, slits, spat_flexure=objFind.spat_flexure_shift)
+
+    # Apply a reference frame correction to each object and the waveimg
+    vel_corr, waveImg = self.refframe_correct(slits, 
+                                              fitstbl["ra"][frames[0]], 
+                                              fitstbl["dec"][frames[0]],
+                                              obstime, slitgpm=slitgpm, 
+                                              waveimg=waveImg, sobjs=sobjs)
+
+    # TODO -- Do this upstream
+    # Tack on wavelength RMS
+    for sobj in sobjs:
+        iwv = np.where(caliBrate.wv_calib.spat_ids == sobj.SLITID)[0][0]
+        sobj.WAVE_RMS =caliBrate.wv_calib.wv_fits[iwv].rms
+
+    # Construct table of spectral flexure
+    spec_flex_table = Table()
+    spec_flex_table['spat_id'] = slits.spat_id
+    spec_flex_table['sci_spec_flexure'] = slitshift
+
+    # Construct the Spec2DObj
+    spec2DObj = spec2dobj.Spec2DObj(sciimg=sciImg.image,
+                                    ivarraw=sciImg.ivar,
+                                    skymodel=skymodel,
+                                    bkg_redux_skymodel=bkg_redux_skymodel,
+                                    objmodel=objmodel,
+                                    ivarmodel=ivarmodel,
+                                    scaleimg=scaleImg,
+                                    waveimg=waveImg,
+                                    bpmmask=outmask,
+                                    detector=sciImg.detector,
+                                    sci_spat_flexure=sciImg.spat_flexure,
+                                    sci_spec_flexure=spec_flex_table,
+                                    vel_corr=vel_corr,
+                                    vel_type=par['calibrations']['wavelengths']['refframe'],
+                                    tilts=tilts,
+                                    slits=slits,
+                                    wavesol=caliBrate.wv_calib.wave_diagnostics(print_diag=False),
+                                    maskdef_designtab=maskdef_designtab)
+    spec2DObj.process_steps = sciImg.process_steps
+
+    spec2DObj.calibs = calibrations.Calibrations.get_association(
+                                fitstbl, spectrograph, calibrations_path,
+                                fitstbl[frames[0]]['setup'],
+                                fitstbl.find_frame_calib_groups(frames[0])[0], det,
+                                must_exist=True, proc_only=True)
+
+    # QA
+    spec2DObj.gen_qa()
 
     # Return
-    return sciImg, bkg_redux_sciimg
+    return spec2DObj, sobjs
