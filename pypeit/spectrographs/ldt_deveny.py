@@ -1,4 +1,6 @@
 """
+.. _ldt_deveny_class:
+
 Module for LDT/DeVeny specific methods.
 
 The DeVeny spectrograph was built at Kitt Peak National Observatory (KPNO)
