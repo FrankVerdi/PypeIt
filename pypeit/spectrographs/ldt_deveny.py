@@ -8,10 +8,10 @@ the spectrograph from KPNO on indefinite loan in 1998. A new CCD camera was
 built for it, and the instrument was further modified for installation on the
 72-inch Perkins telescope in 2005. Following 8 years of service there, it was
 removed in 2013 for upgrades for installation on the Lowell Discovery Telescope
-(LDT) instrument cube. It has been in service since February 2015. The
-spectrograph was designed for f/7.5 telescope optics, and new re-imaging
-optics were designed and fabricated to match the spectrograph with LDT's
-f/6.1 beam.
+(LDT) instrument cube. DeVeny has been in service since February 2015. The
+spectrograph was designed for and operates internally with f/7.5 telescope
+optics; new re-imaging optics were designed and fabricated to match the
+spectrograph with LDT's f/6.1 beam.
 
 .. include:: ../include/links.rst
 """
@@ -20,7 +20,6 @@ import numpy as np
 from astropy.table import Table
 from astropy.time import Time
 
-from pypeit import io
 from pypeit import msgs
 from pypeit import telescopes
 from pypeit.core import framematch
