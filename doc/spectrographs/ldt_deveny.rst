@@ -5,11 +5,26 @@
 LDT DeVeny
 **********
 
+.. _deveny_overview:
+
 Overview
 ========
 
 This file summarizes several instrument specific
 items for the LDT/DeVeny spectrograph.
+
+
+Contents
+--------
+
+- :ref:`deveny_overview`
+- :ref:`deveny_setup`
+- :ref:`deveny_outputs`
+- :ref:`deveny_parmods`
+- :ref:`deveny_troubleshooting`
+- :ref:`deveny_workflow`
+- :ref:`deveny_filestructure`
+
 
 The Instrument
 --------------
@@ -63,6 +78,8 @@ your home directory) and run the main executable:
 This should fail if any of the required dependencies are not satisfied.
 See the :ref:`installation instructions <installing>` for troubleshooting.
 
+
+.. _deveny_setup:
 
 Setting Up and Running a PypeIt Reduction
 =========================================
@@ -447,12 +464,12 @@ PypeIt is upgraded, including deleting and recreating all processed
 calibrations.
 
 
-.. _`deveny_outputs`:
+.. _deveny_outputs:
 
 Primary Output Files and Post-Processing Scripts
 ================================================
 
-.. _`deveny_calibrations`:
+.. _deveny_calibrations:
 
 Examine the Calibration Files
 -----------------------------
@@ -676,7 +693,7 @@ while the code continues to process the other raw frames.
    the ``--obj`` option to ``pypeit_show_1dspec``.
 
    By default, PypeIt performs both a boxcar (top-hat) extraction around the
-   trace and a Horne optimal extraction [6]_ using the fitted spatial profile.
+   trace and a Horne optimal extraction [4]_ using the fitted spatial profile.
    The boxcar-extracted spectrum may be displayed using the ``--extract BOX``
    option to ``pypeit_show_1dspec``, otherwise the optimal extraction is
    displayed (if available).
@@ -902,7 +919,7 @@ Loading PypeIt 1D Spectra into ``specutils`` for Analysis
 PypeIt is a package for reducing spectroscopic data from raw frames collected
 at the telescope to 1D spectra, ready for analysis. To do the actual analysis
 in service of your particular science program, you will need to employ other
-tools. One possibility is the Astropy-coordinated package ``specutils``. [7]_
+tools. One possibility is the Astropy-coordinated package ``specutils``. [5]_
 
 As of ``v1.12.2``, PypeIt includes a loader for importing pipeline outputs into
 ``specutils``, and can import either the ``spec1d`` (all objects in a frame) or
@@ -916,40 +933,34 @@ program and is beyond the scope of this documentation.
 
 
 
-.. _`deveny_parmods`:
+.. _deveny_parmods:
 
 PypeIt Parameter Modifications for Specific Cases
 =================================================
 
-There are various situations in which you will need to modify the
-Parameter Block of your PypeIt Reduction File (see
-§\ `1.3.4.2 <#p:param>`__). The default DeVeny parameters were chosen to
-cover the major use cases for the spectrograph, but the instrument’s
-high configurability and varied uses means there will still be many
-instances where these instrument-specific parameters must be modified.
-The principal categories of modifiable parameters for DeVeny users are
-grouped below, but the complete list is given
-`online <https://pypeit.readthedocs.io/en/release/pypeit_par.html>`__.
+There are various situations in which you will need to modify the Parameter
+Block of your PypeIt Reduction File. The default DeVeny parameters were chosen
+to cover the major use cases for the spectrograph, but the instrument's high
+configurability and varied uses means there will still be many instances where
+these instrument-specific parameters must be modified. The principal categories
+of modifiable parameters for DeVeny users are grouped below, but the complete
+list is given at :ref:`parameters`.
 
 Think of parameter modifications as part of an outline, where each level
-represents a unique thought. Therefore, if you need to modify both the
-arc lamps and the FWHM of the arc lines under wavelength calibrations,
-you would include something like:
+represents a unique thought. Therefore, if you need to modify both the list of
+arc lamps and the FWHM of the arc lines under wavelength calibrations, you
+would include something like:
 
-.. container:: small
+.. code-block:: ini
 
-      ::
+   [calibrations]
+      [[wavelengths]]
+         lamps = HgI,CdI,ArI
+         fwhm = 7.0
 
-         \PYG{k}{[calibrations]}
-         \PYG{+w}{   }\PYG{k}{[[wavelengths]]}
-         \PYG{+w}{      }\PYG{n+na}{lamps}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{HgI,CdI,ArI}
-         \PYG{+w}{      }\PYG{n+na}{fwhm}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{7.0}
-
-rather than two individual blocks. In short, each parameter group in
-brackets should appear only once in your Parameter Block. Also,
-indentation is not necessary but may help in visually organizing the
-outline.
-
+rather than two individual blocks. In short, each parameter group in brackets
+should appear only once in your Parameter Block. Also, indentation is not
+necessary but may help in visually organizing the outline.
 
 
 .. _`deveny_wavecalib`:
@@ -960,174 +971,168 @@ Wavelength Calibration Parameters
 Arc Lamps
 ^^^^^^^^^
 
-PypeIt is able to read the identification of the arc lamps energized
-directly from the FITS header, and the user is not generally required to
-specify which line lists should be used in the wavelength calibration
-process. There are, however, cases where such specification is useful or
-necessary: *a*) when the user wishes to restrict the list of lines
-PypeIt should consider when creating a wavelength solution, and *b*)
-when frames taken with different lamps are combined to create a
-Calibration frame.
+PypeIt is able to read the identification of the arc lamps energized directly
+from the DeVeny FITS header, and the user is not generally required to specify
+which line lists should be used in the wavelength calibration process. There
+are, however, cases where such specification is useful or necessary: *a*) when
+the user wishes to restrict the list of lines PypeIt should consider when
+creating a wavelength solution, and *b*) when frames taken with different lamps
+are combined to create an ``Arc`` Calibration frame.
 
+The first case should only be necessary for the DV4 and DV8 gratings, which
+rely upon the :ref:`wvcalib-holygrail` wavelength calibration method. In some
+cases, including the line lists from all energized lamps in the matching can
+produce spurious results (using the Hg or Cd lists with very red spectra, or
+the Ne list with very blue spectra). For example, say you used all four DeVeny
+lamps when taking arc-line spectra with DV8, centered around 8000 Å.  You may
+want to restrict the lists for matching to only Ne and Ar via:
 
+.. code-block:: ini
 
-The first case should only be necessary for the DV4 and DV8 gratings,
-which rely upon the wavelength calibration method. This method takes the
-pattern of extracted lines in your Calibration frame and matches it
-against the arc line lists for the specified lamps. In some cases,
-including the line lists from all energized lamps in the matching can
-produce spurious results (using the Hg or Cd lists with very red
-spectra, or the Ne list with very blue spectra). In the example of
-energizing all four lamps while observing quite red with DV8, you might
-want to restrict the lists to only Ne and Ar via:
+   [calibrations]
+      [[wavelengths]]
+         lamps = NeI_DeVeny,ArI_DeVeny
 
-.. container:: small
-
-      ::
-
-         \PYG{k}{[calibrations]}
-         \PYG{+w}{   }\PYG{k}{[[wavelengths]]}
-         \PYG{+w}{      }\PYG{n+na}{lamps}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{NeI\PYGZus{}DeVeny,ArI\PYGZus{}DeVeny}
-
-As of v1.15.0, PypeIt includes instrument-specific line lists for all
-four lamps, indicated by the appended in the lamp name. These lists have
-been vetted against DeVeny spectra to include lines seen with our lamps
-and excluding lines not reliably detected. To specify the PypeIt-default
+As of ``v1.15.0``, PypeIt includes instrument-specific line lists for all four
+DeVeny lamps, indicated by the appended "``_DeVeny``" in the lamp name. These
+lists have been vetted against DeVeny spectra to include lines seen with our
+lamps and excluding lines not reliably detected. To specify the PypeIt-default
 line lists, you may do so with the above Parameter Block addition, using
-just the ion name ( or ).
+just the ion name (*e.g.*, ``NeI`` or ``ArI``).
 
+For the second case, the combined Calibration frame will not combine the FITS
+keywords from the input frames to produce the complete list of lines, so the
+user must manually specify them. Additionally, the individual frames must be
+continuum-subtracted in order to properly clip and combine the spectra into a
+sensible Calibration frame. Suppose you wish to combine single-lamp frames of
+Ar and Hg to create your ``Arc`` Calibration frame. You would need to add the
+the following to your Parameter Block:
 
+.. code-block:: ini
 
-For the second case, the combined Calibration frame will not combine the
-FITS keywords from the input frames to produce the complete list of
-lines, so the user must manually specify them. Additionally, the
-individual frames must be continuum-subtracted in order to properly clip
-and combine the spectra into a sensible Calibration frame. Suppose you
-wish to combine single-lamp frames of Ar and Hg to create your
-Calibration frame. You would need to add the the following to your
-Parameter Block:
+   [calibrations]
+      [[wavelengths]]
+         lamps = HgI_DeVeny,ArI_DeVeny
+      [[arcframe]]
+         [[[process]]]
+            subtract_continuum = True
+      [[tiltframe]]
+         [[[process]]]
+            subtract_continuum = True
 
-.. container:: small
+The order of the lamps specified here is inconsequential, as the code sorts the
+list internally.
 
-      ::
-
-         \PYG{k}{[calibrations]}
-         \PYG{+w}{   }\PYG{k}{[[wavelengths]]}
-         \PYG{+w}{      }\PYG{n+na}{lamps}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{HgI\PYGZus{}DeVeny,ArI\PYGZus{}DeVeny}
-         \PYG{+w}{   }\PYG{k}{[[arcframe]]}
-         \PYG{+w}{      }\PYG{k}{[[[process]]]}
-         \PYG{+w}{         }\PYG{n+na}{subtract\PYGZus{}continuum}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{True}
-         \PYG{+w}{   }\PYG{k}{[[tiltframe]]}
-         \PYG{+w}{      }\PYG{k}{[[[process]]]}
-         \PYG{+w}{         }\PYG{n+na}{subtract\PYGZus{}continuum}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{True}
-
-The order of the lamps specified here is inconsequential, as the code
-sorts the list internally.
 
 Wavelength Calibration Method
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+For all gratings except DV4 and DV8, template arc spectra using the Hg, Cd, and
+Ar lamps are included with PypeIt for use with the :ref:`wvcalib-fulltemplate`
+wavelength calibration method. If you are using one of the these gratings and
+relying primarily upon Ne for your calibration, it is advisable to employ the 
+:ref:`wvcalib-holygrail` calibration method instead. Do so by adding the
+following to your Parameter Block:
 
-For all gratings except DV4 and DV8, template arc spectra using the Hg,
-Cd, and Ar lamps are included with PypeIt for use with the wavelength
-calibration method. If you are using one of the these gratings and
-relying primarily upon Ne for your calibration, it is advisable to
-employ the calibration method. Do so by adding the following to your
-Parameter Block:
+.. code-block:: ini
 
-.. container:: small
-
-      ::
-
-         \PYG{k}{[calibrations]}
-         \PYG{+w}{   }\PYG{k}{[[wavelengths]]}
-         \PYG{+w}{      }\PYG{n+na}{method}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{holy-grail}
+   [calibrations]
+      [[wavelengths]]
+         method = holy-grail
 
 If both the built-in and methods fail to provide an accurate wavelength
-calibration, you may manually identify lines and create a template for
-use with that night’s data. This process is described in
-§\ `1.6.4 <#pyptrouble:wavecal>`__.
+calibration, you must manually identify lines and create a template for use
+with that night's data. This process is described in
+:ref:`deveny_trouble_wavecal`.
+
 
 Line Width for Arc Frames
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For wavelength calibration, PypeIt assumes that your spectral line FWHM
-are around 3.0 pixels (see §\ `[set5] <#set5>`__), but also measures the
-FWHM directly from the file. If you are using arcs taken with a slit
-width that produces FWHM significantly different from this value, you
-may need to specify the expected value in your PypeIt Reduction File
-based on a manual inspection of the arcs. (See
-§\ `[sec:demag] <#sec:demag>`__ for a discussion about optimal
-slitwidth.) For instance, if you set the slit width to have arc lines
-with a FWHM of :math:`\sim9` pixels (say, a 3slit with DV1), you would
-specify:
+For wavelength calibration, PypeIt assumes that your spectral line FWHM are
+around 3.0 pixels (optimum value), but also measures the FWHM directly from the
+``Arc`` image. If you are using arcs taken with a slit width that produces FWHM
+significantly different from this value, you may need to specify the expected
+value in your PypeIt Reduction File based on a manual inspection of the arcs.
+For instance, if you set the slit width to have arc lines with a FWHM of ~9
+pixels (say, a 3" slit with DV1), you would specify:
 
-.. container:: small
+.. code-block:: ini
 
-      ::
+   [calibrations]
+      [[wavelengths]]
+         fwhm = 9.0
+         fwhm_fromlines = False
 
-         \PYG{k}{[calibrations]}
-         \PYG{+w}{   }\PYG{k}{[[wavelengths]]}
-         \PYG{+w}{      }\PYG{n+na}{fwhm}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{9.0}
-         \PYG{+w}{      }\PYG{n+na}{fwhm\PYGZus{}fromlines}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{False}
+Specifying ``fwhm_fromlines = False`` forces the code to use the supplied FWHM
+and may result in a more successful wavelength calibration.
 
-Specifying forces the code to use the supplied FWHM and may result in a
-more successful wavelength calibration.
 
 Wavelength Solution Order
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Once the lines have been identified, PypeIt iteratively fits a Legendre
 polynomial series between pixel and wavelength space. For DeVeny, the
-polynomial order of the initial guess and final solution at the
-wavelength calibration are grating-dependent, given the varying
-wavelength coverages of DeVeny’s grating complement (see
-Table`[tab:gratings] <#tab:gratings>`__). Shown in
-Table`[tab:pype_legendre] <#tab:pype_legendre>`__ are the values for
-these orders for each grating based on manual inspection of wavelength
-solutions. If you are unsatisfied with the RMS of the wavelength
-solution, adjusting the solution order may improve the situation. These
-values may be changed by modifying the parameters:
+polynomial order of the initial guess and final solution at the wavelength
+calibration are grating-dependent, given the varying wavelength coverages of
+DeVeny's grating complement. Shown in the table below are the default values
+for these orders for each grating based on manual inspection of wavelength
+solutions. If you are unsatisfied with the RMS of the wavelength solution,
+adjusting the solution order may improve the situation. These values may be
+changed by modifying the parameters:
 
-.. container:: small
+.. code-block:: ini
 
-      ::
+   [calibrations]
+      [[wavelengths]]
+         n_first = <initial guess>
+         n_final = <final solution>
 
-         \PYG{k}{[calibrations]}
-         \PYG{+w}{   }\PYG{k}{[[wavelengths]]}
-         \PYG{+w}{      }\PYG{n+na}{n\PYGZus{}first}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{<initial guess>}
-         \PYG{+w}{      }\PYG{n+na}{n\PYGZus{}final}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{<final solution>}
+Here, ``n_first`` is the initial order used in the iterative solution (this may
+need modification if a ``holy-grail`` attempt fails), and ``n_final`` is the
+final order of the solution (this may be modified to alter the RMS of the wavelength solution).
 
-.. container:: deluxetable
++---------+-------------+-------------+
+| Grating | ``n_first`` | ``n_final`` |
++=========+=============+=============+
+| DV1     | 3           | 5           |
++---------+-------------+-------------+
+| DV2     | 3           | 5           |
++---------+-------------+-------------+
+| DV3     | 3           | 5           |
++---------+-------------+-------------+
+| DV4     | 2           | 4           |
++---------+-------------+-------------+
+| DV5     | 2           | 4           |
++---------+-------------+-------------+
+| DV6     | 2           | 4           |
++---------+-------------+-------------+
+| DV7     | 2           | 4           |
++---------+-------------+-------------+
+| DV8     | 2           | 4           |
++---------+-------------+-------------+
+| DV9     | 2           | 4           |
++---------+-------------+-------------+
 
-   | lccclccclcc DV1 & 3 & 5 & & DV4 & 2 & 4 & & DV7 & 2 & 4
-   | DV2 & 3 & 5 & & DV5 & 2 & 4 & & DV8 & 2 & 4
-   | DV3 & 3 & 5 & & DV6 & 2 & 4 & & DV9 & 2 & 4
-
-Here, is the initial order used in the iterative solution (this may need
-modification if a attempt fails), and is the final order of the solution
-(this may be modified to alter the RMS of the wavelength solution).
 
 Night Sky Lines for Calibration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Use of night sky lines for wavelength calibration is the basis of
-DeVeny’s flexure correction (§\ `1.6.1 <#sec:pype_flex>`__). You will
-need to take at least one arc spectrum at some point in the night
-(during start-of-night calibrations) to establish a wavelength reference
-across the CCD. PypeIt extracts the night sky spectrum from the
-background of your science frames, and computes an approximate
-wavelength calibration by cross-correlating it with an archived sky
-spectrum. No additional arcs are needed to make this link, and PypeIt
-will compute a pixel shift in the wavelength calibration to match your
-science frame with your . No changes to the Parameter Block of your
-PypeIt Reduction File are required, as this is the default behavior for
+Use of night sky lines for wavelength calibration is the basis of DeVeny's
+:ref:`flexure` (see :ref:`deveny_flexure`). You will need to take at least
+one arc spectrum at some point in the night (*e.g.*, during start-of-night
+calibrations) to establish a wavelength reference across the CCD. PypeIt
+extracts the night sky spectrum from the background of your science frames,
+and computes an approximate wavelength calibration by cross-correlating it
+with an archived sky spectrum. No additional arcs are needed to make this
+link, and PypeIt will compute a pixel shift in the wavelength calibration to
+match your science frame with your ``Arc``. No changes to the Parameter Block
+of your PypeIt Reduction File are required, as this is the default behavior for
 DeVeny data.
 
 PypeIt does support night-sky wavelength calibration for near-infrared
-instruments using the copious OH lines in this portion of the spectrum,
-but DeVeny does not reach far enough into IR for this method to provide
-useful wavelength solutions.
-
+instruments using the copious OH lines in this portion of the spectrum, but
+DeVeny does not reach far enough into IR for this method to provide useful
+wavelength solutions.
 
 
 .. _`deveny_objfind`:
@@ -1135,76 +1140,64 @@ useful wavelength solutions.
 Object Finding and Extraction
 -----------------------------
 
-The parameters related to object finding and extraction are generally
-modified *after* you have done an initial pass through , and wish to
+The parameters related to object finding and extraction are generally modified
+*after* you have done an initial pass through ``run_pypeit``, and wish to
 improve the ability of the code to work with your data.
+
 
 General Object Finding
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Refer to the :ref:`Object Finding documentation <object_finding>`
-for full details on the algorithms. Object finding is governed by the
-set of parameters, and is carried out on the spectrally-smashed image (a
-1D array that represents the summed spatial profile of the exposure).
-PypeIt produces a quality assurance plot for object finding on each 2D
-spectral image (in the directory) – an example is shown in
-Figure`6 <#fig:pype_findobj_qa>`__ for the image in
-Fig.`3 <#fig:pype_spec2d>`__.
+Refer to the :ref:`object_finding` documentation for full details on the
+algorithms. Object finding is governed by the ``findobj`` set of parameters,
+and is carried out on the spectrally-smashed image. PypeIt produces a quality
+assurance plot for object finding on each 2D spectral image; an example is
+shown below for the example frame used in this document.
 
-.. figure:: figs/pypeit_findobj_qa.png
-   :alt: Example of PypeIt object finding QA for the 2D spectral image
-   shown in Figs.`3 <#fig:pype_spec2d>`__, where the black plot is the
-   spectrally summed spatial distribution of signal-to-noise in the
-   image. The red dashed line indicates the parameter discussed in the
-   text, which can be adjusted to either allow other peaks in the plot
-   to “surface” or to “submerge” unwanted objects.
-   :name: fig:pype_findobj_qa
-   :height: 3in
+.. figure:: ../figures/deveny_findobj_qa.png
+   :alt: DeVeny ObjFind
+   :width: 60%
+   :class: with-shadow
 
-   Example of PypeIt object finding QA for the 2D spectral image shown
-   in Figs.`3 <#fig:pype_spec2d>`__, where the black plot is the
-   spectrally summed spatial distribution of signal-to-noise in the
-   image. The red dashed line indicates the parameter discussed in the
-   text, which can be adjusted to either allow other peaks in the plot
-   to “surface” or to “submerge” unwanted objects.
+   Example of PypeIt object finding QA for the 2D spectral image shown above,
+   where the black plot is the spectrally summed spatial distribution of
+   signal-to-noise in the image. The red dashed line indicates the
+   ``snr_thresh`` parameter, which can be adjusted to either allow other peaks
+   in the plot to "surface" or to "submerge" unwanted objects.
 
-The most commonly modified parameter is , which limits the search to
-sources with peak flux in excess of the theshold times the RMS of the
-smashed image. The default is (a signal-to-noise of) 50 and you may wish
-to modify this parameter to find more/fewer objects. For instance, if
-you wish the code to automatically find fainter objects with peak flux
-:math:`10\sigma` above the estimated RMS in the integrated slit profile,
-you would add the following to the Parameter Block:
+The most commonly modified parameter is ``snr_thresh``, which limits the search
+to sources with peak flux in excess of the theshold times the RMS of the
+smashed image. The default is S/N = 50, but you may wish to modify this
+parameter to find more/fewer objects. For instance, if you wish the code to
+automatically find fainter objects with peak flux 10σ above the estimated RMS
+in the integrated slit profile, you would add the following to the Parameter
+Block:
 
-.. container:: small
+.. code-block:: ini
 
-      ::
+   [reduce]
+      [[findobj]]
+         snr_thresh = 10.
 
-         \PYG{k}{[reduce]}
-         \PYG{+w}{   }\PYG{k}{[[findobj]]}
-         \PYG{+w}{      }\PYG{n+na}{snr\PYGZus{}thresh}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{10.}
+On the flip side, if you observed fairly bright objects want to eliminate the
+inclusion of spurious faint sources in your final ``spec1d`` file, you may
+*increase* ``snr_thresh`` to the point that only a single object is detected.
+Similarly, you could use the parameter ``maxnumber_sci`` to limit the object
+finding to a specified number of objects in each science frame (ordered by
+flux):
 
-On the flip side, if you observed fairly bright objects want to
-eliminate the inclusion of spurious faint sources in your final file,
-you may *increase* to the point that only a single object is detected.
-Similarly, you could use the parameter to limit the object finding to a
-limited number of objects in each science frame (ordered by flux):
+.. code-block:: ini
 
-.. container:: small
+   [reduce]
+      [[findobj]]
+         maxnumber_sci = 1
 
-      ::
-
-         \PYG{k}{[reduce]}
-         \PYG{+w}{   }\PYG{k}{[[findobj]]}
-         \PYG{+w}{      }\PYG{n+na}{maxnumber\PYGZus{}sci}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{1}
-
-which would return at most one object from each frame.
 
 Nights with Poor (or Really Excellent) Seeing or Observations of Extended Objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The default initial object finding kernel size for DeVeny data assumes a
-seeing of :math:`\sim1.5\arcsec` regardless of binning, [8]_ which
+seeing of :math:`\sim1.5\arcsec` regardless of binning, [6]_ which
 should cover most conditions at LDT when observing pointlike objects. If
 the seeing is significantly better or worse than this value – or you are
 observing extended objects – and you are having difficulty automatically
@@ -1216,13 +1209,11 @@ Compute the needed value via:
 For instance, if you had 2.5seeing with unbinned data, you would
 specify:
 
-.. container:: small
+.. code-block:: ini
 
-      ::
-
-         \PYG{k}{[reduce]}
-         \PYG{+w}{   }\PYG{k}{[[findobj]]}
-         \PYG{+w}{      }\PYG{n+na}{find\PYGZus{}fwhm}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{7.4}
+   [reduce]
+      [[findobj]]
+         find_fwhm = 7.4
 
 A related parameter you may need to modify is the radius around the peak
 of the trace to use for boxcar extraction of the source, *which is
@@ -1232,13 +1223,11 @@ to be :math:`\sim1.3\times` the seeing to encompass nearly 100% of the
 flux assuming a Gaussian profile. So, for the aforementioned 2.5seeing,
 you should specify:
 
-.. container:: small
+.. code-block:: ini
 
-      ::
-
-         \PYG{k}{[reduce]}
-         \PYG{+w}{   }\PYG{k}{[[extraction]]}
-         \PYG{+w}{      }\PYG{n+na}{boxcar\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{3.2}
+   [reduce]
+      [[extraction]]
+         boxcar_radius = 3.2
 
 in your PypeIt Reduction File. Note that, unlike , is specified in
 arcseconds, which is unaffected by CCD binning.
@@ -1264,13 +1253,11 @@ profile estimation but then to include them in extraction. This may mean
 the incurrence of cosmic rays in the extraction. To utilize this
 strategy, add the following to the Parameter Block:
 
-.. container:: small
+.. code-block:: ini
 
-      ::
-
-         \PYG{k}{[reduce]}
-         \PYG{+w}{   }\PYG{k}{[[extraction]]}
-         \PYG{+w}{      }\PYG{n+na}{use\PYGZus{}2dmodel\PYGZus{}mask}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{False}
+   [reduce]
+      [[extraction]]
+         use_2dmodel_mask = False
 
 It is likely that you will want to use the BOXCAR extractions instead of
 the OPTIMAL, but *caveat emptor*. When viewing the 2D spectrum using the
@@ -1281,13 +1268,11 @@ script, you should use the option.
 For very extended, bright emission lines you may need to additionally
 use:
 
-.. container:: small
+.. code-block:: ini
 
-      ::
-
-         \PYG{k}{[reduce]}
-         \PYG{+w}{   }\PYG{k}{[[skysub]]}
-         \PYG{+w}{      }\PYG{n+na}{no\PYGZus{}local\PYGZus{}sky}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{True}
+   [reduce]
+      [[skysub]]
+         no_local_sky = True
 
 to avoid poor local sky subtraction. See the `Sky Subtraction
 documentation <https://pypeit.readthedocs.io/en/release/skysub.html>`__
@@ -1295,6 +1280,7 @@ for further details. Note that if this option is used, no object model
 will be created or saved (the object *will* be extracted) and the output
 of will not look as clean as that shown in
 Fig.`3 <#fig:pype_spec2d>`__.
+
 
 Emission Line Only or High-:math:`z` Objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1304,13 +1290,11 @@ object what only appears on part of the trace, you may need to specify
 the spectral range on the CCD over which the pipeline should search for
 the object. Do this with:
 
-.. container:: small
+.. code-block:: ini
 
-      ::
-
-         \PYG{k}{[reduce]}
-         \PYG{+w}{   }\PYG{k}{[[findobj]]}
-         \PYG{+w}{      }\PYG{n+na}{find\PYGZus{}min\PYGZus{}max}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{minpixel, maxpixel}
+   [reduce]
+      [[findobj]]
+         find_min_max = minpixel, maxpixel
 
 where and are the *spectral* pixels bounding the region you see your
 object in the 2D spectra as inspected with . By limiting the spectral
@@ -1340,12 +1324,11 @@ along the slit, you may do so using either dome flats or sky flats and
 adding the following to the Parameter Block of your PypeIt Reduction
 File:
 
-.. container:: small
+.. code-block:: ini
 
-      ::
 
-         \PYG{k}{[baseprocess]}
-         \PYG{+w}{   }\PYG{n+na}{use\PYGZus{}illumflat}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{True}
+   [baseprocess]
+      use_illumflat = True
 
 Twilight sky flats (identified as such in the LOUI -
 Fig.`[fig:loui] <#fig:loui>`__#4) will automatically be labeled with
@@ -1370,17 +1353,16 @@ atmospheric model grid for our site, but we suggest using either the
 Mauna Kea or Mount Graham values as being generically applicable.
 
 Add one of the following lines to the Parameter Block of your
-file: [9]_
+file: [7]_
 
-.. container:: small
+.. code-block:: ini
 
-      ::
 
-         \PYG{k}{[sensfunc]}
-         \PYG{+w}{   }\PYG{n+na}{algorithm}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{IR}
-         \PYG{+w}{   }\PYG{k}{[[IR]]}
-         \PYG{+w}{      }\PYG{n+na}{telgridfile}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{TelFit\PYGZus{}MaunaKea\PYGZus{}3100\PYGZus{}26100\PYGZus{}R20000.fits}
-         \PYG{+w}{      }\PYG{n+na}{telgridfile}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{TelFit\PYGZus{}MountGraham\PYGZus{}5500\PYGZus{}10500\PYGZus{}R10000.fits}
+   [sensfunc]
+      algorithm = IR
+      [[IR]]
+         telgridfile = TelFit_MaunaKea_3100_26100_R20000.fits
+         telgridfile = TelFit_MountGraham_5500_10500_R10000.fits
 
 The code will automatically download the telluric grid file from the
 cloud the first time you run the fluxing script – be warned that this
@@ -1399,7 +1381,7 @@ user. Stay tuned for this change.
 
 
 
-.. _`sec:troubleshooting`:
+.. _deveny_troubleshooting:
 
 Special Considerations, Advanced Usage, and Troubleshooting
 ===========================================================
@@ -1407,7 +1389,7 @@ Special Considerations, Advanced Usage, and Troubleshooting
 This section is devoted to special considerations, advanced usage, and
 troubleshooting.
 
-.. _`deveny_flexure`:
+.. _deveny_flexure:
 
 Special Consideration: Flexure in DeVeny and How PypeIt Handles It
 ------------------------------------------------------------------
@@ -1426,12 +1408,10 @@ the sky above Cerro Paranal). To use a different sky spectrum, specify
 (for the Mt. Hamilton, CA spectrum shown in
 Fig.`[fig:pype_flexure_qa] <#fig:pype_flexure_qa>`__):
 
-.. container:: small
+.. code-block:: ini
 
-      ::
-
-         \PYG{k}{[flexure]}
-         \PYG{+w}{   }\PYG{n+na}{spectrum}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{sky\PYGZus{}kastb\PYGZus{}600.fits}
+   [flexure]
+      spectrum = sky_kastb_600.fits
 
 The correlation thusly computed is used to shift the wavelength solution
 in pixel space to align with the night sky lines extracted from the 2D
@@ -1440,12 +1420,10 @@ plots for this process are shown in
 Figure`[fig:pype_flexure_qa] <#fig:pype_flexure_qa>`__. If you wish to
 not have any flexure correction applied, you may specify the following:
 
-.. container:: small
+.. code-block:: ini
 
-      ::
-
-         \PYG{k}{[flexure]}
-         \PYG{+w}{   }\PYG{n+na}{spec\PYGZus{}method}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{skip}
+   [flexure]
+        spec_method = skip
 
 If your science requirements indicate the taking of *in situ* arcs for
 wavelength calibration, see §\ `1.6.2 <#pype:groups>`__ for a
@@ -1454,7 +1432,7 @@ otherwise flexure corrections will still be applied. It may be
 instructive to see the magnitude of the flexure correction with *in
 situ* arcs, which should be well under a pixel.
 
-|image6| |image7|
+
 
 
 
@@ -1564,7 +1542,7 @@ Block with a of , greatly easing headaches related to this issue.
 
 
 
-.. _`pyptrouble:wavecal`:
+.. _deveny_trouble_wavecal:
 
 Troubleshooting: When Wavelength Calibration Fails
 --------------------------------------------------
@@ -1607,16 +1585,14 @@ the terminal for using the wavelength solution you just created, namely
 adding the following to the parameter block of your PypeIt Reduction
 File:
 
-.. container:: small
+.. code-block:: ini
 
-      ::
+   [calibrations]
+         [[wavelengths]]
+            reid_arxiv = wvarxiv_ldt_deveny_<YYYYMMDD>T<HHMM>.fits
+            method = full_template
 
-         \PYG{k}{[calibrations]}
-         \PYG{+w}{   }\PYG{k}{[[wavelengths]]}
-         \PYG{+w}{      }\PYG{n+na}{reid\PYGZus{}arxiv}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{wvarxiv\PYGZus{}ldt\PYGZus{}deveny\PYGZus{}<YYYYMMDD>T<HHMM>.fits}
-         \PYG{+w}{      }\PYG{n+na}{method}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s}{full\PYGZus{}template}
-
-where the date and time in the filename are those of the file’s
+where the date and time in the filename are those of the file's
 creation. Simply add the block and .
 
 If you need to do this for your data, please also send your , , and
@@ -1637,7 +1613,7 @@ Slack <https://join.slack.com/t/pypeit-users/shared_invite/zt-1kc4rxhsj-vKU1JnUA
 
 
 
-.. _`deveny_workflow`:
+.. _deveny_workflow:
 
 Cheat Sheet for Common DeVeny Workflows
 =======================================
@@ -1680,7 +1656,7 @@ workflow for quick reference.
         pypeit_flux_setup Science/
         pypeit_flux_calib ...
 
-.. _`deveny_filestructure`:
+.. _deveny_filestructure:
 
 Example PypeIt Directory Structure
 ==================================
@@ -1737,21 +1713,21 @@ in the same place.
    See `<https://lowellobservatory.github.io/LDTObserverTools/fix_ldt_header.html>`__
    for one option.
 
-.. [6]
+.. [4]
    `Horne, K. 1986, PASP, 98,
    609 <https://ui.adsabs.harvard.edu/abs/1986PASP...98..609H/abstract>`__
 
-.. [7]
+.. [5]
    `<https://specutils.readthedocs.io/en/stable/index.html>`__ In
    contrast to PypeIt itself, the use of ``specutils`` *does* require knowledge
    of Python for use. This is but one possible analysis tool, and the reader is
    encouraged to seek out the best tool for their particular work.
 
-.. [8]
+.. [6]
    The actual seeing is usually better than this, but intermittent
    vibration in the instrument cube tends to smear out spectra along the
    slit.
 
-.. [9]
+.. [7]
    See the PypeIt `sensitivity function
    documentation <https://pypeit.readthedocs.io/en/release/fluxing.html#pypeit-sensfunc>`__.
