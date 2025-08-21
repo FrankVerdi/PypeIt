@@ -71,6 +71,7 @@ docs = [
     "sphinx>=1.6,<8",
     "docutils<0.22",
     "sphinx-automodapi",
+    "sphinx-subfigure",
     "sphinx_rtd_theme==2.0.0",
 ]
 devsuite = [
@@ -89,6 +90,7 @@ dev = [
     "sphinx>=1.6,<8",
     "docutils<0.22",
     "sphinx-automodapi",
+    "sphinx-subfigure",
     "sphinx_rtd_theme==2.0.0",
     "psutil",
     "pytest-qt",
