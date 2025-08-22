@@ -632,6 +632,9 @@ def ech_fill_in_orders(sobjs:specobjs.SpecObjs,
                 this_salign = sobjs_align[this_obj_id]
                 # Assign to the fwhm of the nearest detected order
                 imin = np.argmin(np.abs(this_salign.ECH_ORDER - this_order))
+                # NOTE: when assigning FWHM, maskwidth, and BOX_R_PIX (in pixels) using the values
+                # from the nearest detected order, for spectrographs with different platescale per order,
+                # these values will be different in arcseconds (which may not be a desirable approach).
                 thisobj.FWHM = this_salign[imin].FWHM
                 thisobj.hand_extract_flag = this_salign[imin].hand_extract_flag
                 thisobj.maskwidth = this_salign[imin].maskwidth

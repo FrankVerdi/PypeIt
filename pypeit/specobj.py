@@ -237,7 +237,7 @@ class SpecObj(datamodel.DataContainer):
                  'ech_frac_was_fit',
                  'ech_snr',
                  # spectrograph
-                '_spectrograph',
+                'spectrograph',
                 ]
 
     def __init__(self, PYPELINE, DET, OBJTYPE='unknown',
@@ -407,30 +407,27 @@ class SpecObj(datamodel.DataContainer):
         Returns:
             float: Platescale in arcsec/pixel
         """
+        # make sure we have the spectrograph
+        if self.spectrograph is None:
+            self.get_spectrograph()
 
-        if self.PYPELINE == 'Echelle' and self.spectrograph is None:
-            msgs.error("Spectrograph must be provided for Echelle data to calculate platescale in arcsec/pixel.")
-        elif self.PYPELINE == 'Echelle':
+        if self.PYPELINE == 'Echelle' and self.spectrograph.orders is not None:
             idx = np.where(self.spectrograph.orders==self['ECH_ORDER'])[0][0]
             return self.spectrograph.order_platescale(self.spectrograph.orders, self['DETECTOR']['binning'])[idx]
-        else:
-            _, binspatial = parse.parse_binning(self['DETECTOR']['binning'])
-            return self['DETECTOR']['platescale'] * binspatial
 
-    @property
-    def spectrograph(self):
-        """Return the spectrograph object
+        _, binspatial = parse.parse_binning(self['DETECTOR']['binning'])
+        return self['DETECTOR']['platescale'] * binspatial
 
-        Returns:
-            :class:`~pypeit.spectrographs.spectrograph.Spectrograph`: Spectrograph object
+    def get_spectrograph(self):
+        """Set the spectrograph attribute from the PYP_SPEC attribute.
+
         """
         # some checks first
-        if self._spectrograph is None and self.PYP_SPEC is None:
+        if self.spectrograph is None and self.PYP_SPEC is None:
             msgs.error("PYP_SPEC must be set to access the spectrograph")
         # get it
-        if self._spectrograph is None:
-            self._spectrograph = load_spectrograph(self.PYP_SPEC)
-        return self._spectrograph
+        if self.spectrograph is None:
+            self.spectrograph = load_spectrograph(self.PYP_SPEC)
 
     def set_name(self):
         """
