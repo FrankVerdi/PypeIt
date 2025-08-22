@@ -410,8 +410,13 @@ class Extract:
         if len(remove_idx) > 0:
             self.sobjs.remove_sobj(remove_idx)
 
-        # Add S/N ratio, FWHM and BOX_R_ASEC for each extracted object
+        # Add the DETECTOR container, S/N ratio, and FWHM in ARCSEC and BOX_R_ASEC for each extracted object
         for sobj in self.sobjs:
+            # this is an internal attribute
+            sobj.spectrograph = self.spectrograph
+            # these are datamodel attributes
+            sobj.PYP_SPEC = self.spectrograph.name
+            sobj.DETECTOR = self.sciImg.detector
             sobj.S2N = sobj.med_s2n()
             sobj.SPAT_FWHM = sobj.med_fwhm()
             sobj.BOX_R_ASEC = sobj.boxcar_arcsec()

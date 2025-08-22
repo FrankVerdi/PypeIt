@@ -825,11 +825,6 @@ class MultiSlitFindObjects(FindObjects):
                                 qa_title=qa_title, nperslit=maxnumber,
                                 objfindQA_filename=objfindQA_filename,
                                 debug_all=debug)
-            # these are datamodel attributes
-            sobjs_slit.PYP_SPEC = self.spectrograph.name
-            sobjs_slit.DETECTOR = self.sciImg.detector
-            # this is an internal attribute
-            sobjs_slit.spectrograph = self.spectrograph
             # Record
             sobjs.add_sobj(sobjs_slit)
 
@@ -972,12 +967,6 @@ class EchelleFindObjects(FindObjects):
             nabove_min_snr=self.par['reduce']['findobj']['ech_find_nabove_min_snr'],
             box_radius=self.par['reduce']['extraction']['boxcar_radius'],  # arcsec
             show_trace=show_trace, objfindQA_filename=objfindQA_filename)
-        for sobj in sobjs_ech:
-            # these are datamodel attributes
-            sobj.PYP_SPEC = self.spectrograph.name
-            sobj.DETECTOR = self.sciImg.detector
-            # this is an internal attribute
-            sobj.spectrograph = self.spectrograph
 
         # Steps
         self.steps.append(inspect.stack()[0][3])
