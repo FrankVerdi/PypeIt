@@ -321,7 +321,7 @@ def extract_point_source(wave, flxcube, ivarcube, bpmcube, wcscube, exptime,
     box_gpm = flxscl > 1/3  # Good pixels are those where at least one-third of the standard star flux is measured
 
     # Store the BOXCAR extraction information
-    sobj.BOX_RADIUS = wid  # Size of boxcar radius in pixels
+    sobj.BOX_R_PIX = wid  # Size of boxcar radius in pixels
     sobj.BOX_WAVE = wave.astype(float)
     if fluxed:
         sobj.BOX_FLAM = box_flux

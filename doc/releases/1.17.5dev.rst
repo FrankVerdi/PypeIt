@@ -77,6 +77,11 @@ Script Changes
 Datamodel Changes
 -----------------
 
+- The ``SpecObj`` datamodel has been updated (v1.1.12) to include the ``BOX_R_ASEC``
+  attribute, which contains the information about the size of the boxcar radius in
+  arcsec. In addition, the already existing ``BOX_RADIUS`` attribute, which contains
+  the boxcar radius in pixels, had the name changed to ``BOX_R_PIX``.
+
 
 
 Under-the-hood Improvements
@@ -110,3 +115,10 @@ Bug Fixes
 - For Gemini GMOS, PypeIt now correctly uses mask definition files with tilted
   slits. (Before, it would simply fail with an error message if any slits were
   tilted.)
+- Fix a bug in the ``order_platescale()`` method for the ``keck_esi`` spectrograph,
+  where the wrong binning was used to compute the platescale.
+- Fix a bug in how the ``box_width``, showed in arcsec in the "spec1d*.txt" file, was
+  computed for the echelle data. The value was previously not accounting for the
+  order-specific plate scale.
+- Fix a bug in the ``core.findobj_skymask.ech_fill_in_orders()`` method, where attributes
+  of objects only found on some orders were not properly propagated to the other orders.

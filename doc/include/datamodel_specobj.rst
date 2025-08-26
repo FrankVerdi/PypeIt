@@ -1,6 +1,6 @@
 
 
-Version: 1.1.11
+Version: 1.1.12
 
 =======================  =========================  =================  ====================================================================================================================================================================================
 Obj Key                  Obj Type                   Array Type         Description                                                                                                                                                                         
@@ -20,7 +20,8 @@ Obj Key                  Obj Type                   Array Type         Descripti
 ``BOX_FWHM``             ndarray                    float              Spectral FWHM (in Angstroms) at every pixel of the boxcar extracted flux.                                                                                                           
 ``BOX_MASK``             ndarray                    bool               Mask for boxcar extracted flux. True=good                                                                                                                                           
 ``BOX_NPIX``             ndarray                    float              Number of pixels used for the boxcar extraction; can be fractional                                                                                                                  
-``BOX_RADIUS``           float                                         Size of boxcar radius (pixels)                                                                                                                                                      
+``BOX_R_ASEC``           float                                         Size of boxcar radius (arcsec)                                                                                                                                                      
+``BOX_R_PIX``            float                                         Size of boxcar radius (pixels)                                                                                                                                                      
 ``BOX_WAVE``             ndarray                    float              Boxcar Wavelengths in vacuum (Angstroms)                                                                                                                                            
 ``DEC``                  float                                         Declination (J2000) decimal degree                                                                                                                                                  
 ``DET``                  str                                           A string identifier for the reduced detector or mosaic.                                                                                                                             
@@ -59,6 +60,7 @@ Obj Key                  Obj Type                   Array Type         Descripti
 ``OPT_MASK``             ndarray                    bool               Mask for optimally extracted flux. True=good                                                                                                                                        
 ``OPT_WAVE``             ndarray                    float              Optimal Wavelengths in vacuum (Angstroms)                                                                                                                                           
 ``PYPELINE``             str                                           Name of the PypeIt pipeline mode                                                                                                                                                    
+``PYP_SPEC``             str                                           PypeIt spectrograph name                                                                                                                                                            
 ``RA``                   float                                         Right Ascension (J2000) decimal degree                                                                                                                                              
 ``S2N``                  float                                         Median signal to noise ratio of the extracted spectrum(OPT if available, otherwise BOX)                                                                                             
 ``SLITID``               int, integer                                  PypeIt slit ID (aka SPAT_ID).                                                                                                                                                       

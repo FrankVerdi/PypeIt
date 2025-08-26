@@ -866,7 +866,7 @@ def local_skysub_extract(sciimg, sciivar, tilts, waveimg, global_sky, thismask, 
                     # For later iterations, profile fitting is based on an optimal extraction
                     last_profile = obj_profiles[:, :, ii]
                     trace = sobjs[iobj].TRACE_SPAT[:, None]
-                    objmask = ((spat_img >= (trace - 2.0 * sobjs[iobj].BOX_RADIUS)) & (spat_img <= (trace + 2.0 * sobjs[iobj].BOX_RADIUS)))
+                    objmask = ((spat_img >= (trace - 2.0 * sobjs[iobj].BOX_R_PIX)) & (spat_img <= (trace + 2.0 * sobjs[iobj].BOX_R_PIX)))
                     # Boxcar
                     extract.extract_boxcar(sciimg-skyimage, modelivar, (outmask & objmask), waveimg,
                                            skyimage, sobjs[iobj], fwhmimg=fwhmimg, flatimg=flatimg, base_var=base_var,
@@ -1004,7 +1004,7 @@ def local_skysub_extract(sciimg, sciivar, tilts, waveimg, global_sky, thismask, 
             this_profile = obj_profiles[:, :, ii]
             trace = sobjs[iobj].TRACE_SPAT[:, None]
             # Optimal
-            objmask = ((spat_img >= (trace - 2.0 * sobjs[iobj].BOX_RADIUS)) & (spat_img <= (trace + 2.0 * sobjs[iobj].BOX_RADIUS)))
+            objmask = ((spat_img >= (trace - 2.0 * sobjs[iobj].BOX_R_PIX)) & (spat_img <= (trace + 2.0 * sobjs[iobj].BOX_R_PIX)))
             extract.extract_optimal(sciimg-skyimage, modelivar * thismask, (outmask_extract & objmask),
                                     waveimg, extract_sky, thismask, this_profile, sobjs[iobj], min_frac_use=min_frac_use,
                                     fwhmimg=fwhmimg, flatimg=flatimg, base_var=base_var, count_scale=count_scale,
