@@ -7,7 +7,7 @@
     
     options:
       -h, --help            show this help message and exit
-      -p, --pattern PATTERN [PATTERN ...]
+      -p PATTERN [PATTERN ...], --pattern PATTERN [PATTERN ...]
                             Remove any files matching the provided pattern. If
                             combined with --version, this selects only files
                             downloaded from the identified GitHub versoin. If the
