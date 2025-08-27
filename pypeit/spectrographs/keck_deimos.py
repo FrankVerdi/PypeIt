@@ -9,18 +9,13 @@ import pathlib
 import re
 import warnings
 
-from IPython import embed
-
+import astropy.io.fits
+import astropy.coordinates
+import astropy.table
+import astropy.time
+from astropy import units
 import numpy as np
-
-from scipy import interpolate
-
-from astropy.io import fits
-from astropy.coordinates import SkyCoord, Angle
-from astropy.table import Table
-from astropy import units, time
-
-import linetools
+import scipy.interpolate
 
 from pypeit import msgs
 from pypeit import telescopes
@@ -28,15 +23,20 @@ from pypeit import io
 from pypeit.core import parse
 from pypeit.core import framematch
 from pypeit.core import wave
-from pypeit import specobj, specobjs
+from pypeit import specobj
+from pypeit import specobjs
 from pypeit.spectrographs import spectrograph
 from pypeit.images.detector_container import DetectorContainer
 from pypeit import dataPaths
 from pypeit.images.mosaic import Mosaic
 from pypeit.core.mosaic import build_image_mosaic_transform
-
+from pypeit.par import parset
 from pypeit.spectrographs import slitmask 
 from pypeit.spectrographs.opticalmodel import ReflectionGrating, OpticalModel, DetectorMap
+
+import linetools
+
+from IPython import embed
 
 
 class DEIMOSMosaicLookUp:
@@ -215,7 +215,7 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
                 msgs.error('PypeIt can only reduce images with AMPMODE == SINGLE:B or AMPMODE == SINGLE:A.')
             amp_folder = "ampA" if amp == 'SINGLE:A' else "ampB"
             # raw frame date in mjd
-            date = time.Time(self.get_meta_value(self.get_headarr(hdu), 'mjd'), format='mjd').value
+            date = astropy.time.Time(self.get_meta_value(self.get_headarr(hdu), 'mjd'), format='mjd').value
             # get the measurements files
             # NOTE: The use of ``glob`` here *requires* that the files be on disk
             measure_files = sorted((dataPaths.spectrographs / "keck_deimos" / "gain_ronoise" / amp_folder).glob("*"))
@@ -224,11 +224,11 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
             # convert into datetime format
             dtime = np.array([datetime.datetime.strptime(mm, '%Y-%b-%d') for mm in measure_dates])
             # convert to mjd
-            mjd_measured = time.Time(dtime, scale='utc').to_value('mjd')
+            mjd_measured = astropy.time.Time(dtime, scale='utc').to_value('mjd')
             # find the closest in time to the raw frame date
             close_idx = np.argmin(np.absolute(mjd_measured - date))
             # get measurements
-            tab_measure = Table.read(measure_files[close_idx], format='ascii')
+            tab_measure = astropy.table.Table.read(measure_files[close_idx], format='ascii')
             measured_det = tab_measure['col3']
             measured_amptype = tab_measure['col4']
             measured_gain = tab_measure['col5']  # [e-/DN]
@@ -324,15 +324,19 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
         par['sensfunc']['IR']['telgridfile'] = 'TellPCA_3000_26000_R15000.fits'
         return par
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -341,15 +345,30 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
+
+        # Adjust parameters based on instrument configuration
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            grating = scifile['dispname'][0]
+            binning = scifile['binning'][0]
+            decker = scifile['decker'][0]
+            amp = scifile['amp'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            grating = self.get_meta_value(scifile, 'dispname')
+            binning = self.get_meta_value(scifile, 'binning')
+            decker = self.get_meta_value(scifile, 'decker')
+            amp = self.get_meta_value(scifile, 'amp')
+
 
         headarr = self.get_headarr(scifile)
 
         # When using LVM mask or AMPMODE = SINGLE:A reduce only detectors 3,7
-        if ('LVMslit' in self.get_meta_value(headarr, 'decker') or
-                self.get_meta_value(headarr, 'amp') == 'SINGLE:A'):
+        if ('LVMslit' in decker) or (amp == 'SINGLE:A'):
             # give an info message if AMPMODE = SINGLE:A
-            if self.get_meta_value(headarr, 'amp') == 'SINGLE:A':
+            if amp == 'SINGLE:A':
                 msgs.info('Data taken with AMPMODE = SINGLE:A. Only detectors 3,7 will be reduced. To change this,'
                           ' modify the detnum parameter in the pypeit file.')
             par['rdx']['detnum'] = [(3, 7)]
@@ -357,13 +376,11 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
         # Turn PCA off for long slits
         # TODO: I'm a bit worried that this won't catch all
         # long-slits...
-        if ('Long' in self.get_meta_value(headarr, 'decker')) or (
-                'LVMslit' in self.get_meta_value(headarr, 'decker')):
+        if ('Long' in decker) or ('LVMslit' in decker):
             par['calibrations']['slitedges']['sync_predict'] = 'nearest'
 
         # Turn on the use of mask design
-        if ('Long' not in self.get_meta_value(headarr, 'decker')) and (
-                'LVMslit' not in self.get_meta_value(headarr, 'decker')):
+        if ('Long' not in decker) and ('LVMslit' not in decker):
             # TODO -- Move this parameter into SlitMaskPar??
             par['calibrations']['slitedges']['use_maskdesign'] = True
             # Since we use the slitmask info to find the alignment boxes, I don't need `minimum_slit_length_sci`
@@ -391,24 +408,25 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
 
 
         # Templates
-        if self.get_meta_value(headarr, 'dispname') == '600ZD':
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_deimos_600ZD.fits'
-            # par['calibrations']['wavelengths']['lamps'] += ['CdI', 'ZnI', 'HgI']
-        elif self.get_meta_value(headarr, 'dispname') == '830G':
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_deimos_830G.fits'
-        elif self.get_meta_value(headarr, 'dispname') == '1200G':
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_deimos_1200G.fits'
-        elif self.get_meta_value(headarr, 'dispname') == '1200B':
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_deimos_1200B.fits'
-            # par['calibrations']['wavelengths']['lamps'] += ['CdI', 'ZnI', 'HgI']
-        elif self.get_meta_value(headarr, 'dispname') == '900ZD':
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_deimos_900ZD.fits'
-            # par['calibrations']['wavelengths']['lamps'] += ['CdI', 'ZnI', 'HgI']
+        match grating:
+            case '600ZD':
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_deimos_600ZD.fits'
+                # par['calibrations']['wavelengths']['lamps'] += ['CdI', 'ZnI', 'HgI']
+            case '830G':
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_deimos_830G.fits'
+            case '1200G':
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_deimos_1200G.fits'
+            case '1200B':
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_deimos_1200B.fits'
+                # par['calibrations']['wavelengths']['lamps'] += ['CdI', 'ZnI', 'HgI']
+            case '900ZD':
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_deimos_900ZD.fits'
+                # par['calibrations']['wavelengths']['lamps'] += ['CdI', 'ZnI', 'HgI']
         # Arc lamps list from header
         par['calibrations']['wavelengths']['lamps'] = ['use_header']
 
@@ -418,7 +436,7 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
         par['calibrations']['wavelengths']['sigdetect'] = 10.
 
         # Wavelength FWHM
-        binning = parse.parse_binning(self.get_meta_value(headarr, 'binning'))
+        binning = parse.parse_binning(binning)
         par['calibrations']['wavelengths']['fwhm'] = 6.0 / binning[0]
 
         # Objects FWHM
@@ -513,7 +531,7 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
             if headarr[0].get('MJD-OBS', None) is not None:
                 return headarr[0]['MJD-OBS']
             else:
-                return time.Time('{}T{}'.format(headarr[0]['DATE-OBS'], headarr[0]['UTC'])).mjd
+                return astropy.time.Time('{}T{}'.format(headarr[0]['DATE-OBS'], headarr[0]['UTC'])).mjd
         else:
             msgs.error("Not ready for this compound meta")
 
@@ -1009,7 +1027,7 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
         # precision: RA=0.15", Dec=0.1"
         ras = np.array([self.get_meta_value(aa, 'ra') for aa in hdrs], dtype=object)[sorted_by_mjd]
         decs = np.array([self.get_meta_value(aa, 'dec') for aa in hdrs], dtype=object)[sorted_by_mjd]
-        coords = SkyCoord(ra=ras, dec=decs, frame='fk5', unit='deg')
+        coords = astropy.coordinates.SkyCoord(ra=ras, dec=decs, frame='fk5', unit='deg')
 
         # compute telescope offsets with respect to the first frame
         tel_off = []
@@ -1017,7 +1035,7 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
             offset = coords[0].separation(coords[i])
             pa = coords[0].position_angle(coords[i])
             # ROTPOSN take into account small changes in the mask PA
-            maskpa = Angle((hdrs[i][0]['ROTPOSN'] + 90.) * units.deg)
+            maskpa = astropy.coordinates.Angle((hdrs[i][0]['ROTPOSN'] + 90.) * units.deg)
             # tetha = PA in the slitmask reference frame
             theta = pa - maskpa
             # telescope offset
@@ -1203,9 +1221,9 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
         slider = hdu[0].header['GRATEPOS']
 
         if slider in [3,4]:
-            self.amap = fits.getdata(dataPaths.static_calibs.get_file_path(
+            self.amap = astropy.io.fits.getdata(dataPaths.static_calibs.get_file_path(
                                         f'keck_deimos/amap.s{slider}.2003mar04.fits'))
-            self.bmap = fits.getdata(dataPaths.static_calibs.get_file_path(
+            self.bmap = astropy.io.fits.getdata(dataPaths.static_calibs.get_file_path(
                                         f'keck_deimos/bmap.s{slider}.2003mar04.fits'))
         else:
             msgs.error(f'No amap/bmap available for slider {slider}. Set `use_maskdesign = False`')
@@ -1677,7 +1695,7 @@ class DEIMOSCameraDistortion:
     
         x = np.linspace(-0.6, 0.6, 1000)
         y = self.remove_distortion(x)
-        self.interpolator = interpolate.interp1d(y, x)
+        self.interpolator = scipy.interpolate.interp1d(y, x)
 
     def remove_distortion(self, x):
         x2 = np.square(x)
@@ -1915,9 +1933,9 @@ def load_wmko_std_spectrum(fits_file:str, outfile=None, pad = False, split=True)
     """
 
     # Open up
-    hdul = fits.open(fits_file)
-    meta = Table(hdul[1].data)
-    idl_spec = Table(hdul[2].data)
+    hdul = astropy.io.fits.open(fits_file)
+    meta = astropy.table.Table(hdul[1].data)
+    idl_spec = astropy.table.Table(hdul[2].data)
 
     # Hope this always works..
     if split:

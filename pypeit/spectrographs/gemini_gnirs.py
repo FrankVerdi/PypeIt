@@ -3,15 +3,22 @@ Module for Gemini/GNIRS specific methods.
 
 .. include:: ../include/links.rst
 """
+import pathlib
+
+import astropy.coordinates
+import astropy.io.fits
+import astropy.table
+import astropy.time
+from astropy import units
+import astropy.wcs
 import numpy as np
-from astropy import wcs, units
-from astropy.coordinates import SkyCoord, EarthLocation
-from astropy.time import Time
 
 from pypeit import msgs
 from pypeit import telescopes
-from pypeit.core import framematch, parse
+from pypeit.core import framematch
+from pypeit.core import parse
 from pypeit.images import detector_container
+from pypeit.par import parset
 from pypeit.spectrographs import spectrograph
 
 from IPython import embed
@@ -30,9 +37,6 @@ class GeminiGNIRSSpectrograph(spectrograph.Spectrograph):
 
     def __init__(self):
         super().__init__()
-
-        # TODO :: Might consider changing TelescopePar to use the astropy EarthLocation.
-        self.location = EarthLocation.of_site('Gemini North')
 
     def get_detector_par(self, det, hdu=None):
         """
@@ -142,7 +146,7 @@ class GeminiGNIRSSpectrograph(spectrograph.Spectrograph):
                 return None
         elif meta_key == 'obstime':
             try:
-                return Time(headarr[0]['DATE-OBS'] + "T" + headarr[0]['TIME-OBS'])
+                return astropy.time.Time(headarr[0]['DATE-OBS'] + "T" + headarr[0]['TIME-OBS'])
             except KeyError:
                 msgs.warn("Time of observation is not in header")
                 return 0.0
@@ -313,15 +317,19 @@ class GeminiGNIRSSpectrograph(spectrograph.Spectrograph):
         par['sensfunc']['IR']['telgridfile'] = 'TellPCA_3000_26000_R10000.fits'
         return par
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -330,12 +338,22 @@ class GeminiGNIRSSpectrograph(spectrograph.Spectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
-        # TODO This is a hack for now until we figure out how to set dispname
-        # and other meta information in the spectrograph class itself
-        self.dispname = self.get_meta_value(scifile, 'dispname')
-        # this is also a hack for now
-        self.camera_pos = self.get_meta_value(scifile, 'camera_pos')
+
+        # TODO The ``self.``` are hacks for now until we figure out how to set
+        #      dispname and other meta information in the spectrograph class itself
+
+        # Adjust parameters based on grating and camera position
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            self.dispname = scifile['dispname'][0]
+            self.camera_pos = scifile['camera_pos'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            self.dispname = self.get_meta_value(scifile, 'dispname')
+            self.camera_pos = self.get_meta_value(scifile, 'camera_pos')
+
         # 32/mmSB_G5533 setup, covering XYJHK with short blue camera
         if '32/mm' in self.dispname:
             # Edges
@@ -449,15 +467,19 @@ class GeminiGNIRSEchelleSpectrograph(GeminiGNIRSSpectrograph):
     pypeline = 'Echelle'
     ech_fixed_format = True
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
-        Modify the ``PypeIt`` parameters to hard-wired values used for
+        Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -466,10 +488,20 @@ class GeminiGNIRSEchelleSpectrograph(GeminiGNIRSSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
-        # TODO This is a hack for now until we figure out how to set dispname
-        # and other meta information in the spectrograph class itself
-        self.dispname = self.get_meta_value(scifile, 'dispname')
+
+        # TODO The ``self.``` are hacks for now until we figure out how to set
+        #      dispname and other meta information in the spectrograph class itself
+
+        # Adjust parameters based on grating and camera position
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            self.dispname = scifile['dispname'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            self.dispname = self.get_meta_value(scifile, 'dispname')
+
         # 32/mmSB_G5533 setup, covering XYJHK with short blue camera
         if '32/mm' in self.dispname:
             # Edges
@@ -657,15 +689,19 @@ class GNIRSIFUSpectrograph(GeminiGNIRSSpectrograph):
 
         return par
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
-        Modify the ``PypeIt`` parameters to hard-wired values used for
+        Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -674,24 +710,33 @@ class GNIRSIFUSpectrograph(GeminiGNIRSSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
-        # Obtain a header keyword to determine which range is being used
-        filter = self.get_meta_value(scifile, 'filter1')
+
+        # Adjust parameters based on filter used
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            filter = scifile['filter1'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            filter = self.get_meta_value(scifile, 'filter1')
+
         par['calibrations']['slitedges']['edge_thresh'] = 30.
         # TODO :: The following wavelength solutions are not general enough - need to implement a solution for each setup+grating
         # TODO BEFORE PR MERGE :: The full_template solutions below were generated (quickly!) from holy-grail... might want to redo this...
-        if filter == 'X_G0518':  # H band
-            par['calibrations']['wavelengths']['method'] = 'holy-grail'
-        elif filter == 'J_G0517':  # K band
-            par['calibrations']['wavelengths']['method'] = 'holy-grail'
-        elif filter == 'H_G0516':  # H band
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gnirs_lrifu_H.fits'
-        elif filter == 'K_G0515':  # K band
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gnirs_lrifu_K.fits'
-        else:
-            par['calibrations']['wavelengths']['method'] = 'holy-grail'
+        match filter:
+            case 'X_G0518':  # H band
+                par['calibrations']['wavelengths']['method'] = 'holy-grail'
+            case 'J_G0517':  # K band
+                par['calibrations']['wavelengths']['method'] = 'holy-grail'
+            case 'H_G0516':  # H band
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gnirs_lrifu_H.fits'
+            case 'K_G0515':  # K band
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gnirs_lrifu_K.fits'
+            case _:
+                par['calibrations']['wavelengths']['method'] = 'holy-grail'
 
         return par
 
@@ -738,7 +783,7 @@ class GNIRSIFUSpectrograph(GeminiGNIRSSpectrograph):
         decval = self.get_meta_value([hdr], 'dec')
 
         # Create a coordinate
-        coord = SkyCoord(raval, decval, unit=(units.deg, units.deg))
+        coord = astropy.coordinates.SkyCoord(raval, decval, unit=(units.deg, units.deg))
 
         # Get rotator position
         msgs.warn("CURRENTLY A HACK --- NEED TO FIGURE OUT RPOS and RREF FOR HRIFU FROM HEADER INFO")
@@ -785,7 +830,7 @@ class GNIRSIFUSpectrograph(GeminiGNIRSSpectrograph):
 
         # Create a new WCS object.
         msgs.info("Generating GNIRS IFU WCS")
-        w = wcs.WCS(naxis=3)
+        w = astropy.wcs.WCS(naxis=3)
         w.wcs.equinox = hdr['EQUINOX']
         w.wcs.name = 'GNIRS IFU'
         w.wcs.radesys = 'FK5'

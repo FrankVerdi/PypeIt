@@ -5,19 +5,22 @@ Implements APF-specific functions
 .. include:: ../include/links.rst
 """
 import os
+import pathlib
 
+import astropy.io.fits
+import astropy.table
+import astropy.time
 import numpy as np
-from astropy.time import Time
-from IPython import embed
 
 from pypeit import msgs
 from pypeit import telescopes
 from pypeit import io
 from pypeit.core import framematch
-from pypeit.core import parse
-from pypeit.spectrographs import spectrograph
+from pypeit.par import parset
 from pypeit.images import detector_container
+from pypeit.spectrographs import spectrograph
 
+from IPython import embed
 
 
 class APFLevySpectrograph(spectrograph.Spectrograph):
@@ -175,7 +178,7 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         """
         if meta_key == 'mjd':
             time = headarr[0]['DATE-BEG']
-            ttime = Time(time, format='isot')
+            ttime = astropy.time.Time(time, format='isot')
             return ttime.mjd
 
         if meta_key == 'decker':
@@ -339,15 +342,19 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         return np.logical_not(np.isin(fitstbl['idname'], ['WideFlat', 'NarrowFlat', \
                                                           'ThAr', 'Dark', 'Bias', 'Iodine']))
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -356,8 +363,16 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
-        decker = self.get_meta_value(scifile, 'decker')
+
+        # Adjust parameters based on decker used
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            decker = scifile['decker'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            decker = self.get_meta_value(scifile, 'decker')
 
         if decker == '3.0':
             par['reduce']['trim_edge'] = [0, 0]

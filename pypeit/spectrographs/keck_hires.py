@@ -4,16 +4,12 @@ Module for Keck/HIRES
 .. include:: ../include/links.rst
 """
 import os
+import pathlib
 
-from IPython import embed
-
-
-
+import astropy.io.fits
+import astropy.table
+import astropy.time
 import numpy as np
-from scipy.io import readsav
-
-from astropy.table import Table
-from astropy import time
 
 from pypeit import msgs
 from pypeit import telescopes
@@ -22,9 +18,11 @@ from pypeit.core import parse
 from pypeit.core import framematch
 from pypeit.spectrographs import spectrograph
 from pypeit.images import detector_container
-from pypeit.par import pypeitpar
+from pypeit.par import parset
 from pypeit.images.mosaic import Mosaic
 from pypeit.core.mosaic import build_image_mosaic_transform
+
+from IPython import embed
 
 
 class HIRESMosaicLookUp:
@@ -186,15 +184,19 @@ class KECKHIRESSpectrograph(spectrograph.Spectrograph):
 
         return par
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -203,11 +205,18 @@ class KECKHIRESSpectrograph(spectrograph.Spectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
-        headarr = self.get_headarr(scifile)
+        # Adjust parameters based on binning
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            binning = scifile['binning'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            binning = self.get_meta_value(scifile, 'binning')
 
-        bin_spec, bin_spat = parse.parse_binning(self.get_meta_value(headarr, 'binning'))
+        bin_spec, bin_spat = parse.parse_binning(binning)
 
         # slit edges
         # NOTE: With add_missed_orders set to True and order_spat_range set to the
@@ -274,7 +283,7 @@ class KECKHIRESSpectrograph(spectrograph.Spectrograph):
             if headarr[0].get('MJD', None) is not None:
                 return headarr[0]['MJD']
             else:
-                return time.Time('{}T{}'.format(headarr[0]['DATE-OBS'], headarr[0]['UTC'])).mjd
+                return astropy.time.Time('{}T{}'.format(headarr[0]['DATE-OBS'], headarr[0]['UTC'])).mjd
         elif meta_key == 'lampstat01':
             if headarr[0].get('LAMPCAT1') or headarr[0].get('LAMPCAT2'):
                 return 'ThAr1' if headarr[0].get('LAMPCAT1') else 'ThAr2'

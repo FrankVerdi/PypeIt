@@ -3,16 +3,19 @@ Module for TNG/Dolores
 
 .. include:: ../include/links.rst
 """
+import pathlib
 
+import astropy.io.fits
+import astropy.table
+import astropy.time
 import numpy as np
-
-from astropy.time import Time
 
 from pypeit import msgs
 from pypeit import telescopes
 from pypeit.core import framematch
-from pypeit.spectrographs import spectrograph
 from pypeit.images import detector_container
+from pypeit.par import parset
+from pypeit.spectrographs import spectrograph
 
 
 class TNGDoloresSpectrograph(spectrograph.Spectrograph):
@@ -93,39 +96,52 @@ class TNGDoloresSpectrograph(spectrograph.Spectrograph):
         return par
 
     
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (str):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
-            inp_par (:class:`pypeit.par.parset.ParSet`, optional):
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+            inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
 
         Returns:
-            :class:`pypeit.par.parset.ParSet`: The PypeIt paramter set
+            :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        
-        par = self.default_pypeit_par() if inp_par is None else inp_par
+        # Start with instrument-wide parameters (does not actually use `scifile`)
+        par = super().config_specific_par(scifile, inp_par=inp_par)
 
-        if self.get_meta_value(scifile, 'dispname') == 'LR-B':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'tng_dolores_LR-B_arx_v2.fits'
-            # Add CdI
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['lamps'] = ['NeI', 'HgI', 'HeI']
-        elif self.get_meta_value(scifile, 'dispname') == 'LR-R':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'tng_dolores_LR-R_arx.fits'
-            # Add CdI
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['lamps'] = ['NeI', 'HgI']
+        # Adjust parameters based on grating used
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            grating = scifile['dispname'][0]
         else:
-            par['calibrations']['wavelengths']['method'] = 'holy-grail'
-            msgs.warn('Check wavelength calibration file.')
+            # The method was passed the raw file info in one form or another
+            grating = self.get_meta_value(scifile, 'dispname')
+
+        match grating:
+            case 'LR-B':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'tng_dolores_LR-B_arx_v2.fits'
+                # Add CdI
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['lamps'] = ['NeI', 'HgI', 'HeI']
+            case 'LR-R':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'tng_dolores_LR-R_arx.fits'
+                # Add CdI
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['lamps'] = ['NeI', 'HgI']
+            case _:
+                par['calibrations']['wavelengths']['method'] = 'holy-grail'
+                msgs.warn('Check wavelength calibration file.')
 
         # Return
         return par
@@ -171,7 +187,7 @@ class TNGDoloresSpectrograph(spectrograph.Spectrograph):
         """
         if meta_key == 'mjd':
             time = headarr[0]['DATE-OBS']
-            ttime = Time(time, format='isot')
+            ttime = astropy.time.Time(time, format='isot')
             return ttime.mjd
         elif meta_key == 'ra':
             radeg = headarr[0]['RA-RAD']*180.0/np.pi  # Convert radians to decimal degrees

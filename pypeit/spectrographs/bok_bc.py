@@ -3,17 +3,20 @@ Module for Bok/B&C specific methods.
 
 .. include:: ../include/links.rst
 """
-import numpy as np
+import pathlib
 
-from astropy.time import Time
+import astropy.io.fits
+import astropy.table
+import astropy.time
+import numpy as np
 
 from pypeit import msgs
 from pypeit import telescopes
-from pypeit import io
 from pypeit.core import framematch
-from pypeit.spectrographs import spectrograph
 from pypeit.core import parse
 from pypeit.images import detector_container
+from pypeit.par import parset
+from pypeit.spectrographs import spectrograph
 
 
 class BokBCSpectrograph(spectrograph.Spectrograph):
@@ -83,7 +86,7 @@ class BokBCSpectrograph(spectrograph.Spectrograph):
             """
             date = headarr[0]['DATE-OBS']
             ut = headarr[0]['UT']
-            ttime = Time(f"{date}T{ut}", format='isot')
+            ttime = astropy.time.Time(f"{date}T{ut}", format='isot')
             return ttime.mjd
         elif meta_key == 'lampstat01':
             """
@@ -314,15 +317,19 @@ class BokBCSpectrograph(spectrograph.Spectrograph):
 
         return bpm_img
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -331,11 +338,19 @@ class BokBCSpectrograph(spectrograph.Spectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument wide
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
+        # Adjust parameters based on grating used
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            grating = scifile['dispname'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            grating = self.get_meta_value(scifile, 'dispname')
+
         # Wavelength calibrations
-        if self.get_meta_value(scifile, 'dispname') == '300':
+        if grating == '300':
             par['calibrations']['wavelengths']['reid_arxiv'] = 'bok_bc_300.fits'
             par['calibrations']['wavelengths']['method'] = 'full_template'
 

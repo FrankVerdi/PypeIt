@@ -4,6 +4,10 @@ Module for Keck/NIRSPEC specific methods.
 
 .. include:: ../include/links.rst
 """
+import pathlib
+
+import astropy.io.fits
+import astropy.table
 import numpy as np
 
 from pypeit import msgs
@@ -12,6 +16,7 @@ from pypeit.images import detector_container
 from pypeit import telescopes
 from pypeit.core import framematch
 from pypeit.core import parse
+from pypeit.par import parset
 from pypeit.spectrographs import spectrograph
 
 
@@ -273,15 +278,19 @@ class KeckNIRSPECHighSpectrograph(KeckNIRSPECSpectrograph):
 
         return par
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -290,12 +299,22 @@ class KeckNIRSPECHighSpectrograph(KeckNIRSPECSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
-        headarr = self.get_headarr(scifile)
-        self.filter1 = self.get_meta_value(headarr, 'filter1')
-        self.filter2 = self.get_meta_value(headarr, 'filter2')
-        decker = self.get_meta_value(headarr, 'decker')
+        # Adjust parameters based on filters, decker, and `xdangle` used
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            self.filter1 = scifile['filter1'][0]
+            self.filter2 = scifile['filter2'][0]
+            decker = scifile['decker'][0]
+            xdangle = scifile['xdangle'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            self.filter1 = self.get_meta_value(scifile, 'filter1')
+            self.filter2 = self.get_meta_value(scifile, 'filter2')
+            decker = self.get_meta_value(scifile, 'decker')
+            xdangle = self.get_meta_value(scifile, 'xdangle')
         self.lamps_list = par['calibrations']['wavelengths']['lamps']
         
         # wavelength calibration
@@ -336,7 +355,7 @@ class KeckNIRSPECHighSpectrograph(KeckNIRSPECSpectrograph):
             par['calibrations']['wavelengths']['cc_percent_ceil'] = 70.0
             par['calibrations']['wavelengths']['echelle_pad'] = 1
             par['calibrations']['wavelengths']['stretch_func'] = 'quadratic'
-            if self.get_meta_value(headarr, 'xdangle') == 36.72:
+            if xdangle == 36.72:
                 par['calibrations']['slitedges']['rm_slits'] = '1:1100:1925'
 
         if self.filter2 == 'NIRSPEC-3':
@@ -359,7 +378,6 @@ class KeckNIRSPECHighSpectrograph(KeckNIRSPECSpectrograph):
             par['calibrations']['wavelengths']['echelle_pad'] = 1
             par['calibrations']['wavelengths']['stretch_func'] = 'quadratic'
             #par['calibrations']['slitedges']['rm_slits'] = '1:'
-
 
         if decker == '0.144x12':
             par['calibrations']['wavelengths']['fwhm'] = 3.0
@@ -688,15 +706,19 @@ class KeckNIRSPECHighSpectrographOld(KeckNIRSPECSpectrographOld):
         par['sensfunc']['IR']['telgridfile'] = 'TellPCA_9300_55100_R60000.fits'
         return par
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -705,14 +727,21 @@ class KeckNIRSPECHighSpectrographOld(KeckNIRSPECSpectrographOld):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
-        headarr = self.get_headarr(scifile)
-        self.filter1 = self.get_meta_value(headarr, 'filter1')
-        self.filter2 = self.get_meta_value(headarr, 'filter2')
+        # Adjust parameters based on filters, decker, and `xdangle` used
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            self.filter1 = scifile['filter1'][0]
+            self.filter2 = scifile['filter2'][0]
+            decker = scifile['decker'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            self.filter1 = self.get_meta_value(scifile, 'filter1')
+            self.filter2 = self.get_meta_value(scifile, 'filter2')
+            decker = self.get_meta_value(scifile, 'decker')
         self.lamps_list = par['calibrations']['wavelengths']['lamps']
-        decker = self.get_meta_value(headarr, 'decker')
-
 
         # wavelength calibration
         supported_filters = ['NIRSPEC-1', 'NIRSPEC-3', 'NIRSPEC-5', 'NIRSPEC-7', 'KL']
@@ -752,7 +781,6 @@ class KeckNIRSPECHighSpectrographOld(KeckNIRSPECSpectrographOld):
             par['calibrations']['wavelengths']['cc_percent_ceil'] = 70.0
             par['calibrations']['wavelengths']['echelle_pad'] = 1
             par['calibrations']['wavelengths']['stretch_func'] = 'quadratic'
-
 
         if self.filter2 == 'NIRSPEC-3':
             par['calibrations']['wavelengths']['n_final'] = 3

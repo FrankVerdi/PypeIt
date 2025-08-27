@@ -198,10 +198,34 @@ class Spectrograph:
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
+        This method may be called with either a row from the metadata table
+        (usually from the PypeIt Reduction File) or a filename/Header (used
+        in certain scripts to populate configuration parameters).  The
+        boilerplate below should be included at the start of all subclassing
+        spectrograph class methods:
+
+        ::
+
+            # Start with instrument-wide parameters (does not actually use `scifile`)
+            par = super().config_specific_par(scifile, inp_par=inp_par)
+
+            # Adjust parameters based on settings used
+            if isinstance(scifile, astropy.table.Table):
+                # The method was passed a metadata table row
+                grating = scifile['dispname'][0]
+                binning = scifile['binning'][0]
+            else:
+                # The method was passed the raw file info in one form or another
+                grating = self.get_meta_value(scifile, 'dispname')
+                binning = self.get_meta_value(scifile, 'binning')
+
+        where the specific metadata keys are those needed by the specific
+        method (``grating`` and ``binning`` used here as examples only).
+
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Row`_):
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a Row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.

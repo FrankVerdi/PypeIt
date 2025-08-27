@@ -3,12 +3,14 @@ Module for MMT MMIRS
 
 .. include:: ../include/links.rst
 """
-import numpy as np
-from scipy.signal import savgol_filter
+import pathlib
 
-from astropy.time import Time
-from astropy.io import fits
-from astropy.stats import sigma_clipped_stats
+import astropy.io.fits
+import astropy.table
+import astropy.time
+import astropy.stats
+import numpy as np
+import scipy.signal
 
 from pypeit import msgs
 from pypeit import telescopes
@@ -17,6 +19,7 @@ from pypeit import io
 from pypeit.core import parse
 from pypeit.core import framematch
 from pypeit.images import detector_container
+from pypeit.par import parset
 from pypeit.spectrographs import spectrograph
 
 
@@ -74,7 +77,7 @@ class MMTMMIRSSpectrograph(spectrograph.Spectrograph):
         # we doing that for all the relevant spectrographs?
         if meta_key == 'mjd':
             time = headarr[1]['DATE-OBS']
-            ttime = Time(time, format='isot')
+            ttime = astropy.time.Time(time, format='isot')
             return ttime.mjd
         msgs.error("Not ready for this compound meta")
 
@@ -206,15 +209,19 @@ class MMTMMIRSSpectrograph(spectrograph.Spectrograph):
 
         return par
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -223,16 +230,26 @@ class MMTMMIRSSpectrograph(spectrograph.Spectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument wide
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
-        if (self.get_meta_value(scifile, 'dispname')=='HK') and (self.get_meta_value(scifile, 'dichroic')=='zJ'):
+        # Adjust parameters based on grating & dichroic used
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            grating = scifile['dispname'][0]
+            dichroic = scifile['dichroic'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            grating = self.get_meta_value(scifile, 'dispname')
+            dichroic = self.get_meta_value(scifile, 'dichroic')
+
+        if (grating=='HK') and (dichroic=='zJ'):
             par['calibrations']['wavelengths']['method'] = 'full_template'
             par['calibrations']['wavelengths']['reid_arxiv'] = 'mmt_mmirs_HK_zJ.fits'
-        elif (self.get_meta_value(scifile, 'dispname')=='K3000') and (self.get_meta_value(scifile, 'dichroic')=='Kspec'):
+        elif (grating=='K3000') and (dichroic=='Kspec'):
             par['calibrations']['wavelengths']['method'] = 'full_template'
             par['calibrations']['wavelengths']['reid_arxiv'] = 'mmt_mmirs_K3000_Kspec.fits'
-        elif (self.get_meta_value(scifile, 'dispname')=='J') and (self.get_meta_value(scifile, 'dichroic')=='zJ'):
+        elif (grating=='J') and (dichroic=='zJ'):
             par['calibrations']['wavelengths']['method'] = 'full_template'
             par['calibrations']['wavelengths']['reid_arxiv'] = 'mmt_mmirs_J_zJ.fits'
 
@@ -353,7 +370,7 @@ class MMTMMIRSSpectrograph(spectrograph.Spectrograph):
         # Read
         msgs.info(f'Reading MMIRS file: {fil}')
         hdu = io.fits_open(fil)
-        head1 = fits.getheader(fil,1)
+        head1 = astropy.io.fits.getheader(fil,1)
 
         detector_par = self.get_detector_par(det if det is not None else 1, hdu=hdu)
 
@@ -407,16 +424,16 @@ def mmirs_read_amp(img, namps=32):
     refpix2 = np.arange(4) + data_shape[0] - 4
     refpix_all = np.hstack([[0, 1, 2, 3], np.arange(4) + data_shape[0] - 4])
     refvec = np.sum(img[:, refpix_all], axis=1) / np.size(refpix_all)
-    svec = savgol_filter(refvec, 11, polyorder=5)
+    svec = scipy.signal.savgol_filter(refvec, 11, polyorder=5)
 
     refvec_2d = np.reshape(np.repeat(svec, data_shape[0], axis=0), data_shape)
     img_out = img - refvec_2d
 
     for amp in range(namps):
         img_out_ref = img_out[np.hstack([refpix1, refpix2]), :]
-        ref1, med1, std1 = sigma_clipped_stats(img_out_ref[:, amp * ampsize + 2 * np.arange(int(ampsize / 2))],
+        ref1, med1, std1 = astropy.stats.sigma_clipped_stats(img_out_ref[:, amp * ampsize + 2 * np.arange(int(ampsize / 2))],
                                                sigma=3)
-        ref2, med2, std2 = sigma_clipped_stats(img_out_ref[:, amp * ampsize + 2 * np.arange(int(ampsize / 2)) + 1],
+        ref2, med2, std2 = astropy.stats.sigma_clipped_stats(img_out_ref[:, amp * ampsize + 2 * np.arange(int(ampsize / 2)) + 1],
                                                sigma=3)
         ref12 = (ref1 + ref2) / 2.
         img_out[:, amp * ampsize:(amp + 1) * ampsize] -= ref12

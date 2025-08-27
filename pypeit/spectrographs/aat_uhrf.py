@@ -3,20 +3,21 @@ Module for Shane/Kast specific methods.
 
 .. include:: ../include/links.rst
 """
-import os
+import pathlib
 
-from IPython import embed
-
+import astropy.io.fits
+import astropy.table
+import astropy.time
 import numpy as np
-
-from astropy.time import Time
 
 from pypeit import msgs
 from pypeit import telescopes
 from pypeit.core import framematch
 from pypeit.spectrographs import spectrograph
 from pypeit.images import detector_container
-from pypeit import data
+from pypeit.par import parset
+
+from IPython import embed
 
 
 class AATUHRFSpectrograph(spectrograph.Spectrograph):
@@ -162,7 +163,7 @@ class AATUHRFSpectrograph(spectrograph.Spectrograph):
         if meta_key == 'mjd':
             date = headarr[0]['UTDATE'].replace(":","-")
             time = headarr[0]['UTSTART']
-            ttime = Time(f'{date}T{time}', format='isot')
+            ttime = astropy.time.Time(f'{date}T{time}', format='isot')
             return ttime.mjd
         elif meta_key == 'binning':
             binspat = int(np.ceil(1024/headarr[0]['NAXIS1']))
@@ -230,15 +231,19 @@ class AATUHRFSpectrograph(spectrograph.Spectrograph):
         msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.

@@ -4,17 +4,14 @@ Module for LRIS specific methods.
 .. include:: ../include/links.rst
 """
 import os
+import pathlib
 
-from IPython import embed
-
-import numpy as np
-
-from astropy.io import fits
-from astropy import time
-from astropy.coordinates import SkyCoord 
+import astropy.coordinates
+import astropy.io.fits
+import astropy.table
+import astropy.time
 from astropy import units
-
-import linetools.utils
+import numpy as np
 
 from pypeit import msgs
 from pypeit import telescopes
@@ -23,10 +20,15 @@ from pypeit import io
 from pypeit.core import parse
 from pypeit.core import framematch
 from pypeit.core import flux_calib
+from pypeit.images import detector_container
+from pypeit.par import parset
 from pypeit.spectrographs import spectrograph
 from pypeit.spectrographs import slitmask
-from pypeit.images import detector_container
 from pypeit import dataPaths
+
+import linetools.utils
+
+from IPython import embed
 
 
 class KeckLRISSpectrograph(spectrograph.Spectrograph):
@@ -113,15 +115,19 @@ class KeckLRISSpectrograph(spectrograph.Spectrograph):
 
         return par
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -130,14 +136,25 @@ class KeckLRISSpectrograph(spectrograph.Spectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
+
+        # Adjust parameters based on DeVeny grating used
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            decker = scifile['decker'][0]
+            binning = scifile['binning'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            decker = self.get_meta_value(scifile, 'decker')
+            binning = self.get_meta_value(scifile, 'binning')
 
         # Ignore PCA if longslit
         #  This is a little risky as a user could put long into their maskname
         #  But they would then need to over-ride in their PypeIt file
         if scifile is None:
             msgs.error("You have not included a standard or science file in your PypeIt file to determine the configuration")
-        if 'long' in self.get_meta_value(scifile, 'decker'):
+        if 'long' in decker:
             par['calibrations']['slitedges']['sync_predict'] = 'nearest'
             # This might only be required for det=2, but we'll see..
             # TODO: Why is this here and not in KeckLRISRSpectrograph???
@@ -145,13 +162,13 @@ class KeckLRISSpectrograph(spectrograph.Spectrograph):
                 par['calibrations']['slitedges']['edge_thresh'] = 1000.
 
         # Wave FWHM
-        binning = parse.parse_binning(self.get_meta_value(scifile, 'binning'))
+        binning = parse.parse_binning(binning)
         par['calibrations']['wavelengths']['fwhm'] = 8.0 / binning[0]
         # Arc lamps list from header
         par['calibrations']['wavelengths']['lamps'] = ['use_header']
 
         # spatial flexure maxshift for non-longslit
-        if 'long' not in self.get_meta_value(scifile, 'decker'):
+        if 'long' not in decker:
             par['scienceframe']['process']['spat_flexure_maxlag'] = 10
 
         return par
@@ -232,7 +249,7 @@ class KeckLRISSpectrograph(spectrograph.Spectrograph):
             elif headarr[0].get('UTC') is not None or headarr[0].get('UT') is not None:
                 ut = headarr[0].get('UTC') if headarr[0].get('UTC') is not None else headarr[0].get('UT')
                 if headarr[0].get('DATE-OBS') is not None:
-                    return time.Time('{}T{}'.format(headarr[0]['DATE-OBS'], ut)).mjd
+                    return astropy.time.Time('{}T{}'.format(headarr[0]['DATE-OBS'], ut)).mjd
                 elif headarr[0].get('DATE') is not None:
                     # LRIS sometime has a duplicate DATE card. The first one is the date of the
                     # file creation and the second one is the date of the observation.
@@ -241,11 +258,11 @@ class KeckLRISSpectrograph(spectrograph.Spectrograph):
                                    for i in range(len(headarr[0].cards))])[0]
                     if dd.size > 0:
                         date = headarr[0].cards[dd[0]][1]
-                        return time.Time('{}T{}'.format(date, ut)).mjd
+                        return astropy.time.Time('{}T{}'.format(date, ut)).mjd
                     else:
                         # this is most likely not the obs date+time, but the date+time the file
                         # was created, which should be very close to the obs time
-                        return time.Time(headarr[0]['DATE']).mjd
+                        return astropy.time.Time(headarr[0]['DATE']).mjd
         elif meta_key == 'dateobs':
             if headarr[0].get('DATE-OBS') is not None:
                 return headarr[0]['DATE-OBS']
@@ -754,14 +771,14 @@ class KeckLRISSpectrograph(spectrograph.Spectrograph):
         platescale = self.get_detector_par(det=1)['platescale']
 
 
-        hdu = fits.open(filename)
+        hdu = astropy.io.fits.open(filename)
         binning = self.get_meta_value(self.get_headarr(hdu), 'binning')
         _, bin_spat = parse.parse_binning(binning)
 
         # Slit center
-        slit_coords = SkyCoord(ra=self.slitmask.onsky[:,0], 
+        slit_coords = astropy.coordinates.SkyCoord(ra=self.slitmask.onsky[:,0], 
                                dec=self.slitmask.onsky[:,1], unit='deg')
-        mask_coord = SkyCoord(ra=self.slitmask.mask_radec[0],
+        mask_coord = astropy.coordinates.SkyCoord(ra=self.slitmask.mask_radec[0],
                               dec=self.slitmask.mask_radec[1], unit='deg')
 
         # build an array of values containing the bottom (right) edge of the slits
@@ -932,9 +949,9 @@ class KeckLRISBSpectrograph(KeckLRISSpectrograph):
         super().check_spectrograph(filename)
 
         # check that we are using the right spectrograph (keck_lris_blue or keck_lris_blue_orig)
-        _dateobs = time.Time(self.get_meta_value(filename, 'dateobs'), format='iso')
+        _dateobs = astropy.time.Time(self.get_meta_value(filename, 'dateobs'), format='iso')
         # last day of keck_lris_blue_orig
-        date_orig = time.Time('2009-04-30', format='iso')
+        date_orig = astropy.time.Time('2009-04-30', format='iso')
         if _dateobs <= date_orig and self.name in ['keck_lris_blue']:
             msgs.error('This is not the correct spectrograph. Use keck_lris_blue_orig instead.')
         elif _dateobs > date_orig and self.name in ['keck_lris_blue_orig']:
@@ -966,15 +983,19 @@ class KeckLRISBSpectrograph(KeckLRISSpectrograph):
 
         return par
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -983,35 +1004,44 @@ class KeckLRISBSpectrograph(KeckLRISSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument wide
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
+        # Adjust parameters based on DeVeny grating used
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            grating = scifile['dispname'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            grating = self.get_meta_value(scifile, 'dispname')
+
         # Wavelength calibrations
-        if self.get_meta_value(scifile, 'dispname') == '300/5000':
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_blue_B300_5000_d680_ArCdHgKrNeXeZnFeAr.fits'
-            par['calibrations']['wavelengths']['n_final'] = 2
-            par['flexure']['spectrum'] = 'sky_LRISb_400.fits'
-        elif self.get_meta_value(scifile, 'dispname') == '400/3400':
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_blue_B400_3400_d560_ArCdHgNeZnFeAr.fits'
-            par['calibrations']['wavelengths']['n_final'] = 2
-            par['flexure']['spectrum'] = 'sky_LRISb_400.fits'
-        elif self.get_meta_value(scifile, 'dispname') == '600/4000':
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_blue_B600_4000_d560_ArCdHgKrNeXeZn.fits'
-            par['calibrations']['wavelengths']['sigdetect'] = 20.
-            par['calibrations']['wavelengths']['n_final'] = 6
-            par['flexure']['spectrum'] = 'sky_LRISb_600.fits'
-        elif self.get_meta_value(scifile, 'dispname') == '1200/3400':
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_blue_B1200_3400_d560_ArCdHgNeZn.fits'
-            par['flexure']['spectrum'] = 'sky_LRISb_600.fits'
+        match grating:
+            case '300/5000':
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_blue_B300_5000_d680_ArCdHgKrNeXeZnFeAr.fits'
+                par['calibrations']['wavelengths']['n_final'] = 2
+                par['flexure']['spectrum'] = 'sky_LRISb_400.fits'
+            case '400/3400':
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_blue_B400_3400_d560_ArCdHgNeZnFeAr.fits'
+                par['calibrations']['wavelengths']['n_final'] = 2
+                par['flexure']['spectrum'] = 'sky_LRISb_400.fits'
+            case '600/4000':
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_blue_B600_4000_d560_ArCdHgKrNeXeZn.fits'
+                par['calibrations']['wavelengths']['sigdetect'] = 20.
+                par['calibrations']['wavelengths']['n_final'] = 6
+                par['flexure']['spectrum'] = 'sky_LRISb_600.fits'
+            case '1200/3400':
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_blue_B1200_3400_d560_ArCdHgNeZn.fits'
+                par['flexure']['spectrum'] = 'sky_LRISb_600.fits'
 
         # Slit tracing
         # Reduce the slit parameters because the flux does not span the full detector
         #   It is primarily on the upper half of the detector (usually)
-        if self.get_meta_value(scifile, 'dispname') == '300/5000':
+        if grating == '300/5000':
             par['calibrations']['slitedges']['smash_range'] = [0.5, 1.]
 
         # Return
@@ -1272,11 +1302,11 @@ class KeckLRISRSpectrograph(KeckLRISSpectrograph):
 
         if hdu is not None:
             # Allow for post COVID detector issues
-            t2020_1 = time.Time("2020-06-30", format='isot')  # First run
-            t2020_2 = time.Time("2020-07-29", format='isot')  # Second run
+            t2020_1 = astropy.time.Time("2020-06-30", format='isot')  # First run
+            t2020_2 = astropy.time.Time("2020-07-29", format='isot')  # Second run
             # Check for the new detector (Mark4) upgrade
-            t2021_upgrade = time.Time("2021-04-22", format='isot')
-            date = time.Time(self.get_meta_value(self.get_headarr(hdu), 'mjd'), 
+            t2021_upgrade = astropy.time.Time("2021-04-22", format='isot')
+            date = astropy.time.Time(self.get_meta_value(self.get_headarr(hdu), 'mjd'), 
                              format='mjd')
 
             if date < t2020_1:
@@ -1337,11 +1367,11 @@ class KeckLRISRSpectrograph(KeckLRISSpectrograph):
         super().check_spectrograph(filename)
 
         # check that we are using the right spectrograph (keck_lris_red, keck_lris_red_orig, or keck_lris_red_mark4)
-        _dateobs = time.Time(self.get_meta_value(filename, 'dateobs'), format='iso')
+        _dateobs = astropy.time.Time(self.get_meta_value(filename, 'dateobs'), format='iso')
         # starting date for keck_lris_red_mark4
-        date_mark4 = time.Time('2021-04-22', format='iso')
+        date_mark4 = astropy.time.Time('2021-04-22', format='iso')
         # last day of keck_lris_red_orig
-        date_orig = time.Time('2009-05-02', format='iso')
+        date_orig = astropy.time.Time('2009-05-02', format='iso')
         if _dateobs <= date_orig and self.name in ['keck_lris_red_mark4', 'keck_lris_red']:
             msgs.error('This is not the correct spectrograph. Use keck_lris_red_orig instead.')
         elif _dateobs >= date_mark4 and self.name in ['keck_lris_red_orig', 'keck_lris_red']:
@@ -1403,15 +1433,19 @@ class KeckLRISRSpectrograph(KeckLRISSpectrograph):
         setup_path = lris_grating.replace('/','_') + '_d' + lris_dichroic
         return os.path.join(self.name, setup_path)
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1420,12 +1454,21 @@ class KeckLRISRSpectrograph(KeckLRISSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument wide
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
+
+        # Adjust parameters based on binning & grating used
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            grating = scifile['dispname'][0]
+            binning = scifile['binning'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            grating = self.get_meta_value(scifile, 'dispname')
+            binning = self.get_meta_value(scifile, 'binning')
 
         # Lacosmic CR settings
         #   Grab the defaults for LRISr
-        binning = self.get_meta_value(scifile, 'binning')
         # Unbinned LRISr needs very aggressive LACosmics parameters for 1x1 binning
         if binning == '1,1':
             sigclip = 3.0
@@ -1434,41 +1477,42 @@ class KeckLRISRSpectrograph(KeckLRISSpectrograph):
             par['scienceframe']['process']['objlim'] = objlim
 
         # Wavelength calibrations
-        if self.get_meta_value(scifile, 'dispname') == '150/7500':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R150_7500_ArCdHgNeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['n_first'] = 2
-            par['calibrations']['wavelengths']['n_final'] = 2
-        elif self.get_meta_value(scifile, 'dispname') == '300/5000':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R300_5000_ArCdHgKrNeXeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-        elif self.get_meta_value(scifile, 'dispname') == '400/8500':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R400_8500_ArCdHgKrNeXeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            # par['calibrations']['wavelengths']['sigdetect'] = 20.0
-        elif self.get_meta_value(scifile, 'dispname') == '600/5000':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R600_5000_ArCdHgKrNeXeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-        elif self.get_meta_value(scifile, 'dispname') == '600/7500':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R600_7500_ArCdHgKrNeXeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-        elif self.get_meta_value(scifile, 'dispname') == '600/10000':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R600_10000_ArCdHgKrNeXeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-        elif self.get_meta_value(scifile, 'dispname') == '831/8200':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R831_8200_ArCdHgKrNeXeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['sigdetect'] = 30.0  # lots of ghost lines
-        elif self.get_meta_value(scifile, 'dispname') == '900/5500':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R900_5500_ArCdHgNeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['sigdetect'] = 30.0  # lots of ghost lines
-        elif self.get_meta_value(scifile, 'dispname') == '1200/7500':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R1200_7500_ArCdHgKrNeXeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-        elif self.get_meta_value(scifile, 'dispname') == '1200/9000':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R1200_9000.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
+        match grating:
+            case '150/7500':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R150_7500_ArCdHgNeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['n_first'] = 2
+                par['calibrations']['wavelengths']['n_final'] = 2
+            case '300/5000':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R300_5000_ArCdHgKrNeXeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+            case '400/8500':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R400_8500_ArCdHgKrNeXeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                # par['calibrations']['wavelengths']['sigdetect'] = 20.0
+            case '600/5000':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R600_5000_ArCdHgKrNeXeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+            case '600/7500':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R600_7500_ArCdHgKrNeXeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+            case '600/10000':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R600_10000_ArCdHgKrNeXeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+            case '831/8200':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R831_8200_ArCdHgKrNeXeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['sigdetect'] = 30.0  # lots of ghost lines
+            case '900/5500':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R900_5500_ArCdHgNeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['sigdetect'] = 30.0  # lots of ghost lines
+            case '1200/7500':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R1200_7500_ArCdHgKrNeXeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+            case '1200/9000':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_R1200_9000.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
 
         # Return
         return par
@@ -1626,10 +1670,10 @@ class KeckLRISRMark4Spectrograph(KeckLRISRSpectrograph):
             return detector_container.DetectorContainer(**detector_dict1)
 
         # Date of Mark4 installation
-        t2021_upgrade = time.Time("2021-04-22", format='isot')
+        t2021_upgrade = astropy.time.Time("2021-04-22", format='isot')
         # TODO -- Update with the date we transitioned to the correct ones
-        t_gdhead = time.Time("2029-01-01", format='isot')
-        date = time.Time(hdu[0].header['MJD'], format='mjd')
+        t_gdhead = astropy.time.Time("2029-01-01", format='isot')
+        date = astropy.time.Time(hdu[0].header['MJD'], format='mjd')
 
         if date < t2021_upgrade:
             msgs.error("This is not the Mark4 detector.  Use a different keck_lris_red spectrograph")
@@ -1648,7 +1692,7 @@ class KeckLRISRMark4Spectrograph(KeckLRISRSpectrograph):
             swap_binning = f"{binning[-1]}_{binning[0]}" # LRIS convention is oppopsite ours
             header_file = dataPaths.spectrographs.get_file_path(
                     f'keck_lris_red_mark4/header{_amp}_{swap_binning}.fits')
-            correct_header = fits.getheader(header_file)
+            correct_header = astropy.io.fits.getheader(header_file)
         else:
             correct_header = hdu[0].header
 
@@ -1778,15 +1822,19 @@ class KeckLRISROrigSpectrograph(KeckLRISRSpectrograph):
 
         return par
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1795,39 +1843,48 @@ class KeckLRISROrigSpectrograph(KeckLRISRSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument wide
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
+        # Adjust parameters based on grating used
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            grating = scifile['dispname'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            grating = self.get_meta_value(scifile, 'dispname')
+
         # Wavelength calibrations
-        if self.get_meta_value(scifile, 'dispname') == '150/7500':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R150_7500_ArHgNe.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-            par['calibrations']['wavelengths']['n_first'] = 2
-            par['calibrations']['wavelengths']['n_final'] = 2
-        elif self.get_meta_value(scifile, 'dispname') == '300/5000':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R300_5000_ArCdHgNeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-        elif self.get_meta_value(scifile, 'dispname') == '400/8500':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R400_8500_ArCdHgNeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-        elif self.get_meta_value(scifile, 'dispname') == '600/5000':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R600_5000_ArCdHgNeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-        elif self.get_meta_value(scifile, 'dispname') == '600/7500':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R600_7500_ArCdHgNeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-        elif self.get_meta_value(scifile, 'dispname') == '600/10000':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R600_10000_ArCdHgNeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-        elif self.get_meta_value(scifile, 'dispname') == '831/8200':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R831_8200_ArCdHgNeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-        elif self.get_meta_value(scifile, 'dispname') == '900/5500':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R900_5500_ArCdHgNeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-        elif self.get_meta_value(scifile, 'dispname') == '1200/7500':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R1200_7500_ArCdHgNeZn.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
+        match grating:
+            case '150/7500':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R150_7500_ArHgNe.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+                par['calibrations']['wavelengths']['n_first'] = 2
+                par['calibrations']['wavelengths']['n_final'] = 2
+            case '300/5000':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R300_5000_ArCdHgNeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+            case '400/8500':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R400_8500_ArCdHgNeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+            case '600/5000':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R600_5000_ArCdHgNeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+            case '600/7500':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R600_7500_ArCdHgNeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+            case '600/10000':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R600_10000_ArCdHgNeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+            case '831/8200':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R831_8200_ArCdHgNeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+            case '900/5500':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R900_5500_ArCdHgNeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+            case '1200/7500':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_lris_red_orig_R1200_7500_ArCdHgNeZn.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
 
         # Return
         return par
@@ -2049,7 +2106,7 @@ def convert_lowredux_pixelflat(infil, outfil, specflip=False, separate_extension
     data = hdu0[0].data
 
     #
-    prihdu = fits.PrimaryHDU()
+    prihdu = astropy.io.fits.PrimaryHDU()
     hdus = [prihdu]
     prihdu.header['CALIBTYP'] = ('Flat', 'PypeIt: Calibration frame type')
 
@@ -2060,7 +2117,7 @@ def convert_lowredux_pixelflat(infil, outfil, specflip=False, separate_extension
         img1 = data[:, :data.shape[1] // 2]
     if specflip:
         img1 = np.flip(img1, axis=0)
-    hdu = fits.ImageHDU(img1)
+    hdu = astropy.io.fits.ImageHDU(img1)
     hdu.name = 'DET01-PIXELFLAT_NORM'
     prihdu.header['EXT0001'] = hdu.name
     hdus.append(hdu)
@@ -2072,13 +2129,13 @@ def convert_lowredux_pixelflat(infil, outfil, specflip=False, separate_extension
         img2 = data[:, data.shape[1] // 2:]
     if specflip:
         img2 = np.flip(img2, axis=0)
-    hdu = fits.ImageHDU(img2)
+    hdu = astropy.io.fits.ImageHDU(img2)
     hdu.name = 'DET02-PIXELFLAT_NORM'
     prihdu.header['EXT0002'] = hdu.name
     hdus.append(hdu)
 
     # Finish
-    hdulist = fits.HDUList(hdus)
+    hdulist = astropy.io.fits.HDUList(hdus)
     hdulist.writeto(outfil, overwrite=True)
     print('Wrote {:s}'.format(outfil))
 

@@ -3,15 +3,16 @@ Module for Gemini GMOS specific methods.
 
 .. include:: ../include/links.rst
 """
-import numpy as np
 import os
+import pathlib
 
-from astropy.table import Table
-from astropy.coordinates import SkyCoord
+import astropy.coordinates
+import astropy.io.fits
+import astropy.table
+import astropy.time
 from astropy import units
-from astropy import time
-from astropy.wcs import wcs
-from astropy.io import fits
+import astropy.wcs
+import numpy as np
 
 from pypeit import msgs
 from pypeit.spectrographs import spectrograph
@@ -22,6 +23,7 @@ from pypeit.core import parse
 from pypeit.images import detector_container
 from pypeit.images.mosaic import Mosaic
 from pypeit.core.mosaic import build_image_mosaic_transform
+from pypeit.par import parset
 from pypeit.spectrographs.slitmask import SlitMask
 
 from IPython import embed
@@ -180,10 +182,10 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
         elif meta_key == 'mjd':
             obsepoch = headarr[0].get('OBSEPOCH')
             if obsepoch is not None:
-                return time.Time(obsepoch, format='jyear').mjd
+                return astropy.time.Time(obsepoch, format='jyear').mjd
             else:
                 msgs.warn('OBSEPOCH header keyword not found. Using today as the date.')
-                return time.Time.now().mjd
+                return astropy.time.Time.now().mjd
 
     def config_independent_frames(self):
         """
@@ -341,15 +343,19 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
 
         return par
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -358,16 +364,26 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
-        headarr = self.get_headarr(scifile)
+        # Adjust parameters based on decker used
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            decker = scifile['decker'][0]
+            binning = scifile['binning'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            decker = self.get_meta_value(scifile, 'decker')
+            binning = self.get_meta_value(scifile, 'binning')
 
         # Turn PCA off for long slits
-        if 'arcsec' in self.get_meta_value(headarr, 'decker'):
+        if 'arcsec' in decker:
             par['calibrations']['slitedges']['sync_predict'] = 'nearest'
 
         # Allow for various binning
-        binning = parse.parse_binning(self.get_meta_value(headarr, 'binning'))
+        # TODO: This doesn't do anything!
+        binning = parse.parse_binning(binning)
 
         return par
 
@@ -599,7 +615,7 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
             :attr:`slitmask`.
         """
         # Open the file
-        mask_tbl = Table.read(filename, format='fits')
+        mask_tbl = astropy.table.Table.read(filename, format='fits')
 
         # Projected distance (in arcsec) of the object from the left and right (top and bot) edges of the slit
         slit_length = mask_tbl['slitsize_y'].to('arcsec').value # arcsec
@@ -627,7 +643,7 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
                            topdist,
                            botdist]).T
         # Mask pointing
-        mask_coord = SkyCoord(mask_tbl.meta['RA_IMAG'], mask_tbl.meta['DEC_IMAG'],
+        mask_coord = astropy.coordinates.SkyCoord(mask_tbl.meta['RA_IMAG'], mask_tbl.meta['DEC_IMAG'],
                               unit=("hourangle", "deg"))
 
         # PA corresponding to positive x on detector (spatial)
@@ -636,7 +652,7 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
             posx_pa += 360.
 
         # Slit positions
-        obj_coord = SkyCoord(ra=obj_ra, dec=obj_dec, unit='deg')
+        obj_coord = astropy.coordinates.SkyCoord(ra=obj_ra, dec=obj_dec, unit='deg')
         offsets = np.sqrt(
                 mask_tbl['slitpos_x'].to('arcsec').value**2 +
                 mask_tbl['slitpos_y'].to('arcsec').value**2)
@@ -717,16 +733,16 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
         _, bin_spat = parse.parse_binning(binning)
 
         # Slit center
-        slit_coords = SkyCoord(ra=self.slitmask.onsky[:,0],
+        slit_coords = astropy.coordinates.SkyCoord(ra=self.slitmask.onsky[:,0],
                                dec=self.slitmask.onsky[:,1], unit='deg')
-        mask_coord = SkyCoord(ra=self.slitmask.mask_radec[0],
+        mask_coord = astropy.coordinates.SkyCoord(ra=self.slitmask.mask_radec[0],
                               dec=self.slitmask.mask_radec[1], unit='deg')
 
         # Load up the acquisition image (usually a sciframe)
-        hdul_acq = fits.open(wcs_file)
+        hdul_acq = astropy.io.fits.open(wcs_file)
         acq_binning = self.get_meta_value(self.get_headarr(hdul_acq), 'binning')
         _, bin_spat_acq = parse.parse_binning(acq_binning)
-        wcss = [wcs.WCS(hdul_acq[i].header) for i in range(1, len(hdul_acq))]
+        wcss = [astropy.wcs.WCS(hdul_acq[i].header) for i in range(1, len(hdul_acq))]
 
         left_edges = []
         right_edges = []
@@ -867,8 +883,8 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
         # account for the CCD upgrade happened on 2023-12-14
         if hdu is not None:
             # date upgrade
-            t_upgrade = time.Time("2023-12-14", format='isot')
-            obs_date = time.Time(self.get_meta_value(self.get_headarr(hdu), 'mjd'), format='mjd')
+            t_upgrade = astropy.time.Time("2023-12-14", format='isot')
+            obs_date = astropy.time.Time(self.get_meta_value(self.get_headarr(hdu), 'mjd'), format='mjd')
 
             if obs_date >= t_upgrade:
                 # These values are taken from
@@ -919,8 +935,8 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
         if hdu is not None:
             # account for the CCD upgrade happened on 2023-12-14
             # date upgrade
-            t_upgrade = time.Time("2023-12-14", format='isot')
-            obs_date = time.Time(self.get_meta_value(self.get_headarr(hdu), 'mjd'), format='mjd')
+            t_upgrade = astropy.time.Time("2023-12-14", format='isot')
+            obs_date = astropy.time.Time(self.get_meta_value(self.get_headarr(hdu), 'mjd'), format='mjd')
 
             if obs_date >= t_upgrade:
                 self.detid = 'BI11-41-4k-2,BI13-19-4k-3,BI12-34-4k-1'
@@ -990,7 +1006,7 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
         # TODO: We're opening the file too many times...
         hdrs = self.get_headarr(filename)
         binning = self.get_meta_value(hdrs, 'binning')
-        obs_epoch = time.Time(self.get_meta_value(hdrs, 'mjd'), format='mjd').jyear
+        obs_epoch = astropy.time.Time(self.get_meta_value(hdrs, 'mjd'), format='mjd').jyear
         bin_spec, bin_spat= parse.parse_binning(binning)
 
         # Add the detector-specific, hard-coded bad columns
@@ -1012,7 +1028,7 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
             _bpm_img[i,badr,:] = 1
             # Bad amp as of January 28, 2022
             # https://gemini.edu/sciops/instruments/gmos/GMOS-S_badamp5_ops_3.pdf
-            if 2022.07 < obs_epoch < time.Time("2023-12-14", format='isot').jyear:
+            if 2022.07 < obs_epoch < astropy.time.Time("2023-12-14", format='isot').jyear:
                 badr = (768*2)//bin_spec
                 _bpm_img[i,badr:,:] = 1
         if 3 in _det:
@@ -1024,15 +1040,19 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
         # Done
         return _bpm_img[0] if nimg == 1 else _bpm_img
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1041,24 +1061,37 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument wide
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
-        if self.get_meta_value(scifile, 'dispname')[0:4] == 'R400':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_r400_ham.fits'
-        elif self.get_meta_value(scifile, 'dispname')[0:4] == 'B600':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_south_ham_b600_compiled.fits'
-            par['calibrations']['wavelengths']['method'] = 'reidentify'
-        elif self.get_meta_value(scifile, 'dispname')[0:4] == 'B480':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_north_ham_b480.fits'
-        elif self.get_meta_value(scifile, 'dispname')[0:4] == 'R150':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_r150_ham.fits'
+        # Adjust parameters
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            grating = scifile['dispname'][0]
+            binning = scifile['binning'][0]
+            mjd = scifile['mjd'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            grating = self.get_meta_value(scifile, 'dispname')
+            binning = self.get_meta_value(scifile, 'binning')
+            mjd = self.get_meta_value(scifile, 'mjd')
+
+        # Case out the grating
+        match grating[:4]:
+            case 'R400':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_r400_ham.fits'
+            case 'B600':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_south_ham_b600_compiled.fits'
+                par['calibrations']['wavelengths']['method'] = 'reidentify'
+            case 'B480':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_north_ham_b480.fits'
+            case 'R150':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_r150_ham.fits'
 
         # The bad amp needs a larger follow_span for slit edge tracing
-        obs_epoch = time.Time(self.get_meta_value(scifile, 'mjd'), format='mjd').jyear
-        binning = self.get_meta_value(scifile, 'binning')
-        bin_spec, bin_spat= parse.parse_binning(binning)
-        if 2022.07 < obs_epoch < time.Time("2023-12-14", format='isot').jyear:
+        obs_epoch = astropy.time.Time(mjd, format='mjd').jyear
+        bin_spec, _= parse.parse_binning(binning)
+        if 2022.07 < obs_epoch < astropy.time.Time("2023-12-14", format='isot').jyear:
             par['calibrations']['slitedges']['follow_span'] = 290*bin_spec
         #
         return par
@@ -1203,15 +1236,19 @@ class GeminiGMOSNHamSpectrograph(GeminiGMOSNSpectrograph):
 
         return super().get_mosaic_par(mosaic, hdu=hdu, msc_ord=msc_ord)
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1220,19 +1257,29 @@ class GeminiGMOSNHamSpectrograph(GeminiGMOSNSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument wide
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
-        if self.get_meta_value(scifile, 'dispname')[0:4] == 'R400':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_r400_ham.fits'
-        elif self.get_meta_value(scifile, 'dispname')[0:4] == 'B600':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_b600_ham.fits'
-        elif self.get_meta_value(scifile, 'dispname')[0:4] == 'R831':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_r831_ham.fits'
-        elif self.get_meta_value(scifile, 'dispname')[0:4] == 'B480':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_north_ham_b480.fits'
-        elif self.get_meta_value(scifile, 'dispname')[0:4] == 'R150':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_r150_ham.fits'
+        # Adjust parameters
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            grating = scifile['dispname'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            grating = self.get_meta_value(scifile, 'dispname')
+
+        # Case out the grating
+        match grating[:4]:
+            case 'R400':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_r400_ham.fits'
+            case 'B600':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_b600_ham.fits'
+            case 'R831':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_r831_ham.fits'
+            case 'B480':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_north_ham_b480.fits'
+            case 'R150':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_r150_ham.fits'
 
         return par
 
@@ -1251,15 +1298,19 @@ class GeminiGMOSNHamNSSpectrograph(GeminiGMOSNHamSpectrograph):
         super().__init__()
         self.nod_shuffle_pix = None # Nod & Shuffle
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1268,10 +1319,19 @@ class GeminiGMOSNHamNSSpectrograph(GeminiGMOSNHamSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
+
+        # Get filename for slurping
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            filename = scifile['filename'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            filename = scifile
+
         # Slurp the NOD&Shuffle
-        headarr = self.get_headarr(scifile)
-        self.nod_shuffle_pix = headarr[0]['NODPIX']
+        self.nod_shuffle_pix = self.get_headarr(filename)[0]['NODPIX']
 
         #
         return par
@@ -1474,15 +1534,19 @@ class GeminiGMOSNE2VSpectrograph(GeminiGMOSNSpectrograph):
 
         return super().get_mosaic_par(mosaic, hdu=hdu, msc_ord=msc_ord)
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1491,9 +1555,18 @@ class GeminiGMOSNE2VSpectrograph(GeminiGMOSNSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
-        if self.get_meta_value(scifile, 'dispname')[0:4] == 'R400':
+        # Adjust parameters based on grating used
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            grating = scifile['dispname'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            grating = self.get_meta_value(scifile, 'dispname')
+
+        if grating[0:4] == 'R400':
             par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_r400_e2v_mosaic.fits'
             # The blue wavelengths are *faint*
             #   But redder observations may prefer something closer to the default

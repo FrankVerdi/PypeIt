@@ -3,15 +3,18 @@ Module for MMT/Blue Channel specific methods.
 
 .. include:: ../include/links.rst
 """
+import pathlib
+
+import astropy.io.fits
+import astropy.table
+import astropy.time
 import numpy as np
-from astropy.io import fits
-from astropy.time import Time
 
 from pypeit import msgs
 from pypeit import telescopes
 from pypeit import utils
 from pypeit.core import framematch
-from pypeit.par import pypeitpar
+from pypeit.par import parset
 from pypeit.spectrographs import spectrograph
 from pypeit.core import parse
 from pypeit.images import detector_container
@@ -163,7 +166,7 @@ class MMTBlueChannelSpectrograph(spectrograph.Spectrograph):
             """
             date = headarr[0]['DATE-OBS']
             ut = headarr[0]['UT']
-            ttime = Time(f"{date}T{ut}", format='isot')
+            ttime = astropy.time.Time(f"{date}T{ut}", format='isot')
             return ttime.mjd
         elif meta_key == 'lampstat01':
             """
@@ -277,15 +280,19 @@ class MMTBlueChannelSpectrograph(spectrograph.Spectrograph):
 
         return par
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -294,10 +301,18 @@ class MMTBlueChannelSpectrograph(spectrograph.Spectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
-        grating = self.get_meta_value(scifile, 'dispname')
-        cenwave = self.get_meta_value(scifile, 'cenwave')
+        # Adjust parameters based on grating & cenwave used
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            grating = scifile['dispname'][0]
+            cenwave = scifile['cenwave'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            grating = self.get_meta_value(scifile, 'dispname')
+            cenwave = self.get_meta_value(scifile, 'cenwave')
 
         if grating in ['300GPM', '500GPM', '800GPM', '1200GPM']:
             par['calibrations']['wavelengths']['method'] = 'full_template'
@@ -497,7 +512,7 @@ class MMTBlueChannelSpectrograph(spectrograph.Spectrograph):
 
         # Read FITS image
         msgs.info(f'Reading MMT Blue Channel file: {fil}')
-        hdu = fits.open(fil)
+        hdu = astropy.io.fits.open(fil)
         hdr = hdu[0].header
 
         # we're flipping FITS x/y to pypeit y/x here. pypeit wants blue on the

@@ -5,22 +5,25 @@ Module for Keck/MOSFIRE specific methods.
 """
 import copy
 import os
+import pathlib
+
+import astropy.io.fits
+import astropy.table
 import numpy as np
-from astropy.io import fits
-from astropy.stats import sigma_clipped_stats
+
 from pypeit import msgs
 from pypeit import telescopes
-from pypeit.core import framematch, meta
-from pypeit import utils
+from pypeit.core import framematch
+from pypeit.core import meta
 from pypeit import io
 from pypeit.spectrographs import spectrograph
 from pypeit.images import detector_container
-from scipy import special
+from pypeit.par import parset
 from pypeit.spectrographs.slitmask import SlitMask
-
-from pypeit.utils import index_of_x_eq_y
+from pypeit import utils
 
 from IPython import embed
+
 
 class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
     """
@@ -145,15 +148,19 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
         mosfire_filter = self.get_meta_value(file, 'filter1')
         return os.path.join(self.name, mosfire_filter)
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -162,10 +169,18 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
-        headarr = self.get_headarr(scifile)
-        decker = self.get_meta_value(headarr, 'decker')
+        # Adjust parameters based on decker and filter used
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            decker = scifile['decker'][0]
+            filter = scifile['filter1'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            decker = self.get_meta_value(scifile, 'decker')
+            filter = self.get_meta_value(scifile, 'filter1')
 
         if 'LONGSLIT' in decker:
             # turn PCA off
@@ -205,43 +220,44 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
 
         # wavelength calibration
         supported_filters = ['Y', 'J', 'J2', 'H', 'K']
-        filter = self.get_meta_value(headarr, 'filter1')
         # using OH lines
         if 'long2pos_specphot' not in decker and filter in supported_filters:
             par['calibrations']['wavelengths']['method'] = 'full_template'
             par['calibrations']['wavelengths']['sigdetect'] = 10.
             # templates
-            if filter == 'Y':
-                par['calibrations']['wavelengths']['lamps'] = ['OH_MOSFIRE_Y']
-                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_OH_Y.fits'
-            elif filter == 'J':
-                par['calibrations']['wavelengths']['lamps'] = ['OH_MOSFIRE_J']
-                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_OH_J.fits'
-            elif filter == 'J2':
-                par['calibrations']['wavelengths']['lamps'] = ['OH_MOSFIRE_J']
-                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_OH_J2.fits'
-            elif filter == 'H':
-                par['calibrations']['wavelengths']['lamps'] = ['OH_MOSFIRE_H']
-                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_OH_H.fits'
-            elif filter == 'K':
-                par['calibrations']['wavelengths']['lamps'] = ['OH_MOSFIRE_K']
-                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_OH_K.fits'
+            match filter:
+                case 'Y':
+                    par['calibrations']['wavelengths']['lamps'] = ['OH_MOSFIRE_Y']
+                    par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_OH_Y.fits'
+                case 'J':
+                    par['calibrations']['wavelengths']['lamps'] = ['OH_MOSFIRE_J']
+                    par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_OH_J.fits'
+                case 'J2':
+                    par['calibrations']['wavelengths']['lamps'] = ['OH_MOSFIRE_J']
+                    par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_OH_J2.fits'
+                case 'H':
+                    par['calibrations']['wavelengths']['lamps'] = ['OH_MOSFIRE_H']
+                    par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_OH_H.fits'
+                case 'K':
+                    par['calibrations']['wavelengths']['lamps'] = ['OH_MOSFIRE_K']
+                    par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_OH_K.fits'
 
         # using arc lines (we use this as default only for long2pos_specphot mask)
         elif 'long2pos_specphot' in decker and filter in supported_filters:
             par['calibrations']['wavelengths']['lamps'] = ['Ar_IR_MOSFIRE', 'Ne_IR_MOSFIRE']
             par['calibrations']['wavelengths']['method'] = 'full_template'
             # templates
-            if filter == 'Y':
-                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_arcs_Y.fits'
-            elif filter == 'J':
-                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_arcs_J.fits'
-            elif filter == 'J2':
-                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_arcs_J2.fits'
-            elif filter == 'H':
-                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_arcs_H.fits'
-            elif filter == 'K':
-                par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_arcs_K.fits'
+            match filter:
+                case 'Y':
+                    par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_arcs_Y.fits'
+                case 'J':
+                    par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_arcs_J.fits'
+                case 'J2':
+                    par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_arcs_J2.fits'
+                case 'H':
+                    par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_arcs_H.fits'
+                case 'K':
+                    par['calibrations']['wavelengths']['reid_arxiv'] = 'keck_mosfire_arcs_K.fits'
 
         # Return
         return par
@@ -748,7 +764,7 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
         dither_pattern = []
         dither_id = []
         for ifile, file in enumerate(file_list):
-            hdr = fits.getheader(file, self.primary_hdrext if ext is None else ext)
+            hdr = astropy.io.fits.getheader(file, self.primary_hdrext if ext is None else ext)
             dither_pattern.append(hdr['PATTERN'])
             dither_id.append(hdr['FRAMEID'])
             offset_arcsec[ifile] = hdr['YOFFSET']
@@ -945,7 +961,7 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
         botdist = np.round(slit_centers - targ_dist_center, 3)
 
         # Find the index to map the objects in the Science Slit List and the Target list
-        indx = index_of_x_eq_y(targs['Target_Name'], ssl['Target_Name'])
+        indx = utils.index_of_x_eq_y(targs['Target_Name'], ssl['Target_Name'])
         targs_mtch = targs[indx]
         obj_ra = targs_mtch['RA_Hours']+' '+targs_mtch['RA_Minutes']+' '+targs_mtch['RA_Seconds']
         obj_dec = targs_mtch['Dec_Degrees']+' '+targs_mtch['Dec_Minutes']+' '+targs_mtch['Dec_Seconds']

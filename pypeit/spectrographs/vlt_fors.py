@@ -3,17 +3,23 @@ Module for VLT FORS (1 and 2)
 
 .. include:: ../include/links.rst
 """
+import pathlib
+
+import astropy.coordinates
+import astropy.io.fits
+import astropy.table
+from astropy import units
 import numpy as np
+
 from pypeit import msgs
 from pypeit import telescopes
 from pypeit.core import parse
 from pypeit.core import framematch
 from pypeit.core import meta
-from pypeit.spectrographs import spectrograph
 from pypeit.images import detector_container
-from astropy.coordinates import SkyCoord
-from astropy import units
-from astropy.io import fits
+from pypeit.par import parset
+from pypeit.spectrographs import spectrograph
+
 from IPython import embed
 
 class VLTFORSSpectrograph(spectrograph.Spectrograph):
@@ -301,15 +307,19 @@ class VLTFORS2Spectrograph(VLTFORSSpectrograph):
         else:
             msgs.error(f'Unknown chip: {chip}!')
 
-    def config_specific_par(self, scifile, inp_par=None):
+    def config_specific_par(
+            self,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp_par:parset.ParSet=None
+        ):
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`):
-                File to use when determining the configuration and how
-                to adjust the input parameters.
+            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+                Input filename, an `astropy.io.fits.Header`_ object, or a list
+                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -318,28 +328,39 @@ class VLTFORS2Spectrograph(VLTFORSSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument wide
+        # Start with instrument-wide parameters (does not actually use `scifile`)
         par = super().config_specific_par(scifile, inp_par=inp_par)
+
+        # Adjust parameters based on grating & decker used
+        if isinstance(scifile, astropy.table.Table):
+            # The method was passed a metadata table row
+            grating = scifile['dispname'][0]
+            decker = scifile['decker'][0]
+        else:
+            # The method was passed the raw file info in one form or another
+            grating = self.get_meta_value(scifile, 'dispname')
+            decker = self.get_meta_value(scifile, 'decker')
+
         # TODO: Should we allow the user to override these?
 
         #detector = self.get_meta_value(scifile, 'detector')
         #self.set_detector(detector)
         # Wavelengths
         #par['calibrations']['wavelengths']['nonlinear_counts'] = self.detector[0]['nonlinear'] * self.detector[0]['saturation']
-        if self.get_meta_value(scifile, 'dispname') == 'GRIS_300I':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'vlt_fors2_300I.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-        elif self.get_meta_value(scifile, 'dispname') == 'GRIS_300V':
-            par['calibrations']['wavelengths']['reid_arxiv'] = 'vlt_fors2_300V.fits'
-            par['calibrations']['wavelengths']['method'] = 'full_template'
-        elif self.get_meta_value(scifile, 'dispname') == 'GRIS_600z':
-            par['calibrations']['wavelengths']['lamps'] = ['OH_NIRES']
-            par['calibrations']['wavelengths']['method'] = 'holy-grail'
-            # Since we are using the sky to fit the wavelengths don't correct for flexure
-            par['flexure']['spec_method'] = 'skip'
-            #par['reduce']['skysub']['bspline_spacing'] = 0.6
+        match grating:
+            case 'GRIS_300I':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'vlt_fors2_300I.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+            case 'GRIS_300V':
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'vlt_fors2_300V.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+            case 'GRIS_600z':
+                par['calibrations']['wavelengths']['lamps'] = ['OH_NIRES']
+                par['calibrations']['wavelengths']['method'] = 'holy-grail'
+                # Since we are using the sky to fit the wavelengths don't correct for flexure
+                par['flexure']['spec_method'] = 'skip'
+                #par['reduce']['skysub']['bspline_spacing'] = 0.6
 
-        decker = self.get_meta_value(scifile, 'decker')
         if 'lSlit' in decker or 'LSS' in decker:
             par['calibrations']['slitedges']['sync_predict'] = 'nearest'
 
@@ -431,7 +452,7 @@ class VLTFORS2Spectrograph(VLTFORSSpectrograph):
         dither_pattern = None
         dither_id = None
         for ifile, file in enumerate(file_list):
-            hdr = fits.getheader(file, self.primary_hdrext if ext is None else ext)
+            hdr = astropy.io.fits.getheader(file, self.primary_hdrext if ext is None else ext)
             try:
                 ra, dec = meta.convert_radec(self.get_meta_value(hdr, 'ra', no_fussing=True),
                                     self.get_meta_value(hdr, 'dec', no_fussing=True))
@@ -439,7 +460,7 @@ class VLTFORS2Spectrograph(VLTFORSSpectrograph):
                 msgs.warn('Encounter invalid value of your coordinates. Give zeros for both RA and DEC. Check that this does not cause problems with the offsets')
                 ra, dec = 0.0, 0.0
             if ifile == 0:
-                coord_ref = SkyCoord(ra*units.deg, dec*units.deg)
+                coord_ref = astropy.coordinates.SkyCoord(ra*units.deg, dec*units.deg)
                 offset_arcsec[ifile] = 0.0
                 # ESOs position angle appears to be the negative of the canonical astronomical convention
                 posang_ref = -(hdr['HIERARCH ESO INS SLIT POSANG']*units.deg)
@@ -447,7 +468,7 @@ class VLTFORS2Spectrograph(VLTFORSSpectrograph):
                 # Unit vector pointing in direction of slit PA
                 u_hat_slit = np.array([np.sin(posang_ref), np.cos(posang_ref)]) # [u_hat_ra, u_hat_dec]
             else:
-                coord_this = SkyCoord(ra*units.deg, dec*units.deg)
+                coord_this = astropy.coordinates.SkyCoord(ra*units.deg, dec*units.deg)
                 posang_this = coord_ref.position_angle(coord_this).to('deg')
                 separation  = coord_ref.separation(coord_this).to('arcsec').value
                 ra_off, dec_off = coord_ref.spherical_offsets_to(coord_this)
