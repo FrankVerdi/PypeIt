@@ -421,7 +421,7 @@ def extract_one(spectrograph, fitstbl, par,
 
     # Update the global sky
     skymask = None
-    if 'standard' in fitstbl['frametype'][frames[0]] or \
+    if 'standard' in objtype or \
             par['reduce']['findobj']['skip_skysub'] or \
             par['reduce']['findobj']['skip_final_global'] or \
             par['reduce']['skysub']['user_regions'] is not None:
