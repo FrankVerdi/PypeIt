@@ -51,6 +51,14 @@ Functionality/Performance Improvements and Additions
   when the user is completely satisfied of the quality of the extracted 1D spectra.
 - Added ``ExtractionPar`` parameter ``min_frac_prof`` to allow the user to set the minimum
   fraction of the object spatial profile that is not masked in the optimal extraction.
+- Changed the implementation on how to set the reference objects, used to
+  compute spatial offsets and/or weights when combining 2D spectra (i.e.,
+  ``pypeit_coadd_2dspec``). The user can now provide a list of reference objects
+  (one per spec2d file) using the ``SPAT_PIXPOS_ID`` or ``ECH_FRACPOS_ID`` (for
+  MultiSlit and Echelle data, respectively) attributes in ``SpecObj`` as unique
+  identifiers for reference objects. These identifiers can be provided using the
+  ``user_obj_ids`` parameter in the ``Coadd2DPar`` parsets. The ``user_obj``
+  parameter has been removed.
 
 Instrument-specific Updates
 ---------------------------
@@ -81,6 +89,9 @@ Datamodel Changes
   attribute, which contains the information about the size of the boxcar radius in
   arcsec. In addition, the already existing ``BOX_RADIUS`` attribute, which contains
   the boxcar radius in pixels, had the name changed to ``BOX_R_PIX``.
+- The ``SpecObj`` datamodel has been updated (v1.1.13) to include the ``SPAT_PIXPOS_ID``
+  and ``ECH_FRACPOS_ID`` attributes, which are unique identifiers for the extracted objects
+  from MultiSlit and Echelle data, respectively.
 
 
 
