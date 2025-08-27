@@ -1,6 +1,6 @@
 
 
-Version: 1.1.12
+Version: 1.1.13
 
 =======================  =========================  =================  ====================================================================================================================================================================================
 Obj Key                  Obj Type                   Array Type         Description                                                                                                                                                                         
@@ -27,6 +27,7 @@ Obj Key                  Obj Type                   Array Type         Descripti
 ``DET``                  str                                           A string identifier for the reduced detector or mosaic.                                                                                                                             
 ``DETECTOR``             DetectorContainer, Mosaic                     Object with the detector or mosaic metadata                                                                                                                                         
 ``ECH_FRACPOS``          float, floating                               Synced echelle fractional location of the object on the slit                                                                                                                        
+``ECH_FRACPOS_ID``       int, integer                                  Echelle fractional location of the object on the slit multiplied by 1000 used as a unique identifier for the naming model                                                           
 ``ECH_NAME``             str                                           Name of the object for echelle data. Same as NAME above but order numbers are omitted giving a unique name per object.                                                              
 ``ECH_OBJID``            int, integer                                  Object ID for echelle data. Each object is given an index in the order it appears increasing from from left to right. These are one based.                                          
 ``ECH_ORDER``            int, integer                                  Physical echelle order                                                                                                                                                              
@@ -67,6 +68,7 @@ Obj Key                  Obj Type                   Array Type         Descripti
 ``SPAT_FRACPOS``         float, floating                               Fractional location of the object on the slit                                                                                                                                       
 ``SPAT_FWHM``            float                                         Spatial FWHM of the object (arcsec)                                                                                                                                                 
 ``SPAT_PIXPOS``          float, floating                               Spatial location of the trace on detector (pixel) at half-way                                                                                                                       
+``SPAT_PIXPOS_ID``       int, integer                                  Nearest integer spatial location of the trace on detector (pixel) at half-way used as a unique identifier for the naming model                                                      
 ``TRACE_SPAT``           ndarray                    float              Object trace along the spec (spatial pixel)                                                                                                                                         
 ``VEL_CORR``             float                                         Relativistic velocity correction for wavelengths                                                                                                                                    
 ``VEL_TYPE``             str                                           Type of heliocentric correction (if any)                                                                                                                                            

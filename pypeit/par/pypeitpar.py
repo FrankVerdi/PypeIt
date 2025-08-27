@@ -1488,7 +1488,7 @@ class Coadd2DPar(ParSet):
     For a table with the current keywords, defaults, and descriptions,
     see :ref:`parameters`.
     """
-    def __init__(self, only_slits=None, exclude_slits=None, offsets=None, spat_toler=None, weights=None, user_obj=None,
+    def __init__(self, only_slits=None, exclude_slits=None, offsets=None, spat_toler=None, weights=None, user_obj_ids=None,
                  use_slits4wvgrid=None, manual=None, wave_method=None, spec_samp_fact=None, spat_samp_fact=None):
 
         # Grab the parameter names and values from the function
@@ -1522,7 +1522,7 @@ class Coadd2DPar(ParSet):
                            '(currently available for these :ref:`slitmask_info_instruments` only). If equal ' \
                            'to ``header``, the dither offsets recorded in the header, when available, will be used. ' \
                            'If ``auto`` is chosen, PypeIt will try to compute the offsets using a reference object ' \
-                           'with the highest S/N, or an object selected by the user (see ``user_obj``). ' \
+                           'with the highest S/N, or using a list of object ids selected by the user (see ``user_obj_ids``). ' \
                            'If a list of offsets is provided, PypeIt will use it.'
 
         defaults['spat_toler'] = 5
@@ -1539,24 +1539,31 @@ class Coadd2DPar(ParSet):
         defaults['weights'] = 'auto'
         dtypes['weights'] = [str, list]
         descr['weights'] = 'Mode for the weights used to coadd images. Options are: ' \
-                           '``auto``, ``uniform``, or a list of weights. If ``auto`` is used, ' \
-                           'PypeIt will try to compute the weights using a reference object ' \
-                           'with the highest S/N, or an object selected by the user (see ``user_obj``), ' \
-                           'if ``uniform`` is used, uniform weights will be applied. If a list of weights ' \
-                           'is provided, PypeIt will use it.'
+                           '``auto``, ``uniform``, or a list of weights. ' \
+                           'If a list of weights is provided, PypeIt will use it.' \
+                           'if ``uniform`` is used, uniform weights will be applied.' \
+                           'If ``auto`` is used, PypeIt will try to compute the weights ' \
+                           'using a reference object with the highest S/N, or using a list ' \
+                           'of object ids selected by the user indicating a reference object ' \
+                           'in each exposure (see ``user_obj_ids``). If the reference object ' \
+                           'is not found, the code will use uniform weights. '
 
         # object to use for weights and offsets
-        defaults['user_obj'] = None
-        dtypes['user_obj'] = [int, list]
-        descr['user_obj'] = 'Object that the user wants to use to compute the weights and/or the ' \
-                            'offsets for coadding images. For longslit/multislit spectroscopy, provide the ' \
-                            '``SLITID`` and the ``OBJID``, separated by comma, of the selected object. ' \
-                            'For echelle spectroscopy, provide the ``ECH_OBJID`` of the selected object. ' \
-                            'See :doc:`out_spec1D` for more info about ``SLITID``, ``OBJID`` and ``ECH_OBJID``. ' \
-                            'If this parameter is not ``None``, it will be used to compute the offsets ' \
-                            'only if ``offsets = auto``, and it will used to compute ' \
-                            'the weights only if ``weights = auto``.'
-        # TODO For echelle coadds this should just default to 1
+        defaults['user_obj_ids'] = None
+        dtypes['user_obj_ids'] = list
+        descr['user_obj_ids'] = 'List of unique object identifiers that the user wants to use '\
+                                'to compute the weights and/or the offsets for coadding images. '\
+                                'For longslit/multislit spectroscopy, provide the ``SPAT_PIXPOS_ID`` '\
+                                'of the object in each of the exposures. For echelle spectroscopy, '\
+                                'provide the ``ECH_FRACPOS_ID`` of the object in each exposure. ' \
+                                'These unique object identifiers can be found in the spec1d*.txt ' \
+                                'files for each exposure. See :doc:`out_spec1D` for more info about ' \
+                                '``SPAT_PIXPOS_ID`` and ``ECH_FRACPOS_ID``. This parameter must always ' \
+                                'be a list of the same length as the number of exposures being coadded. ' \
+                                'If this parameter is not ``None``, it will be used to compute the offsets ' \
+                                'only if ``offsets = auto``, and it will used to compute the weights ' \
+                                'only if ``weights = auto``.'
+
 
         # TODO: Why is this spat:spec and not spec:spat like everything else??
         # manual extraction
@@ -1615,7 +1622,7 @@ class Coadd2DPar(ParSet):
     @classmethod
     def from_dict(cls, cfg):
         k = np.array([*cfg.keys()])
-        parkeys = ['only_slits', 'exclude_slits', 'offsets', 'spat_toler', 'weights', 'user_obj',
+        parkeys = ['only_slits', 'exclude_slits', 'offsets', 'spat_toler', 'weights', 'user_obj_ids',
                    'use_slits4wvgrid', 'manual', 'wave_method', 'spec_samp_fact', 'spat_samp_fact']
 
         badkeys = np.array([pk not in parkeys for pk in k])
@@ -4562,7 +4569,7 @@ class ExtractionPar(ParSet):
     see :ref:`parameters`.
     """
 
-    def __init__(self, boxcar_radius=None, std_prof_nsigma=None, sn_gauss=None,
+    def __init__(self, boxcar_radius=None, std_prof_nsigma=None, min_frac_prof=None, sn_gauss=None,
                  model_full_slit=None, skip_extraction=None, skip_optimal=None,
                  use_2dmodel_mask=None, use_user_fwhm=None, return_negative=None):
 
@@ -4598,6 +4605,12 @@ class ExtractionPar(ParSet):
         dtypes['std_prof_nsigma'] = float
         descr['std_prof_nsigma'] = 'prof_nsigma parameter for Standard star extraction.  Prevents undesired rejection. ' \
                                    'NOTE: Not consumed by the code at present.'
+
+        defaults['min_frac_prof'] = 0.05
+        dtypes['min_frac_prof'] = float
+        descr['min_frac_prof'] = 'For each spectral pixel, if the sum of the normalized object profile' \
+                                 ' across the spatial direction is less than this value,' \
+                                 ' the optimal extraction will also be masked. '
 
         defaults['sn_gauss'] = 4.0
         dtypes['sn_gauss'] = [int, float]
@@ -4640,7 +4653,7 @@ class ExtractionPar(ParSet):
         k = np.array([*cfg.keys()])
 
         # Basic keywords
-        parkeys = ['boxcar_radius', 'std_prof_nsigma', 'sn_gauss', 'model_full_slit',
+        parkeys = ['boxcar_radius', 'std_prof_nsigma', 'min_frac_prof', 'sn_gauss', 'model_full_slit',
                    'skip_extraction', 'skip_optimal', 'use_2dmodel_mask', 'use_user_fwhm', 'return_negative']
 
         badkeys = np.array([pk not in parkeys for pk in k])

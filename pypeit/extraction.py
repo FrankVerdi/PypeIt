@@ -780,6 +780,7 @@ class MultiSlitExtract(Extract):
             sn_gauss = self.par['reduce']['extraction']['sn_gauss']
             use_2dmodel_mask = self.par['reduce']['extraction']['use_2dmodel_mask']
             no_local_sky = self.par['reduce']['skysub']['no_local_sky']
+            min_frac_prof = self.par['reduce']['extraction']['min_frac_prof']
 
             # TODO: skysub.local_skysub_extract() accepts a `prof_nsigma` parameter, but none
             #       is provided here.  Additionally, the ExtractionPar keyword std_prof_nsigma
@@ -793,7 +794,7 @@ class MultiSlitExtract(Extract):
                                               self.tilts, self.waveimg, self.global_sky,
                                               thismask, self.slits_left[:,slit_idx],
                                               self.slits_right[:, slit_idx],
-                                              self.sobjs[thisobj], ingpm=ingpm,
+                                              self.sobjs[thisobj], min_frac_use=min_frac_prof, ingpm=ingpm,
                                               bkg_redux_global_sky=bkg_redux_global_sky,
                                               fwhmimg=self.fwhmimg, flatimg=self.flatimg, spat_pix=spat_pix,
                                               model_full_slit=model_full_slit,
@@ -899,12 +900,14 @@ class EchelleExtract(Extract):
         force_gauss = self.par['reduce']['extraction']['use_user_fwhm']
         use_2dmodel_mask = self.par['reduce']['extraction']['use_2dmodel_mask']
         no_local_sky = self.par['reduce']['skysub']['no_local_sky']
+        min_frac_prof = self.par['reduce']['extraction']['min_frac_prof']
 
         self.skymodel, self.bkg_redux_skymodel, self.objmodel, self.ivarmodel, self.outmask, self.sobjs \
             = skysub.ech_local_skysub_extract(self.sciImg.image, self.sciImg.ivar,
                                               self.sciImg.fullmask, self.tilts, self.waveimg,
                                               self.global_sky, self.slits_left[:, gdorders],
                                               self.slits_right[:, gdorders], self.slitmask, sobjs,
+                                              min_frac_use=min_frac_prof,
                                               bkg_redux_global_sky=bkg_redux_global_sky,
                                               spat_pix=spat_pix,
                                               fwhmimg=self.fwhmimg, flatimg=self.flatimg,
