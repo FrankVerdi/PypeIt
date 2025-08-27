@@ -49,6 +49,8 @@ Functionality/Performance Improvements and Additions
 - Allow the user to skip writing 2D science spectrum files.  Note that this should
   only be invoked after careful inspection of a sample of 2D reduced spectra and
   when the user is completely satisfied of the quality of the extracted 1D spectra.
+- Added ``ExtractionPar`` parameter ``min_frac_prof`` to allow the user to set the minimum
+  fraction of the object spatial profile that is not masked in the optimal extraction.
 
 Instrument-specific Updates
 ---------------------------
@@ -74,6 +76,11 @@ Script Changes
 
 Datamodel Changes
 -----------------
+
+- The ``SpecObj`` datamodel has been updated (v1.1.12) to include the ``BOX_R_ASEC``
+  attribute, which contains the information about the size of the boxcar radius in
+  arcsec. In addition, the already existing ``BOX_RADIUS`` attribute, which contains
+  the boxcar radius in pixels, had the name changed to ``BOX_R_PIX``.
 
 
 
@@ -108,3 +115,10 @@ Bug Fixes
 - For Gemini GMOS, PypeIt now correctly uses mask definition files with tilted
   slits. (Before, it would simply fail with an error message if any slits were
   tilted.)
+- Fix a bug in the ``order_platescale()`` method for the ``keck_esi`` spectrograph,
+  where the wrong binning was used to compute the platescale.
+- Fix a bug in how the ``box_width``, showed in arcsec in the "spec1d*.txt" file, was
+  computed for the echelle data. The value was previously not accounting for the
+  order-specific plate scale.
+- Fix a bug in the ``core.findobj_skymask.ech_fill_in_orders()`` method, where attributes
+  of objects only found on some orders were not properly propagated to the other orders.

@@ -611,8 +611,6 @@ def ech_fill_in_orders(sobjs:specobjs.SpecObjs,
                                              OBJTYPE=sobjs_align[0].OBJTYPE,
                                              ECH_ORDERINDX=iord,
                                              ECH_ORDER=this_order)
-                #thisobj.ECH_ORDERINDX = iord
-                #thisobj.ech_order = order_vec[iord]
                 thisobj.SPAT_FRACPOS = uni_frac[iobj]
                 # Assign traces using the fractional position fit above
                 if std_trace is not None and 'ECH_ORDER' in std_trace.keys() and \
@@ -631,14 +629,18 @@ def ech_fill_in_orders(sobjs:specobjs.SpecObjs,
                 thisobj.SPAT_PIXPOS = thisobj.TRACE_SPAT[specmid]
                 # Use the real detections of this objects for the FWHM
                 this_obj_id = obj_id == uni_obj_id[iobj]
+                this_salign = sobjs_align[this_obj_id]
                 # Assign to the fwhm of the nearest detected order
-                imin = np.argmin(np.abs(sobjs_align[this_obj_id].ECH_ORDER - this_order))
-                thisobj.FWHM = sobjs_align[imin].FWHM
-                thisobj.hand_extract_flag = sobjs_align[imin].hand_extract_flag
-                thisobj.maskwidth = sobjs_align[imin].maskwidth
-                thisobj.smash_peakflux = sobjs_align[imin].smash_peakflux
-                thisobj.smash_snr = sobjs_align[imin].smash_snr
-                thisobj.BOX_RADIUS = sobjs_align[imin].BOX_RADIUS
+                imin = np.argmin(np.abs(this_salign.ECH_ORDER - this_order))
+                # NOTE: when assigning FWHM, maskwidth, and BOX_R_PIX (in pixels) using the values
+                # from the nearest detected order, for spectrographs with different platescale per order,
+                # these values will be different in arcseconds (which may not be a desirable approach).
+                thisobj.FWHM = this_salign[imin].FWHM
+                thisobj.hand_extract_flag = this_salign[imin].hand_extract_flag
+                thisobj.maskwidth = this_salign[imin].maskwidth
+                thisobj.smash_peakflux = this_salign[imin].smash_peakflux
+                thisobj.smash_snr = this_salign[imin].smash_snr
+                thisobj.BOX_R_PIX = this_salign[imin].BOX_R_PIX
                 thisobj.ECH_FRACPOS = uni_frac[iobj]
                 thisobj.ECH_OBJID = uni_obj_id[iobj]
                 thisobj.OBJID = uni_obj_id[iobj]
@@ -1897,7 +1899,7 @@ def objs_in_slit(image, ivar, thismask, slit_left, slit_righ,
                 sobjs[iobj].FWHM = get_fwhm(fwhm, nsamp, sobjs[iobj].smash_peakflux, sobjs[iobj].SPAT_FRACPOS, flux_smash_smth)
 
             # assign BOX_RADIUS
-            sobjs[iobj].BOX_RADIUS = boxcar_rad
+            sobjs[iobj].BOX_R_PIX = boxcar_rad
 
         if len(sobjs) == 0 and hand_extract_dict is None:
             # TODO: Why is this not done way above?
@@ -1995,9 +1997,9 @@ def objs_in_slit(image, ivar, thismask, slit_left, slit_righ,
                 thisobj.FWHM = fwhm
             # assign BOX_RADIUS (pixels!)
             if hand_extract_boxcar[iobj] > 0.:
-                thisobj.BOX_RADIUS = hand_extract_boxcar[iobj]
+                thisobj.BOX_R_PIX = hand_extract_boxcar[iobj]
             else:
-                thisobj.BOX_RADIUS = boxcar_rad
+                thisobj.BOX_R_PIX = boxcar_rad
             # Finish
             sobjs.add_sobj(thisobj)
 

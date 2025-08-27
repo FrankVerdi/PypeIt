@@ -947,7 +947,7 @@ class SlitTraceSet(calibframe.CalibFrame):
 
             # FWHM
             thisobj.FWHM = fwhm  # pixels
-            thisobj.BOX_RADIUS = boxcar_rad  # pixels
+            thisobj.BOX_R_PIX = boxcar_rad  # pixels
             thisobj.maskwidth = 4. * fwhm  # matches objfind() in extract.py
             thisobj.smash_snr = 0.
             thisobj.smash_peakflux = 0.

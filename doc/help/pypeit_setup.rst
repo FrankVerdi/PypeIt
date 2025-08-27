@@ -10,7 +10,7 @@
     
     options:
       -h, --help            show this help message and exit
-      -s, --spectrograph SPECTROGRAPH
+      -s SPECTROGRAPH, --spectrograph SPECTROGRAPH
                             A valid spectrograph identifier: aat_uhrf, apf_levy,
                             bok_bc, gemini_flamingos1, gemini_flamingos2,
                             gemini_gmos_north_e2v, gemini_gmos_north_ham,
@@ -33,24 +33,24 @@
                             tng_dolores, vlt_fors2, vlt_sinfoni, vlt_xshooter_nir,
                             vlt_xshooter_uvb, vlt_xshooter_vis, wht_isis_blue,
                             wht_isis_red (default: None)
-      -r, --root ROOT [ROOT ...]
+      -r ROOT [ROOT ...], --root ROOT [ROOT ...]
                             Root to search for data files. You can provide the top-
                             level directory (e.g., /data/Kast) or the search string
                             up through the wildcard (.e.g, /data/Kast/b). Use the
                             --extension option to set the types of files to search
                             for. (default: current working directory)
-      -e, --extension EXTENSION
+      -e EXTENSION, --extension EXTENSION
                             File extension to use. Must include the period (e.g.,
                             ".fits") and it must be one of the allowed extensions
                             for this spectrograph. If None, root directory will be
                             searched for all files with any of the allowed
                             extensions. (default: None)
-      -d, --output_path OUTPUT_PATH
+      -d OUTPUT_PATH, --output_path OUTPUT_PATH
                             Path to top-level output directory. (default: current
                             working directory)
       -o, --overwrite       Overwrite any existing files/directories (default:
                             False)
-      -c, --cfg_split CFG_SPLIT
+      -c CFG_SPLIT, --cfg_split CFG_SPLIT
                             Generate the PypeIt files and folders by input
                             configuration. To write all unique configurations
                             identifed, use 'all', otherwise provide the list of
@@ -63,7 +63,7 @@
       -m, --manual_extraction
                             Include the manual extraction column for the user to
                             edit (default: False)
-      -v, --verbosity VERBOSITY
+      -v VERBOSITY, --verbosity VERBOSITY
                             Verbosity level between 0 [none] and 2 [all]. Default:
                             1. Level 2 writes a log with filename setup_YYYYMMDD-
                             HHMM.log (default: 1)
@@ -74,7 +74,7 @@
                             option in pypeit_obslog; i.e., you have to tell
                             pypeit_setup to keep these frames, whereas you have to
                             tell pypeit_obslog to remove them. (default: False)
-      -p, --param_block_file PARAM_BLOCK_FILE
+      -p PARAM_BLOCK_FILE, --param_block_file PARAM_BLOCK_FILE
                             File containing the additional PypeIt user parameters to
                             be added to the parameter block of the generated
                             reduction file (default: None)
