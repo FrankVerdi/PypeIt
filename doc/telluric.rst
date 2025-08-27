@@ -173,7 +173,7 @@ teltype
 
 There are two options to model the atmospheric absorption, ``pca`` (default)
 and ``grid`` (legacy). Both options are based on atmospheric radiative transfer
-models as described above.
+models as described above. See also :ref:`install_atmosphere`.
 
 The ``pca`` option uses the PCA decomposition of a massive grid of atmospheric
 models run for many different observatories, and should thus work for just about
@@ -188,7 +188,9 @@ telgridfile
 There are different TellPCA files available corresponding to different (maximum) 
 spectral resolutions and wavelength ranges. All spectrographs which default to 
 the ``IR`` telluric method have the suitable file as the default value of 
-``telgridfile``.
+``telgridfile``. It is important to remember that, if the user wants to use
+grids of pre-computed observatory-specific atmospheric models (TelFit files),
+``teltype`` parameter must be changed accordingly.
 
 tell_npca
 +++++++++

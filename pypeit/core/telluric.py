@@ -171,12 +171,17 @@ def read_telluric_pca(filename, wave_min=None, wave_max=None, pad_frac=0.10):
             - coefs_tell_pca: Set of model coefficient values (for prior in future)
             - teltype: Type of telluric model, i.e. 'pca'
     """
-    # load_telluric_grid() takes care of path and existance check
+    # load_telluric_grid() takes care of path and existence check
     hdul = io.load_telluric_grid(filename)
     wave_grid_full = hdul[1].data
     pca_comp_full = hdul[0].data
     nspec_full = wave_grid_full.size
-    ncomp = hdul[0].header['NCOMP']
+    ncomp = hdul[0].header.get('NCOMP')
+    # check that the telgrid file is the correct one for this method
+    if ncomp is None:
+        msgs.error("Could NOT read the number of PCA components of the telluric model. "
+                   "Are you using a grid-based model instead? If so, you should "
+                   " set teltype=grid")
     bounds = hdul[2].data
     model_coefs = hdul[3].data
 
@@ -240,6 +245,12 @@ def read_telluric_grid(filename, wave_min=None, wave_max=None, pad_frac=0.10):
                     if wave_max is not None else nspec_full
     wave_grid = wave_grid_full[ind_lower:ind_upper]
     model_grid = model_grid_full[...,ind_lower:ind_upper]
+
+    # check that the telgrid file is the correct one for this method
+    if hdul[0].header.get('PRES0') is None:
+        msgs.error("Could NOT read the atmospheric information from the telluric model. "
+                   "Are you using a PCA-based model instead? If so, you should "
+                   " set teltype=pca")
 
     pg = hdul[0].header['PRES0']+hdul[0].header['DPRES']*np.arange(0,hdul[0].header['NPRES'])
     tg = hdul[0].header['TEMP0']+hdul[0].header['DTEMP']*np.arange(0,hdul[0].header['NTEMP'])
@@ -2428,10 +2439,12 @@ class Telluric(datamodel.DataContainer):
         # 3) Read the telluric grid and initalize associated parameters
         wv_gpm = self.wave_in_arr > 1.0
         if self.teltype == 'pca':
+            msgs.info(f'Reading in the pca-based telluric model: {self.telgrid}')
             self.tell_dict = read_telluric_pca(self.telgrid, wave_min=self.wave_in_arr[wv_gpm].min(),
                                                wave_max=self.wave_in_arr[wv_gpm].max())
         elif self.teltype == 'grid':
             self.tell_npca = 4
+            msgs.info(f'Reading in the grid-based telluric model: {self.telgrid}')
             self.tell_dict = read_telluric_grid(self.telgrid, wave_min=self.wave_in_arr[wv_gpm].min(),
                                                 wave_max=self.wave_in_arr[wv_gpm].max())
 
