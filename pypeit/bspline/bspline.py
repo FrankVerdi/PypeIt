@@ -97,17 +97,19 @@ class bspline(datamodel.DataContainer):
     Datamodel version
     """
 
-    # TODO: Fix the description of icoeff
     datamodel = {
         'breakpoints': dict(otype=np.ndarray, atype=np.floating, descr='Breakpoint locations'),
         'nord': dict(otype=int, descr='Order of the bspline fit'),
-        'npoly': dict(otype=int, descr='Order of the bspline polynomial'),
-        'mask': dict(otype=np.ndarray, atype=np.bool_, descr='Mask'),
-        'coeff': dict(otype=np.ndarray, atype=np.floating, descr='Fit coefficients'),
-        'icoeff': dict(otype=np.ndarray, atype=np.floating, descr='??'),
-        'xmin': dict(otype=float, descr='Normalization for input data'),
-        'xmax': dict(otype=float, descr='Normalization for input data'),
-        'funcname': dict(otype=str, descr='Function of fit'),
+        'npoly': dict(otype=int,
+                      descr='Order of polynomial to fit over 2nd variable (when x2 is specified)'),
+        'mask': dict(otype=np.ndarray, atype=np.bool_, descr='Output mask'),
+        'coeff': dict(otype=np.ndarray, atype=np.floating, descr='Output fit coefficients'),
+        'icoeff': dict(otype=np.ndarray, atype=np.floating,
+                       descr='Cholesky band matrix used to solve for the bspline coefficients'),
+        'xmin': dict(otype=float, descr='Normalization minimum for x2'),
+        'xmax': dict(otype=float, descr='Normalization maximum for x2'),
+        'funcname': dict(otype=str,
+                         descr='Function type for the 2nd variable (when x2 is specified)'),
     }
     """
     Datamodel components.
