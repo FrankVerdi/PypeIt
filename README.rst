@@ -91,10 +91,8 @@ follow our `Code of Conduct
 
 Along with our extensive `online documentation
 <https://pypeit.readthedocs.io/en/release/>`__, we encourage the PypeIt user
-base to communicate via our `PypeIt Users Slack
-<https://pypeit-users.slack.com>`__.  All are welcome to join using `this
-invitation link
-<https://join.slack.com/t/pypeit-users/shared_invite/zt-36uxx7isk-pY19si5JzFW4wA7gOaYBBA>`__.
+base to communicate via our `PypeIt Users Slack <https://pypeit-users.slack.com>`__.
+All are welcome to join using `this invitation link <https://join.slack.com/t/pypeit-users/shared_invite/zt-3cderhn4g-XgFzv6mBWqxtVXKudc8W0w>`__.
 
 If you find a bug (particularly one that is experienced by others in the Users
 Slack) or have a feature request, please `submit a GitHub issue
