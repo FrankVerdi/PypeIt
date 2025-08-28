@@ -203,8 +203,12 @@ class SensFunc(scriptbase.ScriptBase):
         # pypeit.par.pypeitpar.SensFuncPar class.
 
         # Parse the output filename
-        outfile = (os.path.basename(args.spec1dfile)).replace('spec1d','sens') \
-                        if args.outfile is None else args.outfile
+        if args.outfile is not None:
+            outfile = args.outfile
+        else:
+            spec1dname = Path(args.spec1dfile).name
+            outfile = spec1dname.replace('spec1d','sens') if spec1dname.startswith('spec1d') else \
+                      'sens_' + spec1dname
         # Instantiate the relevant class for the requested algorithm
         sensobj = sensfunc.SensFunc.get_instance(args.spec1dfile, outfile, par['sensfunc'],
                                                  par_fluxcalib=par['fluxcalib'], debug=args.debug,

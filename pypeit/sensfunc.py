@@ -18,14 +18,13 @@ from astropy import table
 from pypeit import msgs
 from pypeit import specobjs
 from pypeit import utils
+from pypeit import io
 from pypeit.core import coadd
 from pypeit.core import flux_calib
 from pypeit.core import telluric
-from pypeit.core import fitting
 from pypeit.core.wavecal import wvutils
 from pypeit.core import meta
-from pypeit.core import flat
-from pypeit.core.moment import moment1d
+from pypeit.onespec import OneSpec
 
 from pypeit.spectrographs.util import load_spectrograph
 from pypeit import datamodel
@@ -245,18 +244,9 @@ class SensFunc(datamodel.DataContainer):
         # Are we splicing together multiple detectors?
         self.splice_multi_det = True if self.par['multi_spec_det'] is not None else False
 
-        # Read in the Standard star data
-        self.sobjs_std = specobjs.SpecObjs.from_fitsfile(
-                                self.spec1df, chk_version=self.chk_version).get_std(
-                                    multi_spec_det=self.par['multi_spec_det'])
-
-        if self.sobjs_std is None:
-            msgs.error(f'There is a problem with your standard star spec1d file: {self.spec1df}')
-
-        # Unpack standard
-        wave, counts, counts_ivar, counts_mask, log10_blaze_function, self.meta_spec, header \
-            = self.sobjs_std.unpack_object(ret_flam=False, log10blaze=True, extract_blaze=par['use_flat'],
-                                           extract_type=self.extr, remove_missing=True)
+        # # Unpack standard star data
+        wave, counts, counts_ivar, counts_mask, log10_blaze_function, self.meta_spec, header, self.sobjs_std = \
+        self.unpack_std()
 
         # Perform any instrument tweaks
         wave_twk, counts_twk, counts_ivar_twk, counts_mask_twk, log10_blaze_function_twk = \
@@ -278,6 +268,73 @@ class SensFunc(datamodel.DataContainer):
         self.std_dict = flux_calib.get_standard_spectrum(star_type=self.par['star_type'],
                                                          star_mag=self.par['star_mag'],
                                                          ra=star_ra, dec=star_dec)
+
+    def unpack_std(self):
+        """
+        Unpack the standard star data from a 1D spectrum file with a SpecObj or OneSpec class.
+
+        Returns
+        -------
+        wave_cnts : `numpy.ndarray`_
+            Wavelength array in Angstroms
+        counts : `numpy.ndarray`_
+            Flux array in counts
+        counts_ivar : `numpy.ndarray`_
+            Inverse variance of the flux array in counts
+        counts_mask : `numpy.ndarray`_
+            Boolean Mask array selecting the valid data points
+        log10_blaze_function : `numpy.ndarray`_
+            Log10 of the blaze function array. THIS is always None for OneSpec class.
+        nspec_in : :obj:`int`
+            The number of spectral pixels for the input standard star spectrum.
+        norderdet : :obj:`int`
+            The number of orders/spectra in the input standard star spectrum.
+        meta_spec : :obj:`dict`
+            Dictionary containing the meta data for the standard star spectrum
+        sobjs_std : :class:`~pypeit.specobjs.SpecObjs`
+            The SpecObjs of the standard star spectrum. THIS is always None for OneSpec class.
+        std_dict : :obj:`dict`
+            Dictionary containing the standard star spectrum data. This is
+            returned by :func:`~pypeit.core.flux_calib.get_standard_spectrum`.
+
+        """
+
+        with io.fits_open(self.spec1df) as hdul:
+            if hdul[1].header.get('DMODCLS') == 'SpecObj':
+                sobjs_std = specobjs.SpecObjs.from_fitsfile(self.spec1df,
+                                                            chk_version=self.chk_version).get_std(
+                    multi_spec_det=self.par['multi_spec_det'])
+
+                if sobjs_std is None:
+                    msgs.error(f'There is a problem with your standard star spec1d file: {self.spec1df}')
+
+                # Unpack standard
+                wave, counts, counts_ivar, counts_mask, log10_blaze_function, meta_spec, header \
+                    = sobjs_std.unpack_object(ret_flam=False, log10blaze=True, extract_blaze=self.par['use_flat'],
+                                              extract_type=self.extr, remove_missing=True)
+            elif hdul[1].header.get('DMODCLS') == 'OneSpec':
+                spec = OneSpec.from_file(self.spec1df, chk_version=self.chk_version)
+                if spec.head0['PYPELINE'] == 'Echelle':
+                    msgs.error('Standard star 1D spectra from OneSpec class cannot be used for Echelle data.')
+                if spec.fluxed:
+                    msgs.error('Standard star 1D spectra from OneSpec class is already fluxed '
+                               'and cannot be used to generate the sensitivity function.')
+                if spec.ext_mode != self.par['extr']:
+                    msgs.warn(f'Standard star 1D spectra from OneSpec class was obtained using the {spec.ext_mode} '
+                               f'extraction, while the requested extraction is {self.par["extr"]}.'
+                               f'{spec.ext_mode} extraction will be used.')
+                if self.par['use_flat']:
+                    msgs.warn('Standard star 1D spectra from OneSpec class does not contain the flat spectrum. '
+                               'The blaze function cannot be estimated.')
+
+                wave, counts, counts_ivar, counts_mask, log10_blaze_function, meta_spec, header, sobjs_std = \
+                    spec.wave_grid_mid, spec.flux, spec.ivar, spec.mask.astype(bool), None, spec.spect_meta, spec.head0, None
+                # add some meta data
+                meta_spec['ECH_ORDERS'] = None
+            else:
+                msgs.error('Unrecognized class for the 1D spectrum file. Cannot read in the standard')
+
+        return wave, counts, counts_ivar, counts_mask, log10_blaze_function, meta_spec, header, sobjs_std
 
     def _bundle(self):
         """
@@ -393,7 +450,8 @@ class SensFunc(datamodel.DataContainer):
             self.wave_splice, self.zeropoint_splice = self.splice()
 
         # Flux the standard star with this sensitivity function and add it to the output table
-        self.flux_std()
+        if self.sobjs_std is not None:
+            self.flux_std()
 
         # Compute the throughput
         self.throughput, self.throughput_splice = self.compute_throughput()
@@ -723,6 +781,7 @@ class SensFunc(datamodel.DataContainer):
             axis.plot(self.wave[gpm,idet], self.throughput[gpm,idet], color=(rr, gg, bb),
                       linestyle='-', linewidth=2.5, label=thru_title[idet], zorder=5*idet)
             # Determine the wavelength limits for the plot
+            embed()
             if (_wave_min is None) or (np.min(self.wave[gpm,idet]) < _wave_min):
                 _wave_min = np.min(self.wave[gpm,idet])
             if (_wave_max is None) or (np.max(self.wave[gpm,idet]) > _wave_max):
@@ -744,6 +803,9 @@ class SensFunc(datamodel.DataContainer):
         fig.savefig(self.thrufile)
 
         # Plot fluxed standard star for all orders/det
+        if self.sobjs_std is None:
+            msgs.warn('Cannot plot fluxed standard star when using a Onespec 1D standard star spectrum')
+            pass
         fig = plt.figure(figsize=(12,8))
         axis = fig.add_axes([0.1, 0.1, 0.8, 0.8])
         axis.plot(self.std_dict['wave'].value, self.std_dict['flux'].value, color='green',linewidth=3.0,
