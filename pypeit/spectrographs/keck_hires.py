@@ -163,6 +163,8 @@ class KECKHIRESSpectrograph(spectrograph.Spectrograph):
         # number of objects
         par['reduce']['findobj']['maxnumber_sci'] = 2  # Assume that there is max two object in each order.
         par['reduce']['findobj']['maxnumber_std'] = 1  # Assume that there is only one object in each order.
+        # Extraction parameters
+        par['reduce']['extraction']['min_frac_prof'] = 0.9  # deals well with masked orders in chip gaps
 
         # Sensitivity function parameters
         par['sensfunc']['trim_std_pixs'] = [4, 40]  # Trim each side of the standard star spectrum
