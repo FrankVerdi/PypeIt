@@ -383,6 +383,11 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
             par['reduce']['extraction']['sn_gauss'] = 400
             # basically always use the Gaussian model for optimal extraction
 
+        binning = self.get_meta_value(scifile, 'binning')
+
+        if binning == "2,2":
+            par['calibrations']['slitedges']['min_edge_side_sep'] = 2.0
+
         return par
 
     @property
