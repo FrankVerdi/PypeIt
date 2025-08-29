@@ -5257,6 +5257,7 @@ Alterations to the default parameters are:
               use_pixelflat = False
               use_illumflat = False
       [[slitless_pixflatframe]]
+          exprng = 0, None,
           [[[process]]]
               overscan_method = odd_even
               combine = median
@@ -5285,11 +5286,11 @@ Alterations to the default parameters are:
               use_biasimage = False
               noise_floor = 0.01
       [[wavelengths]]
-          lamps = XeI, KrI, ArI, HgI,
+          lamps = HgI_MODS, ArI_MODS, NeI_MODS, KrI_MODS, XeI_MODS,
           sigdetect = 10.0
           rms_thresh_frac_fwhm = 0.09
       [[slitedges]]
-          edge_thresh = 100.0
+          edge_thresh = 50.0
           sync_predict = nearest
       [[tilts]]
           maxdev_tracefit = 0.02
@@ -5297,12 +5298,199 @@ Alterations to the default parameters are:
           spec_order = 5
           maxdev2d = 0.02
   [scienceframe]
-      exprng = 200, None,
+      exprng = 1, None,
       [[process]]
           overscan_method = odd_even
           mask_cr = True
           use_biasimage = False
           noise_floor = 0.01
+  [flexure]
+      spec_method = boxcar
+
+.. _instr_par-lbt_mods1b_proc:
+
+LBT MODS1B (``lbt_mods1b_proc``)
+--------------------------------
+Alterations to the default parameters are:
+
+.. code-block:: ini
+
+  [rdx]
+      spectrograph = lbt_mods1b_proc
+  [calibrations]
+      [[biasframe]]
+          exprng = None, 0.001,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              combine = median
+              use_biasimage = False
+              use_overscan = False
+              shot_noise = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[darkframe]]
+          exprng = 999999, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[arcframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              clip = False
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[tiltframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              clip = False
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[pixelflatframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[pinholeframe]]
+          exprng = 999999, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[alignframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[traceframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[illumflatframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[lampoffflatsframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[slitless_pixflatframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              combine = median
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[scattlightframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[skyframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              noise_floor = 0.01
+              use_pixelflat = False
+              use_illumflat = False
+      [[standardframe]]
+          exprng = 1, 200,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              noise_floor = 0.01
+              use_pixelflat = False
+              use_illumflat = False
+      [[wavelengths]]
+          lamps = HgI_MODS, ArI_MODS, NeI_MODS, KrI_MODS, XeI_MODS,
+          sigdetect = 10.0
+          rms_thresh_frac_fwhm = 0.09
+      [[slitedges]]
+          edge_thresh = 50.0
+          sync_predict = nearest
+      [[tilts]]
+          maxdev_tracefit = 0.02
+          spat_order = 5
+          spec_order = 5
+          maxdev2d = 0.02
+  [scienceframe]
+      exprng = 1, None,
+      [[process]]
+          trim = False
+          apply_gain = False
+          overscan_method = odd_even
+          mask_cr = True
+          use_biasimage = False
+          use_overscan = False
+          noise_floor = 0.01
+          use_pixelflat = False
+          use_illumflat = False
   [flexure]
       spec_method = boxcar
 
@@ -5390,6 +5578,7 @@ Alterations to the default parameters are:
               use_pixelflat = False
               use_illumflat = False
       [[slitless_pixflatframe]]
+          exprng = 0, None,
           [[[process]]]
               overscan_method = odd_even
               combine = median
@@ -5418,13 +5607,13 @@ Alterations to the default parameters are:
               use_biasimage = False
               noise_floor = 0.01
       [[wavelengths]]
-          lamps = ArI, NeI, KrI, XeI,
+          lamps = HgI_MODS, ArI_MODS, NeI_MODS, KrI_MODS, XeI_MODS,
           fwhm = 10.0
           rms_thresh_frac_fwhm = 0.09
           match_toler = 2.5
           n_first = 3
       [[slitedges]]
-          edge_thresh = 100.0
+          edge_thresh = 50.0
           sync_predict = nearest
       [[tilts]]
           maxdev_tracefit = 0.02
@@ -5432,12 +5621,205 @@ Alterations to the default parameters are:
           spec_order = 5
           maxdev2d = 0.02
   [scienceframe]
-      exprng = 200, None,
+      exprng = 1, None,
       [[process]]
           overscan_method = odd_even
           mask_cr = True
           use_biasimage = False
           noise_floor = 0.01
+  [flexure]
+      spec_method = boxcar
+  [sensfunc]
+      algorithm = IR
+      [[IR]]
+          telgridfile = TellPCA_3000_26000_R10000.fits
+
+.. _instr_par-lbt_mods1r_proc:
+
+LBT MODS1R (``lbt_mods1r_proc``)
+--------------------------------
+Alterations to the default parameters are:
+
+.. code-block:: ini
+
+  [rdx]
+      spectrograph = lbt_mods1r_proc
+  [calibrations]
+      [[biasframe]]
+          exprng = None, 0.001,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              combine = median
+              use_biasimage = False
+              use_overscan = False
+              shot_noise = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[darkframe]]
+          exprng = 999999, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[arcframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              clip = False
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[tiltframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              clip = False
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[pixelflatframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[pinholeframe]]
+          exprng = 999999, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[alignframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[traceframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[illumflatframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[lampoffflatsframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[slitless_pixflatframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              combine = median
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[scattlightframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[skyframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              noise_floor = 0.01
+              use_pixelflat = False
+              use_illumflat = False
+      [[standardframe]]
+          exprng = 1, 200,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              noise_floor = 0.01
+              use_pixelflat = False
+              use_illumflat = False
+      [[wavelengths]]
+          lamps = HgI_MODS, ArI_MODS, NeI_MODS, KrI_MODS, XeI_MODS,
+          fwhm = 10.0
+          rms_thresh_frac_fwhm = 0.09
+          match_toler = 2.5
+          n_first = 3
+      [[slitedges]]
+          edge_thresh = 50.0
+          sync_predict = nearest
+      [[tilts]]
+          maxdev_tracefit = 0.02
+          spat_order = 5
+          spec_order = 5
+          maxdev2d = 0.02
+  [scienceframe]
+      exprng = 1, None,
+      [[process]]
+          trim = False
+          apply_gain = False
+          overscan_method = odd_even
+          mask_cr = True
+          use_biasimage = False
+          use_overscan = False
+          noise_floor = 0.01
+          use_pixelflat = False
+          use_illumflat = False
   [flexure]
       spec_method = boxcar
   [sensfunc]
@@ -5529,6 +5911,7 @@ Alterations to the default parameters are:
               use_pixelflat = False
               use_illumflat = False
       [[slitless_pixflatframe]]
+          exprng = 0, None,
           [[[process]]]
               overscan_method = odd_even
               combine = median
@@ -5557,11 +5940,11 @@ Alterations to the default parameters are:
               use_biasimage = False
               noise_floor = 0.01
       [[wavelengths]]
-          lamps = XeI, KrI, ArI, HgI,
+          lamps = HgI_MODS, ArI_MODS, NeI_MODS, KrI_MODS, XeI_MODS,
           sigdetect = 10.0
           rms_thresh_frac_fwhm = 0.09
       [[slitedges]]
-          edge_thresh = 100.0
+          edge_thresh = 50.0
           sync_predict = nearest
       [[tilts]]
           maxdev_tracefit = 0.02
@@ -5569,12 +5952,199 @@ Alterations to the default parameters are:
           spec_order = 5
           maxdev2d = 0.02
   [scienceframe]
-      exprng = 200, None,
+      exprng = 1, None,
       [[process]]
           overscan_method = odd_even
           mask_cr = True
           use_biasimage = False
           noise_floor = 0.01
+  [flexure]
+      spec_method = boxcar
+
+.. _instr_par-lbt_mods2b_proc:
+
+LBT MODS2B (``lbt_mods2b_proc``)
+--------------------------------
+Alterations to the default parameters are:
+
+.. code-block:: ini
+
+  [rdx]
+      spectrograph = lbt_mods2b_proc
+  [calibrations]
+      [[biasframe]]
+          exprng = None, 0.001,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              combine = median
+              use_biasimage = False
+              use_overscan = False
+              shot_noise = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[darkframe]]
+          exprng = 999999, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[arcframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              clip = False
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[tiltframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              clip = False
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[pixelflatframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[pinholeframe]]
+          exprng = 999999, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[alignframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[traceframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[illumflatframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[lampoffflatsframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[slitless_pixflatframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              combine = median
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[scattlightframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[skyframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              noise_floor = 0.01
+              use_pixelflat = False
+              use_illumflat = False
+      [[standardframe]]
+          exprng = 1, 200,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              noise_floor = 0.01
+              use_pixelflat = False
+              use_illumflat = False
+      [[wavelengths]]
+          lamps = HgI_MODS, ArI_MODS, NeI_MODS, KrI_MODS, XeI_MODS,
+          sigdetect = 10.0
+          rms_thresh_frac_fwhm = 0.09
+      [[slitedges]]
+          edge_thresh = 50.0
+          sync_predict = nearest
+      [[tilts]]
+          maxdev_tracefit = 0.02
+          spat_order = 5
+          spec_order = 5
+          maxdev2d = 0.02
+  [scienceframe]
+      exprng = 1, None,
+      [[process]]
+          trim = False
+          apply_gain = False
+          overscan_method = odd_even
+          mask_cr = True
+          use_biasimage = False
+          use_overscan = False
+          noise_floor = 0.01
+          use_pixelflat = False
+          use_illumflat = False
   [flexure]
       spec_method = boxcar
 
@@ -5662,6 +6232,7 @@ Alterations to the default parameters are:
               use_pixelflat = False
               use_illumflat = False
       [[slitless_pixflatframe]]
+          exprng = 0, None,
           [[[process]]]
               overscan_method = odd_even
               combine = median
@@ -5690,13 +6261,13 @@ Alterations to the default parameters are:
               use_biasimage = False
               noise_floor = 0.01
       [[wavelengths]]
-          lamps = ArI, NeI, KrI, XeI,
+          lamps = HgI_MODS, ArI_MODS, NeI_MODS, KrI_MODS, XeI_MODS,
           fwhm = 10.0
           rms_thresh_frac_fwhm = 0.22
           match_toler = 2.5
           n_first = 3
       [[slitedges]]
-          edge_thresh = 300.0
+          edge_thresh = 50.0
           sync_predict = nearest
       [[tilts]]
           maxdev_tracefit = 0.02
@@ -5704,12 +6275,205 @@ Alterations to the default parameters are:
           spec_order = 5
           maxdev2d = 0.02
   [scienceframe]
-      exprng = 200, None,
+      exprng = 1, None,
       [[process]]
           overscan_method = odd_even
           mask_cr = True
           use_biasimage = False
           noise_floor = 0.01
+  [flexure]
+      spec_method = boxcar
+  [sensfunc]
+      algorithm = IR
+      [[IR]]
+          telgridfile = TellPCA_3000_26000_R10000.fits
+
+.. _instr_par-lbt_mods2r_proc:
+
+LBT MODS2R (``lbt_mods2r_proc``)
+--------------------------------
+Alterations to the default parameters are:
+
+.. code-block:: ini
+
+  [rdx]
+      spectrograph = lbt_mods2r_proc
+  [calibrations]
+      [[biasframe]]
+          exprng = None, 0.001,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              combine = median
+              use_biasimage = False
+              use_overscan = False
+              shot_noise = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[darkframe]]
+          exprng = 999999, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[arcframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              clip = False
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[tiltframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              clip = False
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[pixelflatframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[pinholeframe]]
+          exprng = 999999, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[alignframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[traceframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[illumflatframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[lampoffflatsframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[slitless_pixflatframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              combine = median
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[scattlightframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[skyframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              noise_floor = 0.01
+              use_pixelflat = False
+              use_illumflat = False
+      [[standardframe]]
+          exprng = 1, 200,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              noise_floor = 0.01
+              use_pixelflat = False
+              use_illumflat = False
+      [[wavelengths]]
+          lamps = HgI_MODS, ArI_MODS, NeI_MODS, KrI_MODS, XeI_MODS,
+          fwhm = 10.0
+          rms_thresh_frac_fwhm = 0.22
+          match_toler = 2.5
+          n_first = 3
+      [[slitedges]]
+          edge_thresh = 50.0
+          sync_predict = nearest
+      [[tilts]]
+          maxdev_tracefit = 0.02
+          spat_order = 5
+          spec_order = 5
+          maxdev2d = 0.02
+  [scienceframe]
+      exprng = 1, None,
+      [[process]]
+          trim = False
+          apply_gain = False
+          overscan_method = odd_even
+          mask_cr = True
+          use_biasimage = False
+          use_overscan = False
+          noise_floor = 0.01
+          use_pixelflat = False
+          use_illumflat = False
   [flexure]
       spec_method = boxcar
   [sensfunc]

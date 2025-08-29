@@ -46,7 +46,8 @@ Functionality/Performance Improvements and Additions
 - Added ``SensfuncPar`` parameter ``trim_std_pixs`` to allow the user to "trim" the
   standard star 1D spectrum by a user-defined number of pixels before computing the
   sensitivity function.
-- We include new, brighter blackbody standard stars, as reported in Cooke, Suzuki and Prochaska (2025).
+- We include new, brighter blackbody standard stars, as reported in Cooke,
+  Suzuki and Prochaska (2025).
 - We have removed J1255p1924 as a blackbody flux calibration standard star. Based on X-SHOOTER
   observations by Cooke, Suzuki and Prochaska (2025), this white dwarf star has Ca II absorption.
 - Allow the user to skip writing 2D science spectrum files.  Note that this should
@@ -69,15 +70,16 @@ Functionality/Performance Improvements and Additions
 
 Instrument-specific Updates
 ---------------------------
-- Added wavelength template for Gemini GMOS-N/GMOS-S R150 grating.
 
+- Added wavelength template for Gemini GMOS-N/GMOS-S R150 grating.
 - Added support for the Levy spectrograph on the Automated Planet Finder at Lick
   Observatory (APF/Levy)
 
 Script Changes
 --------------
 
-- ``pypeit_setup_gui`` script has been removed. The Setup GUI can be started with ``pypeit_setup -G``.
+- ``pypeit_setup_gui`` script has been removed. The Setup GUI can be started
+  with ``pypeit_setup -G``.
 - Added ``pypeit_run_to_calibstep`` to run PypeIt to an input calibration
   step. This script is useful to re-generate calibration files for a given
   configuration without running the full reduction.
