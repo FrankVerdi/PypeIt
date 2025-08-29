@@ -1,6 +1,6 @@
 
-Version 1.17.5dev
-=================
+Version 1.18.0   
+==============
 
 Documentation Updates
 ---------------------
@@ -12,10 +12,6 @@ Documentation Updates
 - Cleaned up documentation referring to the telluric atmospheric grids. Much of
   the old documentation had not been updated to reflect the PCA models, leading
   to some confusion.
-
-Installation Changes
---------------------
-
 
 
 Dependency Changes
@@ -68,12 +64,14 @@ Functionality/Performance Improvements and Additions
 - Passed the `TelluricPar` parameter `resln_frac_bounds` through to the tellfit script
   functions (qso_telluric, star_telluric, poly_telluric)
 
+
 Instrument-specific Updates
 ---------------------------
 
 - Added wavelength template for Gemini GMOS-N/GMOS-S R150 grating.
 - Added support for the Levy spectrograph on the Automated Planet Finder at Lick
   Observatory (APF/Levy)
+
 
 Script Changes
 --------------
