@@ -244,6 +244,17 @@ class GTCOSIRISPlusSpectrograph(spectrograph.Spectrograph):
         """
         return ['dispname', 'decker', 'binning']
 
+    def pypeit_file_keys(self):
+        """
+        Define the list of keys to be output into a standard PypeIt file.
+
+        Returns:
+            :obj:`list` : The list of keywords in the relevant
+            :class:`~pypeit.metadata.PypeItMetaData` instance to print to the
+            :ref:`pypeit_file`.
+        """
+        return super().pypeit_file_keys() + ['idname']
+
     def raw_header_cards(self):
         """
         Return additional raw header cards to be propagated in
@@ -963,7 +974,18 @@ class GTCOSIRISSpectrograph(spectrograph.Spectrograph):
             and used to constuct the :class:`~pypeit.metadata.PypeItMetaData`
             object.
         """
-        return ['dispname', 'decker', 'binning', 'idname']
+        return ['dispname', 'decker', 'binning']
+
+    def pypeit_file_keys(self):
+        """
+        Define the list of keys to be output into a standard PypeIt file.
+
+        Returns:
+            :obj:`list` : The list of keywords in the relevant
+            :class:`~pypeit.metadata.PypeItMetaData` instance to print to the
+            :ref:`pypeit_file`.
+        """
+        return super().pypeit_file_keys() + ['idname']
 
     def raw_header_cards(self):
         """

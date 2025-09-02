@@ -177,10 +177,13 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
             # The method was passed a metadata table row
             decker = scifile['decker'][0]
             filter = scifile['filter1'][0]
+            slitrange = scifile['slitrange'][0]
         else:
             # The method was passed the raw file info in one form or another
             decker = self.get_meta_value(scifile, 'decker')
             filter = self.get_meta_value(scifile, 'filter1')
+            slitrange = self.get_meta_value(scifile, 'slitrange')
+        pix_start, pix_end = slitrange.split(':')
 
         if 'LONGSLIT' in decker:
             # turn PCA off
@@ -188,11 +191,10 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
             # if "x" is not in the maskname, the maskname does not include the number of CSU
             # used for the longslit and the length of the longslit cannot be determined
             if ('LONGSLIT-46x' not in decker) and ('x' in decker):
-                # find the spat pixel positions where the longslit starts and ends
-                pix_start, pix_end = self.find_longslit_pos(scifile)
                 # exclude the random slits outside the longslit from slit tracing
-                par['calibrations']['slitedges']['exclude_regions'] = ['1:0:{}'.format(pix_start),
-                                                                       '1:{}:2040'.format(pix_end)]
+                par['calibrations']['slitedges']['exclude_regions'] = (
+                    [f'1:0:{pix_start}', f'1:{pix_end}:2040']
+                )
                 par['calibrations']['slitedges']['det_buffer'] = 0
                 # artificially add left and right edges
                 par['calibrations']['slitedges']['bound_detector'] = True
@@ -210,9 +212,9 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
             par['reduce']['slitmask']['extract_missing_objs'] = True
             if 'long2pos' in decker:
                 # exclude the random slits outside the long2pos from slit tracing
-                pix_start, pix_end = self._long2pos_pos()
-                par['calibrations']['slitedges']['exclude_regions'] = ['1:0:{}'.format(pix_start),
-                                                                       '1:{}:2040'.format(pix_end)]
+                par['calibrations']['slitedges']['exclude_regions'] = (
+                    [f'1:0:{pix_start}', f'1:{pix_end}:2040']
+                )
                 # assume that the main target is always detected, i.e., skipping force extraction
                 par['reduce']['slitmask']['extract_missing_objs'] = False
             # set offsets for coadd2d
@@ -294,6 +296,8 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
         self.meta['slitwid'] = dict(card=None, compound=True, rtol=0.1)
         # slit length in numbers of CSU, defined only for only for 'LONGSLIT' masks
         self.meta['slitlength'] = dict(card=None, compound=True, rtol=0.1)
+        # slit start and end pixels, defined only for 'LONGSLIT' masks
+        self.meta['slitrange'] = dict(card=None, compound=True, rtol=0.1)
         # Filter
         self.meta['filter1'] = dict(ext=0, card='FILTER')
         # Lamps on/off or Ar/Ne
@@ -335,6 +339,20 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
                 return maskname.split('(')[0].split('x')[0].split('-')[1]
             else:
                 return None
+
+        if meta_key == 'slitrange':
+            # slitrange is defined only for 'LONGSLIT' masks since this info is generally
+            # included in the slitmask name (MASKNAME) of 'LONGSLIT' masks and
+            # it's useful to associate science frames to calibrations taken with different MASKNAME
+            maskname = headarr[0].get('MASKNAME')
+            if 'LONGSLIT' in maskname and ('LONGSLIT-46x' not in maskname) and ('x' in maskname):
+                # find the spat pixel positions where the longslit starts and ends
+                pix_start, pix_end = self.find_longslit_pos(headarr[0])
+            elif 'long2pos' in maskname:
+                pix_start, pix_end = self._long2pos_pos()
+            else:
+                pix_start, pix_end = 0,-1
+            return f"{pix_start}:{pix_end}"
 
         if meta_key == 'slitwid':
             # slitwid is defined only for 'LONGSLIT' masks since this info is generally
@@ -692,7 +710,7 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
         pypeit_keys.remove('decker_secondary')
         pypeit_keys.remove('slitwid')
         pypeit_keys.remove('slitlength')
-        return pypeit_keys + ['lampstat01', 'dithpat', 'dithpos', 'dithoff', 'frameno']
+        return pypeit_keys + ['slitrange', 'lampstat01', 'dithpat', 'dithpos', 'dithoff', 'frameno']
 
     def check_frame_type(self, ftype, fitstbl, exprng=None):
         """
@@ -1171,14 +1189,14 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
         return 880, 1190
 
     @staticmethod
-    def find_longslit_pos(scifile):
+    def find_longslit_pos(hdr):
         """
         Given a MOSFIRE science raw file, find the position of the slit
         in the LONGSLIT slitmask
 
         Args:
-            scifile: (:obj:`str`):
-                Name of the science file to read.
+            hdr: (:obj:`~astropy.io.fits.Header`):
+                FITS header from which to pull information
 
         Returns:
             :obj:`tuple`: Two integer number indicating the x position of the
@@ -1186,9 +1204,8 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
 
         """
         # Read some values from header
-        hdu = io.fits_open(scifile)
-        decker = hdu[0].header['MASKNAME']
-        platescale = hdu[0].header['PSCALE']
+        decker = hdr['MASKNAME']
+        platescale = hdr['PSCALE']
 
         slit_gap = KeckMOSFIRESpectrograph._slit_gap(platescale)  # pixels
         CSUlength = KeckMOSFIRESpectrograph._CSUlength(platescale)  # pixels
@@ -1197,10 +1214,10 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
         CSUnum = int(decker.split("x")[0].split('-')[1])
         slit_length = CSUnum * CSUlength + (CSUnum-1)*slit_gap
         if CSUnum % 2 == 0:
-            pix_start = hdu[0].header['CRPIX2'] - (slit_length/2. + (CSUlength+slit_gap)/2. + 1)
-            pix_end = hdu[0].header['CRPIX2'] + (slit_length/2. - (CSUlength+slit_gap)/2. + 1)
+            pix_start = hdr['CRPIX2'] - (slit_length/2. + (CSUlength+slit_gap)/2. + 1)
+            pix_end = hdr['CRPIX2'] + (slit_length/2. - (CSUlength+slit_gap)/2. + 1)
         else:
-            pix_start = hdu[0].header['CRPIX2'] - (slit_length/2. + 1)
-            pix_end = hdu[0].header['CRPIX2'] + (slit_length/2. + 1)
+            pix_start = hdr['CRPIX2'] - (slit_length/2. + 1)
+            pix_end = hdr['CRPIX2'] + (slit_length/2. + 1)
 
         return int(round(pix_start)), int(round(pix_end))

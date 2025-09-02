@@ -428,7 +428,7 @@ class LDTDeVenySpectrograph(spectrograph.Spectrograph):
         pypeit_keys = super().pypeit_file_keys()
         pypeit_keys.remove('decker')  # Until the decker is actually installed
         pypeit_keys.remove('cenwave')
-        return  pypeit_keys + ['dispangle', 'slitwid', 'lampstat01']
+        return pypeit_keys + ['dispangle', 'slitwid', 'lampstat01']
 
     def get_lamps(self, fitstbl:astropy.table.Table) -> list:
         """

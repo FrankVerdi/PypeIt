@@ -169,6 +169,7 @@ def define_additional_meta(nlamps=20):
                        'seq_expno': dict(dtype=int, comment='Number of exposure in observing sequence'),
                        'slitwid': dict(dtype=float, comment='Slit width, sometimes distinct from decker'),
                        'slitlength': dict(dtype=float, comment='Slit length, used only for long slits'),
+                       'slitrange': dict(dtype=str, comment='Slit pixel range as colon-separated values, used for MOSFIRE longslit'),
                        'temperature': dict(dtype=float, comment='Temperature (units.K) at observation time'),
                        'utc': dict(dtype=str, comment='UTC of observation'),
                        'mirror': dict(dtype=str, comment='Position of an instrument mirror (e.g. IN or OUT)'),

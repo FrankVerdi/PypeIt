@@ -1296,45 +1296,6 @@ class GeminiGMOSNHamNSSpectrograph(GeminiGMOSNHamSpectrograph):
 
     def __init__(self):
         super().__init__()
-        self.nod_shuffle_pix = None # Nod & Shuffle
-
-    def config_specific_par(
-            self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
-        """
-        Modify the PypeIt parameters to hard-wired values used for
-        specific instrument configurations.
-
-        Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
-                Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
-            inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
-                Parameter set used for the full run of PypeIt.  If None,
-                use :func:`default_pypeit_par`.
-
-        Returns:
-            :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
-            adjusted for configuration specific parameter values.
-        """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
-
-        # Get filename for slurping
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            filename = scifile['filename'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            filename = scifile
-
-        # Slurp the NOD&Shuffle
-        self.nod_shuffle_pix = self.get_headarr(filename)[0]['NODPIX']
-
-        #
-        return par
 
     def get_rawimage(self, raw_file, det):
         """
@@ -1371,10 +1332,9 @@ class GeminiGMOSNHamNSSpectrograph(GeminiGMOSNHamSpectrograph):
         """
         detpar, array, hdu, exptime, rawdatasec_img, oscansec_img \
                 = super().get_rawimage(raw_file, det)
-        # TODO: Actually assign as follows here?
-        # self.nod_shuffle_pix = hdu[0].header['NODPIX']
+        nod_shuffle_pix = hdu[0].header['NODPIX']
 
-        if self.nod_shuffle_pix is None \
+        if nod_shuffle_pix is None \
                 or hdu[0].header['object'] not in ['GCALflat', 'CuAr', 'Bias']:
             # No need to adjust output
             return detpar, array, hdu, exptime, rawdatasec_img, oscansec_img
@@ -1394,7 +1354,7 @@ class GeminiGMOSNHamNSSpectrograph(GeminiGMOSNHamSpectrograph):
         for i in range(nimg):
             xbin, ybin = parse.parse_binning(_detpar[i].binning)
             # TODO: Should double check NOD&SHUFFLE was not on
-            nodpix = int(self.nod_shuffle_pix/xbin)
+            nodpix = int(nod_shuffle_pix/xbin)
             #48 is a solid value for the unusful rows in GMOS data
             row1, row2 = nodpix + int(48/xbin), 2*nodpix+int(48/xbin)
             # Shuffle me
