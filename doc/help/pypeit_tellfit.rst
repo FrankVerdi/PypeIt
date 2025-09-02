@@ -23,10 +23,10 @@
                             must set ``star_type``, ``star_ra``, ``star_dec``, and
                             ``star_mag``. For ``poly``, you might need to set
                             ``fit_wv_min_max`` and ``norder``.
-      -r REDSHIFT, --redshift REDSHIFT
+      -r, --redshift REDSHIFT
                             The redshift for the object model. This is currently
                             only used by the QSO model.
-      -g TELL_GRID, --tell_grid TELL_GRID
+      -g, --tell_grid TELL_GRID
                             File with the telluric model spectra to use. Generally,
                             these do not need to be set; reasonable defaults are
                             provided for each spectrograph. Due to their size, the
@@ -37,9 +37,9 @@
                             correct format), or it can be the name of the specific
                             cache file to use (e.g.,
                             TellPCA_3000_26000_R10000.fits).
-      -p PCA_FILE, --pca_file PCA_FILE
+      -p, --pca_file PCA_FILE
                             qso_pca_1200_3100.fits
-      -t TELL_FILE, --tell_file TELL_FILE
+      -t, --tell_file TELL_FILE
                             Configuration file to change default telluric
                             parameters.  The format is identical to any telluric
                             parameters in your pypeit file.  See the PypeIt
@@ -66,7 +66,7 @@
       --par_outfile PAR_OUTFILE
                             Name of output file to save the parameters used by the
                             fit
-      -v VERBOSITY, --verbosity VERBOSITY
+      -v, --verbosity VERBOSITY
                             Verbosity level between 0 [none] and 2 [all]. Default:
                             1. Level 2 writes a log with filename tellfit_YYYYMMDD-
                             HHMM.log

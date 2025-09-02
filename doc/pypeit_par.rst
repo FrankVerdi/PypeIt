@@ -594,21 +594,21 @@ Collate1DPar Keywords
 
 Class Instantiation: :class:`~pypeit.par.pypeitpar.Collate1DPar`
 
-=========================  ===============  =======  =======================================  ==================================================================================================================================================================================================================================================================================================================================================================================================================
-Key                        Type             Options  Default                                  Description                                                                                                                                                                                                                                                                                                                                                                                                       
-=========================  ===============  =======  =======================================  ==================================================================================================================================================================================================================================================================================================================================================================================================================
-``dry_run``                bool             ..       False                                    If set, the script will display the matching File and Object Ids but will not flux, coadd or archive.                                                                                                                                                                                                                                                                                                             
-``exclude_serendip``       bool             ..       False                                    Whether to exclude SERENDIP objects from collating.                                                                                                                                                                                                                                                                                                                                                               
-``exclude_slit_trace_bm``  list, str        ..                                                A list of slit trace bitmask bits that should be excluded.                                                                                                                                                                                                                                                                                                                                                        
-``flux``                   bool             ..       False                                    If set, the script will flux calibrate using archived sensfuncs before coadding.                                                                                                                                                                                                                                                                                                                                  
-``ignore_flux``            bool             ..       False                                    If set, the script will only coadd non-fluxed spectra even if flux data is present. Otherwise fluxed spectra are coadded if all spec1ds have been fluxed calibrated.                                                                                                                                                                                                                                              
-``match_using``            str              ..       ``ra/dec``                               Determines how 1D spectra are matched as being the same object. Must be either 'pixel' or 'ra/dec'.                                                                                                                                                                                                                                                                                                               
-``outdir``                 str              ..       ``/Users/dpelliccia/PypeIt/PypeIt/doc``  The path where all coadded output files and report files will be placed.                                                                                                                                                                                                                                                                                                                                          
-``refframe``               str              ..       ..                                       Perform reference frame correction prior to coadding. Options are: observed, heliocentric, barycentric                                                                                                                                                                                                                                                                                                            
-``spec1d_outdir``          str              ..       ..                                       The path where all modified spec1d files are placed. These are only created if flux calibration or refframe correction are asked for.                                                                                                                                                                                                                                                                             
-``tolerance``              str, float, int  ..       1.0                                      The tolerance used when comparing the coordinates of objects. If two objects are within this distance from each other, they are considered the same object. If match_using is 'ra/dec' (the default) this is an angular distance. The defaults units are arcseconds but other units supported by astropy.coordinates.Angle can be used (`e.g.`, '0.003d' or '0h1m30s'). If match_using is 'pixel' this is a float.
-``wv_rms_thresh``          float            ..       ..                                       If set, any objects with a wavelength RMS > this value are skipped, else all wavelength RMS values are accepted.                                                                                                                                                                                                                                                                                                  
-=========================  ===============  =======  =======================================  ==================================================================================================================================================================================================================================================================================================================================================================================================================
+=========================  ===============  =======  ============================================  ==================================================================================================================================================================================================================================================================================================================================================================================================================
+Key                        Type             Options  Default                                       Description                                                                                                                                                                                                                                                                                                                                                                                                       
+=========================  ===============  =======  ============================================  ==================================================================================================================================================================================================================================================================================================================================================================================================================
+``dry_run``                bool             ..       False                                         If set, the script will display the matching File and Object Ids but will not flux, coadd or archive.                                                                                                                                                                                                                                                                                                             
+``exclude_serendip``       bool             ..       False                                         Whether to exclude SERENDIP objects from collating.                                                                                                                                                                                                                                                                                                                                                               
+``exclude_slit_trace_bm``  list, str        ..                                                     A list of slit trace bitmask bits that should be excluded.                                                                                                                                                                                                                                                                                                                                                        
+``flux``                   bool             ..       False                                         If set, the script will flux calibrate using archived sensfuncs before coadding.                                                                                                                                                                                                                                                                                                                                  
+``ignore_flux``            bool             ..       False                                         If set, the script will only coadd non-fluxed spectra even if flux data is present. Otherwise fluxed spectra are coadded if all spec1ds have been fluxed calibrated.                                                                                                                                                                                                                                              
+``match_using``            str              ..       ``ra/dec``                                    Determines how 1D spectra are matched as being the same object. Must be either 'pixel' or 'ra/dec'.                                                                                                                                                                                                                                                                                                               
+``outdir``                 str              ..       ``/Users/westfall/Work/packages/pypeit/doc``  The path where all coadded output files and report files will be placed.                                                                                                                                                                                                                                                                                                                                          
+``refframe``               str              ..       ..                                            Perform reference frame correction prior to coadding. Options are: observed, heliocentric, barycentric                                                                                                                                                                                                                                                                                                            
+``spec1d_outdir``          str              ..       ..                                            The path where all modified spec1d files are placed. These are only created if flux calibration or refframe correction are asked for.                                                                                                                                                                                                                                                                             
+``tolerance``              str, float, int  ..       1.0                                           The tolerance used when comparing the coordinates of objects. If two objects are within this distance from each other, they are considered the same object. If match_using is 'ra/dec' (the default) this is an angular distance. The defaults units are arcseconds but other units supported by astropy.coordinates.Angle can be used (`e.g.`, '0.003d' or '0h1m30s'). If match_using is 'pixel' this is a float.
+``wv_rms_thresh``          float            ..       ..                                            If set, any objects with a wavelength RMS > this value are skipped, else all wavelength RMS values are accepted.                                                                                                                                                                                                                                                                                                  
+=========================  ===============  =======  ============================================  ==================================================================================================================================================================================================================================================================================================================================================================================================================
 
 
 ----
@@ -661,22 +661,22 @@ ReduxPar Keywords
 
 Class Instantiation: :class:`~pypeit.par.pypeitpar.ReduxPar`
 
-======================  ==============  =======  =======================================  ==========================================================================================================================================================================================================================================================================================================================================================================================================
-Key                     Type            Options  Default                                  Description                                                                                                                                                                                                                                                                                                                                                                                               
-======================  ==============  =======  =======================================  ==========================================================================================================================================================================================================================================================================================================================================================================================================
-``calwin``              int, float      ..       0                                        The window of time in hours to search for calibration frames for a science frame                                                                                                                                                                                                                                                                                                                          
-``chk_version``         bool            ..       True                                     If True enforce strict PypeIt version checking to ensure that all files were created with the current version of PypeIt.  If set to False, the code will attempt to read out-of-date files and keep going.  Beware (!!) that this can lead to unforeseen bugs that either cause the code to crash or lead to erroneous results. I.e., you really need to know what you are doing if you set this to False!
-``detnum``              int, list       ..       ..                                       Restrict reduction to a list of detector indices. In case of mosaic reduction (currently only available for Gemini/GMOS and Keck/DEIMOS) ``detnum`` should be a list of tuples of the detector indices that are mosaiced together. E.g., for Gemini/GMOS ``detnum`` would be ``[(1,2,3)]`` and for Keck/DEIMOS it would be ``[(1, 5), (2, 6), (3, 7), (4, 8)]``                                           
-``ignore_bad_headers``  bool            ..       False                                    Ignore bad headers (NOT recommended unless you know it is safe).                                                                                                                                                                                                                                                                                                                                          
-``maskIDs``             str, int, list  ..       ..                                       Restrict reduction to a set of slitmask IDs Example syntax -- ``maskIDs = 818006,818015`` This must be used with detnum (for now).                                                                                                                                                                                                                                                                        
-``qadir``               str             ..       ``QA``                                   Directory relative to calling directory to write quality assessment files.                                                                                                                                                                                                                                                                                                                                
-``quicklook``           bool            ..       False                                    Run a quick look reduction? This is usually good if you want to quickly reduce the data (usually at the telescope in real time) to get an initial estimate of the data quality.                                                                                                                                                                                                                           
-``redux_path``          str             ..       ``/Users/dpelliccia/PypeIt/PypeIt/doc``  Path to folder for performing reductions.  Default is the current working directory.                                                                                                                                                                                                                                                                                                                      
-``scidir``              str             ..       ``Science``                              Directory relative to calling directory to write science files.                                                                                                                                                                                                                                                                                                                                           
-``slitspatnum``         str, list       ..       ..                                       Restrict reduction to a set of slit DET:SPAT values (closest slit is used). Example syntax -- slitspatnum = DET01:175,DET01:205 or MSC02:2234  If you are re-running the code, (i.e. modifying one slit) you *must* have the precise SPAT_ID index.                                                                                                                                                       
-``sortroot``            str             ..       ..                                       A filename given to output the details of the sorted files.  If None, the default is the root name of the pypeit file.  If off, no output is produced.                                                                                                                                                                                                                                                    
-``spectrograph``        str             ..       ..                                       Spectrograph that provided the data to be reduced.  See :ref:`instruments` for valid options.                                                                                                                                                                                                                                                                                                             
-======================  ==============  =======  =======================================  ==========================================================================================================================================================================================================================================================================================================================================================================================================
+======================  ==============  =======  ============================================  ==========================================================================================================================================================================================================================================================================================================================================================================================================
+Key                     Type            Options  Default                                       Description                                                                                                                                                                                                                                                                                                                                                                                               
+======================  ==============  =======  ============================================  ==========================================================================================================================================================================================================================================================================================================================================================================================================
+``calwin``              int, float      ..       0                                             The window of time in hours to search for calibration frames for a science frame                                                                                                                                                                                                                                                                                                                          
+``chk_version``         bool            ..       True                                          If True enforce strict PypeIt version checking to ensure that all files were created with the current version of PypeIt.  If set to False, the code will attempt to read out-of-date files and keep going.  Beware (!!) that this can lead to unforeseen bugs that either cause the code to crash or lead to erroneous results. I.e., you really need to know what you are doing if you set this to False!
+``detnum``              int, list       ..       ..                                            Restrict reduction to a list of detector indices. In case of mosaic reduction (currently only available for Gemini/GMOS and Keck/DEIMOS) ``detnum`` should be a list of tuples of the detector indices that are mosaiced together. E.g., for Gemini/GMOS ``detnum`` would be ``[(1,2,3)]`` and for Keck/DEIMOS it would be ``[(1, 5), (2, 6), (3, 7), (4, 8)]``                                           
+``ignore_bad_headers``  bool            ..       False                                         Ignore bad headers (NOT recommended unless you know it is safe).                                                                                                                                                                                                                                                                                                                                          
+``maskIDs``             str, int, list  ..       ..                                            Restrict reduction to a set of slitmask IDs Example syntax -- ``maskIDs = 818006,818015`` This must be used with detnum (for now).                                                                                                                                                                                                                                                                        
+``qadir``               str             ..       ``QA``                                        Directory relative to calling directory to write quality assessment files.                                                                                                                                                                                                                                                                                                                                
+``quicklook``           bool            ..       False                                         Run a quick look reduction? This is usually good if you want to quickly reduce the data (usually at the telescope in real time) to get an initial estimate of the data quality.                                                                                                                                                                                                                           
+``redux_path``          str             ..       ``/Users/westfall/Work/packages/pypeit/doc``  Path to folder for performing reductions.  Default is the current working directory.                                                                                                                                                                                                                                                                                                                      
+``scidir``              str             ..       ``Science``                                   Directory relative to calling directory to write science files.                                                                                                                                                                                                                                                                                                                                           
+``slitspatnum``         str, list       ..       ..                                            Restrict reduction to a set of slit DET:SPAT values (closest slit is used). Example syntax -- slitspatnum = DET01:175,DET01:205 or MSC02:2234  If you are re-running the code, (i.e. modifying one slit) you *must* have the precise SPAT_ID index.                                                                                                                                                       
+``sortroot``            str             ..       ..                                            A filename given to output the details of the sorted files.  If None, the default is the root name of the pypeit file.  If off, no output is produced.                                                                                                                                                                                                                                                    
+``spectrograph``        str             ..       ..                                            Spectrograph that provided the data to be reduced.  See :ref:`instruments` for valid options.                                                                                                                                                                                                                                                                                                             
+======================  ==============  =======  ============================================  ==========================================================================================================================================================================================================================================================================================================================================================================================================
 
 
 ----
@@ -5257,6 +5257,7 @@ Alterations to the default parameters are:
               use_pixelflat = False
               use_illumflat = False
       [[slitless_pixflatframe]]
+          exprng = 0, None,
           [[[process]]]
               overscan_method = odd_even
               combine = median
@@ -5285,11 +5286,11 @@ Alterations to the default parameters are:
               use_biasimage = False
               noise_floor = 0.01
       [[wavelengths]]
-          lamps = XeI, KrI, ArI, HgI,
+          lamps = HgI_MODS, ArI_MODS, NeI_MODS, KrI_MODS, XeI_MODS,
           sigdetect = 10.0
           rms_thresh_frac_fwhm = 0.09
       [[slitedges]]
-          edge_thresh = 100.0
+          edge_thresh = 50.0
           sync_predict = nearest
       [[tilts]]
           maxdev_tracefit = 0.02
@@ -5297,12 +5298,199 @@ Alterations to the default parameters are:
           spec_order = 5
           maxdev2d = 0.02
   [scienceframe]
-      exprng = 200, None,
+      exprng = 1, None,
       [[process]]
           overscan_method = odd_even
           mask_cr = True
           use_biasimage = False
           noise_floor = 0.01
+  [flexure]
+      spec_method = boxcar
+
+.. _instr_par-lbt_mods1b_proc:
+
+LBT MODS1B (``lbt_mods1b_proc``)
+--------------------------------
+Alterations to the default parameters are:
+
+.. code-block:: ini
+
+  [rdx]
+      spectrograph = lbt_mods1b_proc
+  [calibrations]
+      [[biasframe]]
+          exprng = None, 0.001,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              combine = median
+              use_biasimage = False
+              use_overscan = False
+              shot_noise = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[darkframe]]
+          exprng = 999999, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[arcframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              clip = False
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[tiltframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              clip = False
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[pixelflatframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[pinholeframe]]
+          exprng = 999999, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[alignframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[traceframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[illumflatframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[lampoffflatsframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[slitless_pixflatframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              combine = median
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[scattlightframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[skyframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              noise_floor = 0.01
+              use_pixelflat = False
+              use_illumflat = False
+      [[standardframe]]
+          exprng = 1, 200,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              noise_floor = 0.01
+              use_pixelflat = False
+              use_illumflat = False
+      [[wavelengths]]
+          lamps = HgI_MODS, ArI_MODS, NeI_MODS, KrI_MODS, XeI_MODS,
+          sigdetect = 10.0
+          rms_thresh_frac_fwhm = 0.09
+      [[slitedges]]
+          edge_thresh = 50.0
+          sync_predict = nearest
+      [[tilts]]
+          maxdev_tracefit = 0.02
+          spat_order = 5
+          spec_order = 5
+          maxdev2d = 0.02
+  [scienceframe]
+      exprng = 1, None,
+      [[process]]
+          trim = False
+          apply_gain = False
+          overscan_method = odd_even
+          mask_cr = True
+          use_biasimage = False
+          use_overscan = False
+          noise_floor = 0.01
+          use_pixelflat = False
+          use_illumflat = False
   [flexure]
       spec_method = boxcar
 
@@ -5390,6 +5578,7 @@ Alterations to the default parameters are:
               use_pixelflat = False
               use_illumflat = False
       [[slitless_pixflatframe]]
+          exprng = 0, None,
           [[[process]]]
               overscan_method = odd_even
               combine = median
@@ -5418,13 +5607,13 @@ Alterations to the default parameters are:
               use_biasimage = False
               noise_floor = 0.01
       [[wavelengths]]
-          lamps = ArI, NeI, KrI, XeI,
+          lamps = HgI_MODS, ArI_MODS, NeI_MODS, KrI_MODS, XeI_MODS,
           fwhm = 10.0
           rms_thresh_frac_fwhm = 0.09
           match_toler = 2.5
           n_first = 3
       [[slitedges]]
-          edge_thresh = 100.0
+          edge_thresh = 50.0
           sync_predict = nearest
       [[tilts]]
           maxdev_tracefit = 0.02
@@ -5432,12 +5621,205 @@ Alterations to the default parameters are:
           spec_order = 5
           maxdev2d = 0.02
   [scienceframe]
-      exprng = 200, None,
+      exprng = 1, None,
       [[process]]
           overscan_method = odd_even
           mask_cr = True
           use_biasimage = False
           noise_floor = 0.01
+  [flexure]
+      spec_method = boxcar
+  [sensfunc]
+      algorithm = IR
+      [[IR]]
+          telgridfile = TellPCA_3000_26000_R10000.fits
+
+.. _instr_par-lbt_mods1r_proc:
+
+LBT MODS1R (``lbt_mods1r_proc``)
+--------------------------------
+Alterations to the default parameters are:
+
+.. code-block:: ini
+
+  [rdx]
+      spectrograph = lbt_mods1r_proc
+  [calibrations]
+      [[biasframe]]
+          exprng = None, 0.001,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              combine = median
+              use_biasimage = False
+              use_overscan = False
+              shot_noise = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[darkframe]]
+          exprng = 999999, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[arcframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              clip = False
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[tiltframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              clip = False
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[pixelflatframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[pinholeframe]]
+          exprng = 999999, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[alignframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[traceframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[illumflatframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[lampoffflatsframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[slitless_pixflatframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              combine = median
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[scattlightframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[skyframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              noise_floor = 0.01
+              use_pixelflat = False
+              use_illumflat = False
+      [[standardframe]]
+          exprng = 1, 200,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              noise_floor = 0.01
+              use_pixelflat = False
+              use_illumflat = False
+      [[wavelengths]]
+          lamps = HgI_MODS, ArI_MODS, NeI_MODS, KrI_MODS, XeI_MODS,
+          fwhm = 10.0
+          rms_thresh_frac_fwhm = 0.09
+          match_toler = 2.5
+          n_first = 3
+      [[slitedges]]
+          edge_thresh = 50.0
+          sync_predict = nearest
+      [[tilts]]
+          maxdev_tracefit = 0.02
+          spat_order = 5
+          spec_order = 5
+          maxdev2d = 0.02
+  [scienceframe]
+      exprng = 1, None,
+      [[process]]
+          trim = False
+          apply_gain = False
+          overscan_method = odd_even
+          mask_cr = True
+          use_biasimage = False
+          use_overscan = False
+          noise_floor = 0.01
+          use_pixelflat = False
+          use_illumflat = False
   [flexure]
       spec_method = boxcar
   [sensfunc]
@@ -5529,6 +5911,7 @@ Alterations to the default parameters are:
               use_pixelflat = False
               use_illumflat = False
       [[slitless_pixflatframe]]
+          exprng = 0, None,
           [[[process]]]
               overscan_method = odd_even
               combine = median
@@ -5557,11 +5940,11 @@ Alterations to the default parameters are:
               use_biasimage = False
               noise_floor = 0.01
       [[wavelengths]]
-          lamps = XeI, KrI, ArI, HgI,
+          lamps = HgI_MODS, ArI_MODS, NeI_MODS, KrI_MODS, XeI_MODS,
           sigdetect = 10.0
           rms_thresh_frac_fwhm = 0.09
       [[slitedges]]
-          edge_thresh = 100.0
+          edge_thresh = 50.0
           sync_predict = nearest
       [[tilts]]
           maxdev_tracefit = 0.02
@@ -5569,12 +5952,199 @@ Alterations to the default parameters are:
           spec_order = 5
           maxdev2d = 0.02
   [scienceframe]
-      exprng = 200, None,
+      exprng = 1, None,
       [[process]]
           overscan_method = odd_even
           mask_cr = True
           use_biasimage = False
           noise_floor = 0.01
+  [flexure]
+      spec_method = boxcar
+
+.. _instr_par-lbt_mods2b_proc:
+
+LBT MODS2B (``lbt_mods2b_proc``)
+--------------------------------
+Alterations to the default parameters are:
+
+.. code-block:: ini
+
+  [rdx]
+      spectrograph = lbt_mods2b_proc
+  [calibrations]
+      [[biasframe]]
+          exprng = None, 0.001,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              combine = median
+              use_biasimage = False
+              use_overscan = False
+              shot_noise = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[darkframe]]
+          exprng = 999999, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[arcframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              clip = False
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[tiltframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              clip = False
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[pixelflatframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[pinholeframe]]
+          exprng = 999999, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[alignframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[traceframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[illumflatframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[lampoffflatsframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[slitless_pixflatframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              combine = median
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[scattlightframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[skyframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              noise_floor = 0.01
+              use_pixelflat = False
+              use_illumflat = False
+      [[standardframe]]
+          exprng = 1, 200,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              noise_floor = 0.01
+              use_pixelflat = False
+              use_illumflat = False
+      [[wavelengths]]
+          lamps = HgI_MODS, ArI_MODS, NeI_MODS, KrI_MODS, XeI_MODS,
+          sigdetect = 10.0
+          rms_thresh_frac_fwhm = 0.09
+      [[slitedges]]
+          edge_thresh = 50.0
+          sync_predict = nearest
+      [[tilts]]
+          maxdev_tracefit = 0.02
+          spat_order = 5
+          spec_order = 5
+          maxdev2d = 0.02
+  [scienceframe]
+      exprng = 1, None,
+      [[process]]
+          trim = False
+          apply_gain = False
+          overscan_method = odd_even
+          mask_cr = True
+          use_biasimage = False
+          use_overscan = False
+          noise_floor = 0.01
+          use_pixelflat = False
+          use_illumflat = False
   [flexure]
       spec_method = boxcar
 
@@ -5662,6 +6232,7 @@ Alterations to the default parameters are:
               use_pixelflat = False
               use_illumflat = False
       [[slitless_pixflatframe]]
+          exprng = 0, None,
           [[[process]]]
               overscan_method = odd_even
               combine = median
@@ -5690,13 +6261,13 @@ Alterations to the default parameters are:
               use_biasimage = False
               noise_floor = 0.01
       [[wavelengths]]
-          lamps = ArI, NeI, KrI, XeI,
+          lamps = HgI_MODS, ArI_MODS, NeI_MODS, KrI_MODS, XeI_MODS,
           fwhm = 10.0
           rms_thresh_frac_fwhm = 0.22
           match_toler = 2.5
           n_first = 3
       [[slitedges]]
-          edge_thresh = 300.0
+          edge_thresh = 50.0
           sync_predict = nearest
       [[tilts]]
           maxdev_tracefit = 0.02
@@ -5704,12 +6275,205 @@ Alterations to the default parameters are:
           spec_order = 5
           maxdev2d = 0.02
   [scienceframe]
-      exprng = 200, None,
+      exprng = 1, None,
       [[process]]
           overscan_method = odd_even
           mask_cr = True
           use_biasimage = False
           noise_floor = 0.01
+  [flexure]
+      spec_method = boxcar
+  [sensfunc]
+      algorithm = IR
+      [[IR]]
+          telgridfile = TellPCA_3000_26000_R10000.fits
+
+.. _instr_par-lbt_mods2r_proc:
+
+LBT MODS2R (``lbt_mods2r_proc``)
+--------------------------------
+Alterations to the default parameters are:
+
+.. code-block:: ini
+
+  [rdx]
+      spectrograph = lbt_mods2r_proc
+  [calibrations]
+      [[biasframe]]
+          exprng = None, 0.001,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              combine = median
+              use_biasimage = False
+              use_overscan = False
+              shot_noise = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[darkframe]]
+          exprng = 999999, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[arcframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              clip = False
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[tiltframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              clip = False
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[pixelflatframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[pinholeframe]]
+          exprng = 999999, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[alignframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[traceframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[illumflatframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[lampoffflatsframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[slitless_pixflatframe]]
+          exprng = 0, None,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              combine = median
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[scattlightframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              satpix = nothing
+              use_biasimage = False
+              use_overscan = False
+              use_pixelflat = False
+              use_illumflat = False
+      [[skyframe]]
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              noise_floor = 0.01
+              use_pixelflat = False
+              use_illumflat = False
+      [[standardframe]]
+          exprng = 1, 200,
+          [[[process]]]
+              trim = False
+              apply_gain = False
+              overscan_method = odd_even
+              mask_cr = True
+              use_biasimage = False
+              use_overscan = False
+              noise_floor = 0.01
+              use_pixelflat = False
+              use_illumflat = False
+      [[wavelengths]]
+          lamps = HgI_MODS, ArI_MODS, NeI_MODS, KrI_MODS, XeI_MODS,
+          fwhm = 10.0
+          rms_thresh_frac_fwhm = 0.22
+          match_toler = 2.5
+          n_first = 3
+      [[slitedges]]
+          edge_thresh = 50.0
+          sync_predict = nearest
+      [[tilts]]
+          maxdev_tracefit = 0.02
+          spat_order = 5
+          spec_order = 5
+          maxdev2d = 0.02
+  [scienceframe]
+      exprng = 1, None,
+      [[process]]
+          trim = False
+          apply_gain = False
+          overscan_method = odd_even
+          mask_cr = True
+          use_biasimage = False
+          use_overscan = False
+          noise_floor = 0.01
+          use_pixelflat = False
+          use_illumflat = False
   [flexure]
       spec_method = boxcar
   [sensfunc]
