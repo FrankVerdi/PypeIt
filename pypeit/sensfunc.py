@@ -331,13 +331,13 @@ class SensFunc(datamodel.DataContainer):
                 if spec.fluxed:
                     msgs.error('Standard star 1D spectrum from OneSpec class is already fluxed '
                                'and cannot be used to generate the sensitivity function.')
+                if self.par['use_flat']:
+                    msgs.error('"use_flat" set to True, but standard star 1D spectrum from OneSpec class '
+                              'does not contain the flat spectrum. The blaze function cannot be estimated.')
                 if spec.ext_mode != self.par['extr']:
                     msgs.warn(f'Standard star 1D spectrum from OneSpec class was obtained using the {spec.ext_mode} '
                                f'extraction, while the requested extraction is {self.par["extr"]}. '
                                f'The available {spec.ext_mode} extraction will be used instead.')
-                if self.par['use_flat']:
-                    msgs.error('"use_flat" set to True, but standard star 1D spectrum from OneSpec class '
-                              'does not contain the flat spectrum. The blaze function cannot be estimated.')
                     self.extr = spec.ext_mode
 
                 wave, counts, counts_ivar, counts_mask, log10_blaze_function, meta_spec, header = \
