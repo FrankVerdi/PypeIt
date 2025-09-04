@@ -390,7 +390,7 @@ class PypeIt:
                     history.add_reduce(calib_ID, self.fitstbl, frames, bg_frames)
                     std_spec2d, std_sobjs = self.reduce_exposure(frames, bg_frames=bg_frames)
                     # TODO come up with sensible naming convention for save_exposure for combined files
-                    self.save_exposure(frames[0], std_spec2d, std_sobjs, basename, history)
+                    self.save_exposure(frames[0], std_spec2d, std_sobjs, history)
                 else:
                     msgs.info('Output file: {:s} already exists'.format(self.fitstbl.construct_basename(frames[0])) +
                               '. Set overwrite=True to recreate and overwrite.')
@@ -410,9 +410,6 @@ class PypeIt:
 
             # Associate standards (previously reduced above) for this setup
             std_outfile = self.get_std_outfile(frame_indx[is_standard])
-            # Reduce all the science frames; keep the basenames of the science
-            # frames for use in flux calibration
-            science_basename = [None]*len(grp_science)
             # Loop on unique comb_id
             u_combid = np.unique(self.fitstbl['comb_id'][grp_science])
         
@@ -446,16 +443,13 @@ class PypeIt:
                     history.add_reduce(calib_ID, self.fitstbl, frames, bg_frames)
 
                     # TODO -- Should we reset/regenerate self.slits.mask for a new exposure
-                    sci_spec2d, sci_sobjs = self.new_reduce_exposure(frames, bg_frames=bg_frames,
+                    sci_spec2d, sci_sobjs = self.reduce_exposure(frames, bg_frames=bg_frames,
                                                                  std_outfile=std_outfile)
-                    #sci_spec2d, sci_sobjs = self.reduce_exposure(frames, bg_frames=bg_frames,
-                    #                                             std_outfile=std_outfile)
-                    science_basename[j] = self.basename
 
                     # TODO: come up with sensible naming convention for
                     # save_exposure for combined files
                     if len(sci_spec2d.detectors) > 0:
-                        self.save_exposure(frames[0], sci_spec2d, sci_sobjs, self.basename, history,
+                        self.save_exposure(frames[0], sci_spec2d, sci_sobjs, history,
                                            skip_write_2d=self.par['scienceframe']['process']['skip_write_2d'])
                     else:
                         msgs.warn('No spec2d and spec1d saved to file because the '
@@ -561,7 +555,7 @@ class PypeIt:
 
         # #####################################
         # Proccess or load processed frames
-        load_processed = True
+        load_processed = False
         if load_processed:
             load, write = True, False
         else:
@@ -569,25 +563,29 @@ class PypeIt:
         sciImg_dict, bkg_redux_sciimg_dict = process_frames(
                 self.spectrograph, self.fitstbl, self.par, frames,
                    detectors, self.calibrations_path, 
-                   bg_frames=bg_frames, load=load, write=write)
+                   bg_frames=bg_frames, 
+                   load=load, write=write)
 
         # #####################################
         # Find objects + initial sky
-        load_findobj = False
-        if load_findobj:
-            pass
-            all_specobjs_objfind = None
-        else:
-            findobj_kwargs = dict(bkg_redux=self.bkg_redux,
+        # TODO -- replace this kludge
+        extras = dict(bkg_redux=self.bkg_redux,
                 find_negative=self.find_negative,
                 show=self.show)
-            initial_sky_dict, objFind_dict, all_specobjs_find = \
-                findobj_on_exposure(sciImg_dict, self.spectrograph, self.fitstbl,
+        load_findobj = False
+        if load_findobj:
+            load, write = True, False
+            all_specobjs_objfind = None
+        else:
+            load, write = False, True
+        initial_sky_dict, all_specobjs_find = \
+            findobj_on_exposure(sciImg_dict, self.spectrograph, 
+                                self.fitstbl,
                                 self.par, frames, detectors, 
                                 self.calibrations_path, 
                                 std_outfile=std_outfile,
-                                extras=findobj_kwargs)
-            # Save 
+                                extras=extras, 
+                                load=load, write=write)
 
         # #####################################
         # slitmask stuff
@@ -1143,7 +1141,7 @@ class PypeIt:
         return vel_corr, waveimg
 
     def save_exposure(self, frame:int, all_spec2d:spec2dobj.AllSpec2DObj,
-                      all_specobjs:specobjs.SpecObjs, basename:str, history:History=None,
+                      all_specobjs:specobjs.SpecObjs, history:History=None,
                       skip_write_2d:bool=False):
         """
         Save the outputs from extraction for a given exposure
@@ -1156,14 +1154,14 @@ class PypeIt:
                 The 2D reduced spectrum objects.
             all_specobjs (:class:`~pypeit.specobjs.SpecObjs`):
                 The 1D spectral extraction objects.
-            basename (:obj:`str`):
-                The root name for the output file.
             history (:class:`~pypeit.history.History`), optional:
                 History entries to be added to fits header
             skip_write_2d (:obj:`bool`), optional:
                 Skip writing the 2D spectrum to disk
         """
         # TODO: Need some checks here that the exposure has been reduced?
+        obstime  = self.fitstbl.construct_obstime(frame)
+        basename = self.fitstbl.construct_basename(frame, obstime=obstime)
 
         # Determine the headers
         row_fitstbl = self.fitstbl[frame]
@@ -1202,7 +1200,7 @@ class PypeIt:
             outfiletxt = self.science_path / f'spec1d_{basename}.txt'
             # TODO: Note we re-read in the specobjs from disk to deal with situations where
             # only a single detector is run in a second pass but in the same reduction directory.
-            # Thiw was to address Issue #1116 in PR #1154. Slightly inefficient, but only other
+            # This was to address Issue #1116 in PR #1154. Slightly inefficient, but only other
             # option is to re-work write_info to also "append"
             sobjs = specobjs.SpecObjs.from_fitsfile(outfile1d, chk_version=False)
             sobjs.write_info(outfiletxt, self.spectrograph.pypeline)
@@ -1216,7 +1214,7 @@ class PypeIt:
         # Build header
         pri_hdr = all_spec2d.build_primary_hdr(head2d, self.spectrograph,
                                                redux_path=self.par['rdx']['redux_path'],
-                                               calib_dir=self.caliBrate.calib_dir,
+                                               calib_dir=self.calibrations_path,
                                                subheader=subheader,
                                                history=history)
 
@@ -1306,10 +1304,10 @@ def process_frames(spectrograph, fitstbl, par, frames:list,
 
         # Write them?
         if write:
-            embed(header='1309 of x_pypeit')
-            # Generate the folder
+            # Generate the folder?
             if not sci_filename.parent.is_dir():
                 sci_filename.parent.mkdir()
+            # Write sciImg
             sciImg.to_file(sci_filename, overwrite=True)
             msgs.info(f'Wrote intermediate science image to {sci_filename}')
             # bkg_redux_sciimg?
@@ -1344,33 +1342,58 @@ def findobj_on_exposure(sciImg_dict:dict, spectrograph,
                         fitstbl, par, frames:list, 
                         detectors:list, calibrations_path:str, 
                         std_outfile:str=None,
+                        load:bool=False, write:bool=False,
                         extras=None):
     
     # Output
     initial_sky_dict = {}
-    objFind_dict = {}
 
     # container for specobjs during first loop (objfind)
     all_specobjs_objfind = specobjs.SpecObjs()
 
     # Loop on the detectors
     for det in detectors:
+        _, _, _, basename, binning \
+            = pypeit_steps.get_sci_metadata(spectrograph, fitstbl, frames[0], det)
+        initsky_filename = intermediate_filename('initSky', basename, 
+                                        spectrograph.get_det_name(det))
+
+        # Load?
+        if load:
+            msgs.info(f'Loading initial sky for detector {det}')
+            initial_sky_dict[det] = pypeitimage.PypeItImage.from_file(initsky_filename)
+            continue
+
         # Grab the science image
         sciImg = sciImg_dict[det]
 
         # Run
-        initial_sky, sobjs_obj, objFind = \
+        initial_sky, sobjs_obj, _ = \
             pypeit_steps.findobj_on_det(sciImg, spectrograph, fitstbl, par, frames, det,
                 calibrations_path, std_outfile=std_outfile,
                 extras=extras)
+
         # Store em
         initial_sky_dict[det] = initial_sky
-        objFind_dict[det] = objFind
         if len(sobjs_obj)>0:
             all_specobjs_objfind.add_sobj(sobjs_obj)
 
+        # Write?
+        if write:
+            init_pypeit = pypeitimage.PypeItImage(initial_sky)
+            if not initsky_filename.parent.is_dir():
+                initsky_filename.parent.mkdir()
+            init_pypeit.to_file(initsky_filename, overwrite=True)
+
+    # Spec1D
+    spec1d_filename = intermediate_filename('spec1d', basename, 'all')
+    if load:
+        all_specobjs_objfind = specobjs.SpecObjs.from_fitsfile(spec1d_filename) 
+    elif write & all_specobjs_objfind.nobj > 0:
+        all_specobjs_objfind.write_to_fits({}, spec1d_filename)
+
     # Return
-    return initial_sky_dict, objFind_dict, all_specobjs_objfind
+    return initial_sky_dict, all_specobjs_objfind
 
 def extract_exposure(sciImg_dict, bkg_redux_sciimg_dict,
                      spectrograph, fitstbl, par, frames,
@@ -1432,7 +1455,6 @@ def extract_exposure(sciImg_dict, bkg_redux_sciimg_dict,
                                 fitstbl.find_frame_calib_groups(frames[0])[0], det,
                                 must_exist=True, proc_only=True)
 
-    embed(header='check spec2DObj 1397 of x_pypeit')
     # Return
     return all_spec2d, all_specobjs_extract
 
