@@ -9,15 +9,15 @@ import astropy.io.fits
 import astropy.table
 import numpy as np
 
+from pypeit import io
 from pypeit import msgs
 from pypeit import telescopes
 from pypeit import utils
-from pypeit import io
 from pypeit.core import framematch
-from pypeit.par import parset
-from pypeit.spectrographs import spectrograph
 from pypeit.core import parse
 from pypeit.images.detector_container import DetectorContainer
+from pypeit.par import parset
+from pypeit.spectrographs import spectrograph
 
 
 # TODO: FW: test MODS1B and MODS2B

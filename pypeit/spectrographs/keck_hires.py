@@ -9,6 +9,7 @@ import pathlib
 import astropy.io.fits
 import astropy.table
 import astropy.time
+from astropy import units
 import numpy as np
 
 from pypeit import msgs

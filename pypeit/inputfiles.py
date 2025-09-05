@@ -634,10 +634,9 @@ class InputFile:
             if _files is not None:
                 config_specific_file = _files[0]
 
-        # Send the Row of the metadata table corresponding to the file
-        csf_idx = self.data['filename'] == Path(config_specific_file).name
+        # Get the configuration-specific parameters based on the file
         spec_par = spec.default_pypeit_par() if config_specific_file is None \
-                    else spec.config_specific_par(self.data[csf_idx])
+                    else spec.config_specific_par(config_specific_file)
 
         par = PypeItPar.from_cfg_lines(cfg_lines=spec_par.to_config(),
                                        merge_with=(self.cfg_lines,))
@@ -686,7 +685,8 @@ class PypeItFile(InputFile):
     def get_pypeitpar(self):
         """
         Override the base class function to use files with specific frametypes
-        for the config-specific parameters.
+        and the contents of the PypeIt File (including and modifications away
+        from vales in the FITS headers) for the config-specific parameters.
 
         Returns:
             :obj:`tuple`: A tuple with the spectrograph instance, the
@@ -718,7 +718,22 @@ class PypeItFile(InputFile):
 
         if config_specific_file is not None:
             self.get_spectrograph()._check_extensions(config_specific_file)
-        return super().get_pypeitpar(config_specific_file=config_specific_file)
+
+        spec = self.get_spectrograph()
+
+        if config_specific_file is None:
+            _files = self.filenames
+            if _files is not None:
+                config_specific_file = _files[0]
+
+        # Send the Row of the metadata table corresponding to the file
+        csf_idx = self.data['filename'] == Path(config_specific_file).name
+        spec_par = spec.default_pypeit_par() if config_specific_file is None \
+                    else spec.config_specific_par(self.data[csf_idx])
+
+        par = PypeItPar.from_cfg_lines(cfg_lines=spec_par.to_config(),
+                                       merge_with=(self.cfg_lines,))
+        return spec, par, config_specific_file
 
 
 class SensFile(InputFile):
@@ -881,7 +896,7 @@ class Coadd3DFile(InputFile):
     required_columns = ['filename'] 
 
     def vet(self):
-        """ Check for required bits and pieces of the .coadd2d file
+        """ Check for required bits and pieces of the .coadd3d file
         besides the input objects themselves
         """
         super().vet()

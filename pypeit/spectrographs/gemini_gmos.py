@@ -1007,7 +1007,7 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
         hdrs = self.get_headarr(filename)
         binning = self.get_meta_value(hdrs, 'binning')
         obs_epoch = astropy.time.Time(self.get_meta_value(hdrs, 'mjd'), format='mjd').jyear
-        bin_spec, bin_spat= parse.parse_binning(binning)
+        bin_spec, _ = parse.parse_binning(binning)
 
         # Add the detector-specific, hard-coded bad columns
         if 1 in _det:
@@ -1090,7 +1090,7 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
 
         # The bad amp needs a larger follow_span for slit edge tracing
         obs_epoch = astropy.time.Time(mjd, format='mjd').jyear
-        bin_spec, _= parse.parse_binning(binning)
+        bin_spec, _ = parse.parse_binning(binning)
         if 2022.07 < obs_epoch < astropy.time.Time("2023-12-14", format='isot').jyear:
             par['calibrations']['slitedges']['follow_span'] = 290*bin_spec
         #
@@ -1332,7 +1332,7 @@ class GeminiGMOSNHamNSSpectrograph(GeminiGMOSNHamSpectrograph):
         """
         detpar, array, hdu, exptime, rawdatasec_img, oscansec_img \
                 = super().get_rawimage(raw_file, det)
-        nod_shuffle_pix = hdu[0].header['NODPIX']
+        nod_shuffle_pix = self.get_headarr(raw_file)[0]['NODPIX']
 
         if nod_shuffle_pix is None \
                 or hdu[0].header['object'] not in ['GCALflat', 'CuAr', 'Bias']:

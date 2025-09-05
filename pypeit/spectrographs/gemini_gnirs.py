@@ -883,4 +883,4 @@ class GNIRSIFUSpectrograph(GeminiGNIRSSpectrograph):
             :class:`~pypeit.metadata.PypeItMetaData` instance to print to the
             :ref:`pypeit_file`.
         """
-        return super().pypeit_file_keys() + ['filter']
+        return super().pypeit_file_keys() + ['filter1']
