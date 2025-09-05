@@ -1,3 +1,4 @@
+from pathlib import Path
 import numpy as np
 import copy
 
@@ -13,6 +14,7 @@ from pypeit.core import parse
 from pypeit.manual_extract import ManualExtractionObj
 from pypeit import spec2dobj
 from pypeit.core import wave
+from pypeit.images import pypeitimage
 
 from pypeit import slittrace
 from pypeit import calibrations
@@ -460,12 +462,19 @@ def extract_one(spectrograph, fitstbl, par,
             bkg_redux=bkg_redux, 
             return_negative=par['reduce']['extraction']['return_negative'],
             std_redux=std_redux, basename=basename, show=show)
+        #embed(header='465 of pypeit_steps.py')
         # Perform the extraction
-        skymodel, bkg_redux_skymodel, objmodel, ivarmodel, outmask, sobjs, waveImg, tilts, slits = exTract.run()
+        skymodel, bkg_redux_skymodel, objmodel, ivarmodel, outmask, sobjs, waveImg,\
+            tilts, slits = exTract.run()
         slitgpm = np.logical_not(exTract.extract_bpm)
         slitshift = exTract.slitshift
     else:
         msgs.info(f"Extraction skipped for {basename} on det={det}")
+        # TODO
+        # If IFU, need to redo global sky sub for waveimg (this is a HACK)
+        # TODO
+        # Deal with slitshift too, for IFU
+
         # Since the extraction was not performed, fill the arrays with the best available information
         skymodel, bkg_redux_skymodel, objmodel, ivarmodel, outmask, sobjs, waveImg, tilts = \
             final_global_sky, \
@@ -628,3 +637,211 @@ def refframe_correct(spectrograph, par, slits, ra, dec, obstime, slitgpm=None,
 
     # Return the value of the correction and the corrected wavelength image
     return vel_corr, waveimg
+
+
+
+def process_frames(spectrograph, fitstbl, par, frames:list,
+                   detectors:list, calibrations_path:str,
+                   bg_frames:list=None, 
+                   load:bool=False, write:bool=False):
+
+    # dict of sciImg
+    sciImg_dict = {}
+    # list of bkg_redux_sciimg
+    bkg_redux_sciimg_dict = {}
+
+    # Loop on the detectors
+    for det in detectors:
+        # Filenames
+        _, _, _, basename, binning \
+            = get_sci_metadata(spectrograph, fitstbl, frames[0], det)
+        sci_filename = intermediate_filename('sciImg', basename, 
+                                        spectrograph.get_det_name(det))
+        bkg_filename = intermediate_filename('bkgImg', basename, 
+                                                spectrograph.get_det_name(det))
+        # Load?
+        if load:
+            msgs.info(f'Loading images for detector {det}')
+            sciImg = pypeitimage.PypeItImage.from_file(sci_filename)
+            if bg_frames is not None and len(bg_frames) > 0:
+                bkg_redux_sciimg = pypeitimage.PypeItImage.from_file(bkg_filename)
+            else:
+                bkg_redux_sciimg = None
+            sciImg_dict[det] = sciImg
+            bkg_redux_sciimg_dict[det] = bkg_redux_sciimg
+            continue
+
+        msgs.info(f'Reducing detector {det}')
+        # run/load calibration
+        caliBrate = pypeit_steps.load_calibrations_for_frame(
+            spectrograph, fitstbl, par, frames[0], det, calibrations_path)
+        if not caliBrate.success:
+            msgs.error(f'Calibrations for detector {det} were unsuccessful!  The step '
+                        f'that failed was {caliBrate.failed_step}.')  
+            continue
+
+        # Process
+        sciImg, bkg_redux_sciimg = process_one_det(
+            spectrograph, fitstbl, caliBrate,
+            par, frames, det, bg_frames=bg_frames)
+
+        # List em up
+        sciImg_dict[det] = sciImg
+        bkg_redux_sciimg_dict[det] = bkg_redux_sciimg
+
+        # Write them?
+        if write:
+            # Generate the folder?
+            if not sci_filename.parent.is_dir():
+                sci_filename.parent.mkdir()
+            # Write sciImg
+            sciImg.to_file(sci_filename, overwrite=True)
+            msgs.info(f'Wrote intermediate science image to {sci_filename}')
+            # bkg_redux_sciimg?
+            if bkg_redux_sciimg is not None:
+                bkg_redux_sciimg.to_file(bkg_filename, overwrite=True)
+                msgs.info(f'Wrote intermediate background image to {bkg_filename}')
+
+
+    # Return
+    return sciImg_dict, bkg_redux_sciimg_dict
+
+def intermediate_filename(itype:str, basename:str, det_name:str, 
+                          inter_path:str='Intermediate'):
+    """
+    Construct the intermediate file name for a given type and detector
+
+    Args:
+        itype (:obj:`str`):
+            Type of intermediate file
+        det_name (:obj:`str`):
+            Name of the detector
+        inter_path (:obj:`str`, optional):
+            Path to the intermediate files
+
+    Returns:
+        :obj:`str`: The full path to the intermediate file
+    """
+    return Path(inter_path) / f'{itype}_{basename}_{det_name}.fits'
+
+
+def findobj_on_exposure(sciImg_dict:dict, spectrograph, 
+                        fitstbl, par, frames:list, 
+                        detectors:list, calibrations_path:str, 
+                        std_outfile:str=None,
+                        load:bool=False, write:bool=False,
+                        extras=None):
+    
+    # Output
+    initial_sky_dict = {}
+
+    # container for specobjs during first loop (objfind)
+    all_specobjs_objfind = specobjs.SpecObjs()
+
+    # Loop on the detectors
+    for det in detectors:
+        _, _, _, basename, binning \
+            = get_sci_metadata(spectrograph, fitstbl, frames[0], det)
+        initsky_filename = intermediate_filename('initSky', basename, 
+                                        spectrograph.get_det_name(det))
+
+        # Load?
+        if load:
+            msgs.info(f'Loading initial sky for detector {det}')
+            tmp = pypeitimage.PypeItImage.from_file(initsky_filename)
+            initial_sky_dict[det] = tmp.image
+            continue
+
+        # Grab the science image
+        sciImg = sciImg_dict[det]
+
+        # Run
+        initial_sky, sobjs_obj, _ = \
+            findobj_on_det(sciImg, spectrograph, fitstbl, par, frames, det,
+                calibrations_path, std_outfile=std_outfile,
+                extras=extras)
+
+        # Store em
+        initial_sky_dict[det] = initial_sky
+        if len(sobjs_obj)>0:
+            all_specobjs_objfind.add_sobj(sobjs_obj)
+
+        # Write?
+        if write:
+            init_pypeit = pypeitimage.PypeItImage(initial_sky)
+            if not initsky_filename.parent.is_dir():
+                initsky_filename.parent.mkdir()
+            init_pypeit.to_file(initsky_filename, overwrite=True)
+
+    # Spec1D
+    spec1d_filename = intermediate_filename('spec1d', basename, 'all')
+    if load:
+        all_specobjs_objfind = specobjs.SpecObjs.from_fitsfile(spec1d_filename) 
+    elif write & all_specobjs_objfind.nobj > 0:
+        all_specobjs_objfind.write_to_fits({}, spec1d_filename)
+
+    # Return
+    return initial_sky_dict, all_specobjs_objfind
+
+def extract_exposure(sciImg_dict, bkg_redux_sciimg_dict,
+                     spectrograph, fitstbl, par, frames,
+                     calibrations_path, detectors, 
+                     all_specobjs_objfind,
+                     initial_sky_dict, 
+                     bkg_redux:bool=False,
+                     find_negative:bool=False,
+                     calib_slits:list=None):
+
+    # Container for all the Spec2DObj
+    all_spec2d = spec2dobj.AllSpec2DObj()
+    all_spec2d['meta']['bkg_redux'] = bkg_redux
+    all_spec2d['meta']['find_negative'] = find_negative
+    # container for specobjs during second loop (extraction)
+    all_specobjs_extract = specobjs.SpecObjs()
+
+    # Extract
+    for i,det in enumerate(detectors):
+        # Load calibrations
+        caliBrate = load_calibrations_for_frame(
+            spectrograph, fitstbl, par, frames[0], det, calibrations_path)
+        if calib_slits is not None:
+            caliBrate.slits = calib_slits[i]
+
+        detname = sciImg_dict[det].detector.name
+
+        # TODO: pass back the background frame, pass in background
+        # files as an argument. extract one takes a file list as an
+        # argument and instantiates science within
+        if all_specobjs_objfind.nobj > 0:
+            all_specobjs_on_det = all_specobjs_objfind[all_specobjs_objfind.DET == detname]
+        else:
+            all_specobjs_on_det = all_specobjs_objfind
+
+        # Instantiate objFind
+
+        # Extract
+        #all_spec2d[detname], tmp_sobjs \
+        #        = self.extract_one(frames, self.det, sciImg_list[i], bkg_redux_sciimg_list[i], objFind_list[i],
+        #                            initial_sky_list[i], all_specobjs_on_det)
+        all_spec2d[detname], tmp_sobjs = extract_one(
+            spectrograph, fitstbl, par, frames, det,
+            caliBrate, sciImg_dict[det],
+            bkg_redux_sciimg_dict[det],
+            initial_sky_dict[det],
+            all_specobjs_on_det,
+            bkg_redux=bkg_redux,
+            find_negative=find_negative)
+
+        # Hold em
+        if tmp_sobjs.nobj > 0:
+            all_specobjs_extract.add_sobj(tmp_sobjs)
+
+        # Add calibration associations to the SpecObjs object
+        all_specobjs_extract.calibs = calibrations.Calibrations.get_association(
+                                fitstbl, spectrograph, calibrations_path,
+                                fitstbl[frames[0]]['setup'],
+                                fitstbl.find_frame_calib_groups(frames[0])[0], det,
+                                must_exist=True, proc_only=True)
+
+    # Return
+    return all_spec2d, all_specobjs_extract

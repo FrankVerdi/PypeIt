@@ -98,6 +98,7 @@ class FindObjects:
             WaveImage image generated on-the-spot
         slitshift (`numpy.ndarray`_):
             Global spectral flexure correction for each slit (in pixels)
+            Currently only used with the IFU
         vel_corr (:obj:`float`):
             Relativistic reference frame velocity correction (e.g. heliocentyric/barycentric/topocentric)
 
@@ -1017,8 +1018,8 @@ class SlicerIFUFindObjects(MultiSlitFindObjects):
 
         if self.wv_calib is None:
             msgs.error("A wavelength calibration is needed (wv_calib) if a joint sky fit is requested.")
-        msgs.info("Generating wavelength image")
 
+        msgs.info("Generating wavelength image")
         # Generate the waveimg which is needed if flexure is being computed
         self.waveimg = self.wv_calib.build_waveimg(self.tilts, self.slits, spat_flexure=self.spat_flexure_shift)
 

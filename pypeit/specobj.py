@@ -55,7 +55,7 @@ class SpecObj(datamodel.DataContainer):
             Running index for the order.
     """
 
-    version = '1.1.11'
+    version = '1.1.12'
     """
     Current datamodel version number.
     """
@@ -70,6 +70,9 @@ class SpecObj(datamodel.DataContainer):
                                         descr='Peak value of the spectral direction collapsed spatial profile'),
                  'smash_snr': dict(otype=float,
                                         descr='Peak S/N ratio of the spectral direction collapsed patial profile'),
+                 'sign': dict(otype=float,
+                                        descr='Sign of the object profile (+1 or -1).  + is a positive '+\
+                                                'profile above the sky background.'),
                  'OPT_WAVE': dict(otype=np.ndarray, atype=float,
                                   descr='Optimal Wavelengths in vacuum (Angstroms)'),
                  'OPT_FLAM': dict(otype=np.ndarray, atype=float,
@@ -227,7 +230,6 @@ class SpecObj(datamodel.DataContainer):
                  'hand_extract_fwhm',
                  # Object profile
                  'prof_nsigma',
-                 'sign',
                  'min_spat',
                  'max_spat',
                  # Echelle
@@ -244,7 +246,8 @@ class SpecObj(datamodel.DataContainer):
 
         # Initialize internal values that are not None
         self.hand_extract_flag = False
-        self.sign = 1.
+        if self.sign is None:
+            self.sign = 1.
 
         self.FLEX_SHIFT_GLOBAL = 0.
         self.FLEX_SHIFT_LOCAL = 0.
