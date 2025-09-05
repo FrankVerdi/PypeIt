@@ -468,6 +468,7 @@ def extract_one(spectrograph, fitstbl, par,
             tilts, slits = exTract.run()
         slitgpm = np.logical_not(exTract.extract_bpm)
         slitshift = exTract.slitshift
+        embed(header='471 of pypeit_steps.py')
     else:
         msgs.info(f"Extraction skipped for {basename} on det={det}")
         # TODO
@@ -544,10 +545,11 @@ def extract_one(spectrograph, fitstbl, par,
     return spec2DObj, sobjs
 
 def instantiate_objfind(sciImg, spectrograph, fitstbl, par, frames, det,
-                        caliBrate, bkg_redux, find_negative,
+                        caliBrate, bkg_redux, find_negative, 
                         show:bool=False):
     objtype, setup, obstime, basename, binning \
             = get_sci_metadata(spectrograph, fitstbl, frames[0], det)
+    std_redux = objtype == 'standard'
 
     # Deal with manual extraction
     row = fitstbl[frames[0]]
@@ -572,6 +574,7 @@ def instantiate_objfind(sciImg, spectrograph, fitstbl, par, frames, det,
         bkg_redux=bkg_redux,
         manual=manual_obj,
         find_negative=find_negative,
+        std_redux=std_redux,
         basename=basename,
         show=show)
 
