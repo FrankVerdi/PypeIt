@@ -610,7 +610,9 @@ class PypeIt:
             self.par, frames, self.calibrations_path, 
             detectors,
             all_specobjs_find,
-            initial_sky_dict)
+            initial_sky_dict, 
+            bkg_redux=self.bkg_redux,
+            find_negative=self.find_negative)
 
         return all_spec2d, all_specobjs_extract
 

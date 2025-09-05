@@ -409,6 +409,7 @@ def extract_one(spectrograph, fitstbl, par,
     ## and preferably into the FindObjects class. I see why we are doing it like this since for multislit we need
     # to find all of the objects first using slitmask meta data,  but this comes at the expense of a much more complicated
     # control structure.
+    # TODO -- Can we do this now?  Probably not..
 
     # Update the global sky
     skymask = None
@@ -429,7 +430,7 @@ def extract_one(spectrograph, fitstbl, par,
         skymask = objFind.create_skymask(sobjs_obj) if skymask is None else skymask
         # DO NOT reinit_bpm, nor update_crmask
         bkg_redux_global_sky = objFind.global_skysub(skymask=skymask, bkg_redux_sciimg=bkg_redux_sciimg,
-                                                    reinit_bpm=False, update_crmask=False, show=self.show)
+                                                    reinit_bpm=False, update_crmask=False, show=show)
 
     # TODO -- worry about this
     scaleImg = objFind.scaleimg
