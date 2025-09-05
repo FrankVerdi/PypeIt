@@ -581,8 +581,8 @@ class PypeIt:
         initial_sky_dict, all_specobjs_find = \
             pypeit_steps.findobj_on_exposure(sciImg_dict, self.spectrograph, 
                                 self.fitstbl,
-                                self.par, frames, detectors, 
-                                self.calibrations_path, 
+                                self.par, frames, detectors,
+                                self.calibrations_path,
                                 std_outfile=std_outfile,
                                 extras=extras, 
                                 load=load, write=write)
