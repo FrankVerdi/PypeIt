@@ -555,7 +555,7 @@ class PypeIt:
 
         # #####################################
         # Proccess or load processed frames
-        load_processed = False
+        load_processed = True
         if load_processed:
             load, write = True, False
         else:
@@ -572,7 +572,7 @@ class PypeIt:
         extras = dict(bkg_redux=self.bkg_redux,
                 find_negative=self.find_negative,
                 show=self.show)
-        load_findobj = False
+        load_findobj = True
         if load_findobj:
             load, write = True, False
             all_specobjs_objfind = None
