@@ -10,8 +10,10 @@ LDT DeVeny
 Overview
 ========
 
-This file summarizes several instrument specific
-items for the LDT/DeVeny spectrograph.
+This page provides a detailed outline of using PypeIt with data from the
+`LDT/DeVeny spectrograph
+<https://lowell.edu/research/telescopes-and-facilities/ldt/deveny-optical-spectrograph/>`__,
+including pipeline setup, parameter modifications, and troubleshooting.
 
 
 Contents
@@ -37,16 +39,16 @@ host up to 5 instruments simultaneously at its Cassegrain focus with fast
 (several minutes) switches between instruments during the night.  
 
 The DeVeny spectrograph was built at Kitt Peak National Observatory (KPNO)
-and known as the White Spectrograph. It had a long career at the #1 36-inch
+and was known as the White Spectrograph. It had a long career at the #1 36-inch
 and 84-inch telescopes there before being retired; Lowell Observatory acquired
 the spectrograph from KPNO on indefinite loan in 1998. A new CCD camera was
 built for it, and the instrument was further modified for installation on the
 72-inch Perkins telescope in 2005. Following 8 years of service there, it was
 removed in 2013 for upgrades for installation on the Lowell Discovery Telescope
-(LDT) instrument cube. DeVeny has been in service since February 2015. The
-spectrograph was designed for and operates internally with f/7.5 telescope
-optics; new re-imaging optics were designed and fabricated to match the
-spectrograph with LDT's f/6.1 beam.
+(LDT) instrument cube. DeVeny has been in service at LDT since February 2015.
+The spectrograph was designed for and operates internally with f/7.5 optics;
+new re-imaging optics were designed and fabricated to match the spectrograph
+with LDT's f/6.1 beam.
 
 
 EMI Pickup Noise
@@ -54,15 +56,15 @@ EMI Pickup Noise
 
 See the `LDT Observer Tools package documentation
 <https://lowellobservatory.github.io/LDTObserverTools/scrub_deveny_pickup.html>`_
-for information about the EMI pickup noise seen in the DeVeny detector since
-approximately 2019.
+for information about the EMI pickup noise seen in the DeVeny detector from
+approximately 2019 to mid-2025.
 
 
 Using PypeIt with the LDT/DeVeny Spectrograph
 ---------------------------------------------
 
 The LDT/DeVeny configuration parameters described herein are included
-with PypeIt v1.15.0 and later, [1]_ and the released package may be
+with PypeIt ``v1.15.0`` and later\ [1]_, and the released package may be
 installed via your favorite method.  See the :ref:`installation
 instructions <installing>` for steps.
 
@@ -84,7 +86,7 @@ See the :ref:`installation instructions <installing>` for troubleshooting.
 Setting Up and Running a PypeIt Reduction
 =========================================
 
-This section oulines the highlights of how to use PypeIt with LDT/DeVeny data.
+This section outlines the highlights of how to use PypeIt with LDT/DeVeny data.
 It is a condensed and paraphrased version of the :ref:`cookbook`, which is 
 routinely updated and should be referenced for complete and detailed
 instructions.
@@ -97,9 +99,10 @@ instructions.
     pixel number. In the case of DeVeny data, this amounts to a 90º CW
     rotation of the images with respect to the original files. Don't Panic!
 
-At the :ref:`bottom of this page <deveny_workflow>` there is a “cheat sheet”
-of common DeVeny PypeIt
-workflows
+.. tip::
+
+   At the :ref:`bottom of this page <deveny_workflow>` there is a “cheat sheet”
+   of common DeVeny PypeIt workflows.
 
 
 Planning Your Observations for Reduction with PypeIt
@@ -111,11 +114,11 @@ planning is required to obtain the proper calibration frames. While most
 observing programs will already collect all of the frames necessary for
 smooth operation of the pipeline, several items bear pointing out:
 
--  Bias frames are used to remove fixed-pattern noise in the data, and
-   also used to generate the default bad pixel mask for reductions.
+-  Bias frames are used to remove fixed-pattern noise in the data generate
+   the default bad pixel mask for reductions.
 
 -  Dome flats are used for the dual purposes of removing pixel-to-pixel
-   variations in sensitivity, and tracing the edges of the slit (which
+   variations in sensitivity and tracing the edges of the slit.  (Slit edges 
    can vary from grating to grating, and will be more apparent following
    the future installation of the decker). Dome flats (or, optionally,
    sky flats) also may be used for correcting for the variable illumination
@@ -128,9 +131,8 @@ smooth operation of the pipeline, several items bear pointing out:
    PypeIt performs an unclipped mean combine of specified arc frames into a
    single ``Arc`` calibration file. As of ``v1.13.0``, the default DeVeny
    parameters allow for combination of frames taken with individual lamps
-   (*e.g.*, separate Hg- and Ar-only frames), as well as multilamp frames. If
-   you plan to combine single-lamp arc frames, see :ref:`deveny_wavecalib` for
-   needed parameter modifications.
+   (*e.g.*, separate Hg- and Ar-only frames), as well as multilamp frames
+   **but you must modify parameters following** :ref:`deveny_wavecalib`.
 
    The selected slit width also plays into how well PypeIt matches the
    calibration spectrum with the corresponding line lists. While it is
@@ -140,8 +142,8 @@ smooth operation of the pipeline, several items bear pointing out:
    3.0 pixels) to ensure matching by the automated algorithms.
 
    Additionally, because of the spectral-direction flexure of the DeVeny
-   camera, **do not attempt** to combine comparison arc frames from different
-   telescope positions. The shift in line positions between positions will
+   camera, **do not attempt** to combine comparison arc frames from **different
+   telescope positions**. The shift in line positions between positions will
    create a hot-mess calibration frame and the wavelength calibration will
    fail. PypeIt's flexure-correction algorithm (see :ref:`deveny_flexure`)
    uses night-sky lines to adjust the wavelength calibration for individual
@@ -152,26 +154,26 @@ smooth operation of the pipeline, several items bear pointing out:
    single-pointing arcs and PypeIt's flexure correction and let LDT staff know
    how well they do.
 
-   As of ``v1.14.1``, complete wavelength templates using the Hg, Cd, and Ar
-   lamps are available for the 150g/mm (DV1), 300g/mm (DV2, DV3),
-   500g/mm (DV5), 600g/mm (DV6, DV7), and 1200g/mm (DV9) gratings.
-   PypeIt will automatically match calibration spectra from these
-   gratings against the appropriate template using its ``full_template``
-   method. For the other two gratings (DV4 and DV8), PypeIt attempts to
-   identify the lines in the spectrum *ex nihilo* using its ``holy-grail``
-   method.
+   .. As of ``v1.14.1``, complete wavelength templates using the Hg, Cd, and Ar
+   .. lamps are available for the 150g/mm (DV1), 300g/mm (DV2, DV3),
+   .. 500g/mm (DV5), 600g/mm (DV6, DV7), and 1200g/mm (DV9) gratings.
+   .. PypeIt will automatically match calibration spectra from these
+   .. gratings against the appropriate template using its ``full_template``
+   .. method. For the other two gratings (DV4 and DV8), PypeIt attempts to
+   .. identify the lines in the spectrum *ex nihilo* using its ``holy-grail``
+   .. method.
 
 -  All 9 in-service gratings have been tested with PypeIt and appropriate
    grating-specific parameters have been included in the ``v1.15.0`` release.
    If you have issues with the pipeline crashing or incorrect reduction of your
    data, please contact LDT staff for troubleshooting.
 
--  *To ensure your calibrations will work with PypeIt*, test the
-   pipeline on a preexisting data set whose calibration frames were
-   taken in the same way you expect to take them. If this testing is
-   done ahead of time, it will save much frustration later. It is also
-   possible to run the pipeline on-the-fly on your observing night to
-   ensure you have collected a workable calibration set.
+-  *To ensure your calibrations will work with PypeIt*, test the pipeline on a
+   preexisting data set whose calibration frames were taken in the same way you
+   expect to take them. If this testing is done ahead of time, it will save
+   much frustration later. It is also possible to run the pipeline on-the-fly
+   on your observing night to ensure you have collected a workable calibration
+   set.
 
 .. _`deveny_organize`:
 
@@ -180,7 +182,7 @@ Organize the Data to be Reduced
 
 Download a single night's data from the site computers to your reduction
 machine, as described in the DeVeny User Manual. The easiest method is using
-secure copy (``scp``), but feel free to use whatever method you prefer. [2]_
+secure copy (``scp``), but feel free to use whatever method you prefer\ [2]_.
 
 Be sure your data directory includes calibration frames taken using the same
 grating, tilt, and rear filter (order blocking) settings as your science data.
@@ -200,7 +202,7 @@ may also include:
 -  Spectrophotometric Standard Star frames (for flux calibration)
 
 -  Sky Flat frames (to correct for variations in illumination along the
-   slit, seldom required but may be aplicable to certian science programs)
+   slit, seldom required but may be applicable to certain science programs)
 
 This raw data directory is the root of the directory tree PypeIt uses
 for organizing the processing files and processed data (see
@@ -217,20 +219,20 @@ Setup
    All PypeIt command-line scripts (*e.g.*, ``pypeit_setup``) have online help
    available using the ``-h`` option.
 
-Running PypeIt on a set of data is controlled by a PypeIt Reduction File
-that details what the software should do to each file along the way to
-producing reduced and calibrated data. The package provides a script
-``pypeit_setup`` that reads through the FITS headers in the raw directory to
-generate the reduction file (and directory tree) based on what it finds. PypeIt
-determines unique instrument configurations, and sorts data in
-preparation for the data reduction.
+Running PypeIt on a set of data is controlled by a :ref:`pypeit_file` that
+details what the software should do to each file along the way to producing
+reduced and calibrated data. The package provides a script ``pypeit_setup``
+that reads through the FITS headers in the raw directory to generate the
+reduction file (and directory tree) based on what it finds. PypeIt determines
+unique instrument configurations, and sorts data in preparation for the data
+reduction.
 
-For DeVeny data, instrument configurations are defined by unique
-combinations of the grating (FITS keyword ``GRATING``), grating tilt angle
-(``GRANGLE``), rear order-blocking filter (``FILTREAR``), and CCD binning
-(``CCDSUM``). PypeIt maps the various DeVeny FITS keywords onto a set of
-internal metadata keys for processing. The relevant PypeIt metadata keys for
-DeVeny configurations (which you will see in your reduction files) are:
+For DeVeny data, instrument configurations are defined by unique combinations
+of the grating (FITS keyword ``GRATING``), grating tilt angle (``GRANGLE``),
+rear order-blocking filter (``FILTREAR``), and CCD binning (``CCDSUM``). PypeIt
+maps the various DeVeny FITS keywords onto a set of internal metadata keys for
+processing. The relevant PypeIt metadata keys for DeVeny configurations (which
+you will see in your reduction files) are:
 
 ::
 
@@ -242,17 +244,16 @@ DeVeny configurations (which you will see in your reduction files) are:
             binning        CCDSUM
 
 The PypeIt metadata key ``cenwave`` is the computed central wavelength of the
-spectrum in Angstroms, derived from the grating and tilt angle, and then
-rounded to the nearest 5Å.
+spectrum in Angstroms, derived from the grating and tilt angle,  rounded to the
+nearest 5Å.
 
 #. **Run** ``pypeit_setup``
 
-   The first run will produce the setup
-   files that should be inspected to ensure the code has properly
-   divvied up the FITS files into the proper configuration(s). For most
-   DeVeny programs (a single grating tilt and rear filter used with the
-   installed grating), should find a single instrument configuration. Run the
-   script thuswise:
+   The first run will produce the setup files that should be inspected to
+   ensure the code has properly divvied up the FITS files into the proper
+   configuration(s). For most DeVeny programs (a single grating tilt and rear
+   filter used with the installed grating), should find a single instrument
+   configuration. Run the script:
 
    ::
 
@@ -274,7 +275,7 @@ rounded to the nearest 5Å.
    as ``None`` in this file and are commented out. If there are
    non-focus frames with ``frametype None`` listed, this indicates the FITS
    keyword was not correctly set. You may either modify the affected FITS
-   headers directly using your preferred method [3]_ (**recommended**), or
+   headers directly using your preferred method\ [3]_ (**recommended**), or
    simply note the affected frames and later edit the relevant PypeIt Reduction
    File(s) (:ref:`deveny_edit`) with the correct frame type. If you modify any
    FITS headers directly, re-run step #1 above, and reexamine the output file.
@@ -303,9 +304,9 @@ rounded to the nearest 5Å.
                  filter1: OG570
                  binning: 1,1
 
-   PypeIt does not use this file to guide reductions, but it is provided as a
+   PypeIt does not use this file to guide reductions, but it is provided **as a
    means for the user to assess the automated setup, identification, and file
-   sorting. If, at the start of your observing session, you did not select the
+   sorting**. If, at the start of your observing session, you did not select the
    grating or rear filter in the LOUI before taking exposures, those frames
    will have ``UNKNOWN`` listed in the associated header field. In this case,
    you should go back and edit the FITS headers with the proper values and
@@ -322,20 +323,20 @@ rounded to the nearest 5Å.
    Provided you are happy with the ``ldt_deveny.sorted`` file, you are ready to
    write the ``.pypeit`` file(s) for one or more setups. Executing the
    ``pypeit_setup`` script a second time with the ``-c`` option will create one
-   or more sub-folders and populate each with a PypeIt Reduction File. See
+   or more sub-folders and populate each with a :ref:`pypeit_file`. See
    :ref:`the setup documentation <setup_doc>` for details on the various options
    available for use with this script.
 
-   An example execution that only produces the PypeIt Reduction File for
-   the ``A`` configuration is:
+   An example execution that only produces setup files for the ``A``
+   configuration is:
 
    ::
 
       $ pypeit_setup -s ldt_deveny -c A
 
-   This will generate a subfolder containing two files: the base PypeIt
-   Reduction File ``ldt_deveny_A.pypeit``, and its calibration association
-   file ``ldt_deveny_A.calib``.
+   This will generate a subfolder ``ldt_deveny_A`` containing two files: the
+   base PypeIt Reduction File ``ldt_deveny_A.pypeit``, and its calibration
+   association file ``ldt_deveny_A.calib``.
 
 
 .. _`deveny_edit`:
@@ -343,30 +344,29 @@ rounded to the nearest 5Å.
 Edit Your PypeIt File
 ---------------------
 
-The :ref:`pypeit_file` dictates how the pipeline is executed for your raw data
-files. The filename is expected to end with ``.pypeit`` and it has a very
-specific format (see link above). While the file is automatically generated by
-``pypeit_setup``, it can (and should) be edited by the user to ensure the
-reduction happens as expected.
+The :ref:`pypeit_file` dictates how the pipeline is executed on your raw data
+files. While you just generated the file automatically (above), it can (and
+should) be edited by the user to ensure the reduction proceeds as expected.
 
 Each unique instrument configuration will have its own PypeIt Reduction
 File. In the case of DeVeny, this means different rear filters, grating
-tilt angles, binning schemes, or even different gratings used on
-different nights.  See :ref:`pypeit_file` for descriptions of the file format
-and common edits a user may wish to make.  
+tilt angles, binning schemes, or even different gratings used on different
+nights.  See :ref:`the relevant documentation <pypeit_file>` for descriptions
+of the file format and common edits a user may wish to make.  
 
 **Specific LDT/DeVeny considerations:**
 
 #. The DeVeny-specific modifications to default PypeIt reduction parameters are
    already included in the ``LDTDeVenySpectrograph()`` class (:ref:`listed here
    <ldt_deveny_class>`) and loaded using the ``spectrograph = ldt_deveny``
-   specification at the top of the :ref:`parameter_block` -- it is not
-   necessary to reproduce them in the :ref:`parameter_block` of your file.
-   What do go here are changes away from the *DeVeny default configuration* you
-   wish to use for reducing a particular data set. For instance, to specify that
-   PypeIt should use the ``illumflat`` files to correct for illumination
-   variations along the slit and it should only find and extract the one
-   brightest object in each science frame, you would add to the parameter block:
+   line at the top of the :ref:`parameter_block` -- it is not necessary to
+   reproduce all those parameters in the :ref:`parameter_block` of your file.
+   What do go here are changes **away** from the *DeVeny default configuration*
+   you wish to use for reducing a particular data set. For instance, to specify
+   that PypeIt should use the ``illumflat`` files to correct for illumination
+   variations along the slit and that it should only find and extract the one
+   brightest object in each science frame, you would add the following to your
+   parameter block:
 
    .. code-block:: ini
 
@@ -377,23 +377,22 @@ and common edits a user may wish to make.
             maxnumber_sci = 1
 
    A discussion of typical parameter changes that may apply to DeVeny data
-   is given below (:ref:`deveny_parmods`), and an exhaustive discussion of
-   all parameters may be found at :ref:`parameters`.
+   is given at :ref:`deveny_parmods`, and an exhaustive discussion of all
+   parameters may be found at :ref:`parameters`.
 
-#. Here is yet another reminder to not include bad calibration frames in the
-   reduction (frames that you do not want to use, frames with incorrectly
+#. Here is yet another reminder to **not include bad calibration frames** in
+   the reduction (frames that you do not want to use, frames with incorrectly
    identified types, or frames that could not be automatically classified and
    have a ``None`` type). Check them now and remove them if they are bad.
 
-   A major reason to add files to the Data Block is the presence of two
-   different setups for a given data set (*i.e.*, two different grating
-   angles), but all of the bias frames ended up in one of the setups (*i.e.*,
-   based on the ``GRANGLE`` keyword). PypeIt is getting better at including
-   setup-independent files in all configurations, but it is important to
-   double-check. If needed, simply copy the bias lines from one file to the
-   other, in this instance, so that both setups have access to the bias frames.
-   The ordering of table rows in the :ref:`pypeit_file` does not matter, so
-   don't worry about adding lines in the “proper” location.
+   You may need to add configuration-independent files from one setup to the
+   Data Block of another, but PypeIt is getting better at including
+   setup-independent files in all configurations.  In any event, it is
+   important to double-check that all files needed for the reduction are
+   present in your ``.pypeit`` file. If needed, simply copy the needed lines
+   from one file to the other so that both setups have access to, *e.g.*,
+   the bias frames. The ordering of table rows in the :ref:`pypeit_file` does
+   not matter, so don't worry about adding lines in the “proper” location.
 
 #. Check the ``frametype`` of all files. For DeVeny reductions, you need at
    least one file with each of the following Frame Types (see
@@ -413,20 +412,33 @@ and common edits a user may wish to make.
    the value.  PypeIt will NOT run if any of the uncommented frames have
    ``None`` under ``frametype``.
 
-   .. note::
+   Additionally, frames may have type ``illumflat`` if you are doing
+   illumination corrections along the slit.  While other spectrographs support
+   ``standard`` star frames, at the moment, DeVeny does not need anything of
+   this type, and spectrophotometric standards should be marked as ``science``
+   frames.
+
+   .. tip::
       A given image can have multiple frame types (*e.g.*, ``arc,tilt``).
       Simply enter the types as a comma-separated list without spaces.
 
 
-#. Check ``target`` names for all files. Because PypeIt uses the ``target``
-   name (encoded in the ``OBJNAME`` FITS keyword, entered in the DeVeny LOUI)
-   as part of the reduced data filename, this column must include only legal
-   characters for your filesystem. In general, forward slash (``/``) is always
-   disallowed (sorry, comet observers), but others may be a concern on your
-   particular filesystem. Additionally, parentheses or other characters in
-   ``target`` names may cause issues if such characters are not escaped in shell
-   environments.  Editing the name in the PypeIt Reduction File (and not in the
-   actual FITS file itself) is sufficient for the limitations mentioned here.
+#. Check ``target`` names for all files for both accuracy and for illegal
+   characters.  The ``target`` name is used as part of the reduced data
+   filename -- accurate names help identify objects later.
+
+   .. important::
+
+      Because PypeIt uses the ``target`` name (pulled from the ``OBJNAME`` FITS
+      keyword, entered by the observer in the DeVeny LOUI) as part of the
+      reduced data filename, this column **must** include only legal characters
+      for your filesystem. In general, forward slash (``/``) is always
+      disallowed (sorry, comet and interstellar object observers), but other
+      characters may be a concern on your particular filesystem. Additionally,
+      parentheses or other characters in ``target`` names may cause issues if
+      such characters are not escaped in shell environments.  Editing the name
+      in the PypeIt Reduction File (and not in the actual FITS file itself) is
+      sufficient for the limitations mentioned here.
 
 
 #. Adjust the ``calib`` groupings for calibration associations. See
@@ -448,21 +460,24 @@ and common edits a user may wish to make.
 Run the Reduction
 -----------------
 
-PypeIt is designed (and currently only able) to do end-to-end
-reductions, resulting in a fully processed 2D spectral image and
-extracted 1D spectra (if objects were found) from each science frames.
-Once you have completed the setup steps above, you are just about ready
-to run the pipeline.
+PypeIt is designed (and currently only able) to do end-to-end reductions,
+resulting in a fully processed 2D spectral image and extracted 1D spectra (if
+any objects were found) from each science frames. Once you have completed the
+setup steps above, you are just about ready to run the pipeline.
 
 The script to run a reduction is :ref:`run-pypeit`.  See that documentation
-page for all relavent script options and workflows.
+page for all relevant script options and workflows.
 
-When you upgrade PypeIt versions, changes to the underlying data models
-(which are largely not backwards compatible) may cause errors if you try
-to use calibration files processed with an earlier version. The safe
-move is to completely reprocess all data currently being used when
-PypeIt is upgraded, including deleting and recreating all processed
-calibrations.
+.. caution::
+
+   When you upgrade PypeIt versions, changes to the underlying data models
+   (which are largely not backwards compatible) may cause errors if you try to
+   use calibration files processed with an earlier version. The safe move is to
+   completely reprocess all data currently being used when PypeIt is upgraded,
+   including deleting and recreating all processed calibrations.  Your
+   currently installed version of PypeIt may be checked using
+   ``pypeit_version``, and the version used to create any output file is listed
+   in the FITS header with the keyword ``VERSPYP``.
 
 
 .. _deveny_outputs:
@@ -480,8 +495,14 @@ disk calibration frames in the ``Calibrations/`` subfolder of the, *e.g.*,
 ``ldt_deveny_A/`` directory (see :ref:`deveny_filestructure`). Additional
 Quality Assurance files will be written to the ``QA/`` subfolder for some
 types of Calibration frames. It is important to take the time to inspect these
-calibration outputs as they are generated -- preferably by using the ``-c``
-option to ``run_pypeit``.
+calibration outputs as they are generated.
+
+.. tip::
+   
+   To process just the calibrations without trying to process the ``science``
+   data, use the command::
+
+      run_pypeit -c ldt_deveny_<setup>.pypeit
 
 The naming convention for :ref:`calibrations` frames is a bit cumbersome, but
 follows a regular pattern.  Here is a brief listing of the Calibration frames
@@ -490,7 +511,7 @@ produced (in the order in which they are created):
 -  :ref:`bias` -- Processed combined bias frame used to remove
    fixed-pattern noise from all other images.
 
--  :ref:`edges` -- Collection of images and FITS bintables
+-  :ref:`edges` -- Collection of images and FITS binary tables
    describing the slit traces. While this file is primarily of interest
    for multislit or echelle spectrographs (DeVeny has but one slit and
    no cross-disperser, after all), it is instructive to quickly peek at
@@ -519,7 +540,7 @@ produced (in the order in which they are created):
    Example of output from the ``pypeit_chk_edges`` script for data taken with
    the DV2 grating. The green and magenta lines in the center panels mark
    the left and right edges of the detected slit, respectively. The CCD is
-   about 2.9 arcmin wide, so at least one edge of the 2.5 arcmin slit should be
+   about 2.9' wide, so at least one edge of the 2.5' slit should be
    visible.
 
 -  :ref:`slits` -- This file contains the distilled PypeIt-internal information
@@ -528,18 +549,17 @@ produced (in the order in which they are created):
    ``pypeit_chk_edges`` GUI. Once again, there should only be one slit for
    DeVeny data.
 
--  :ref:`arc` -- Processed combined arc spectral image, where the
-   frames are combined using an unclipped mean combine algorithm. Closely
-   examine this image in a tool like ``ds9`` to ensure it will be suitable for
-   generating a wavelength solution. If not, try editing the calibration group
-   information in the PypeIt Reduction File to include only a subset of the
-   arc frames taken at the same telescope position and rerunning
-   ``run_pypeit``.
+-  :ref:`arc` -- Processed combined arc spectral image, where the frames are
+   combined using an unclipped mean combine algorithm. Closely examine this
+   image in a tool like ``ds9`` to ensure it will be suitable for generating a
+   wavelength solution. If not, try editing the calibration group information
+   in the PypeIt Reduction File to include only a subset of the arc frames
+   taken at the same telescope position and rerunning ``run_pypeit``.
 
--  :ref:`tiltimg` -- Image used to trace the tilting of spectral lines
-   across the slit traces to produce an accurate 2D wavelength solution
-   for the detector. For the case of DeVeny (single slit trace on the
-   sole detector), this is identical to the ``Arc`` image.
+-  :ref:`tiltimg` -- Image used to trace the tilting of spectral lines across
+   the slit traces to produce an accurate 2D wavelength solution for the
+   detector. For the case of DeVeny (single slit trace on the sole detector),
+   this is identical to the ``Arc`` image.
 
 -  :ref:`wave_calib` -- Contains the 1D wavelength solution for this setup.
    Inspect the wavelength solution using the ``pypeit_chk_wavecalib`` script.
@@ -551,15 +571,15 @@ produced (in the order in which they are created):
       $ pypeit_chk_wavecalib Calibrations/WaveCalib_A_0_DET01.fits
 
          N. SpatID minWave Wave_cen maxWave dWave Nlin     IDs_Wave_range    IDs_Wave_cov(%) mesured_fwhm  RMS
-      --- ------ ------- -------- ------- ----- ---- --------------------- --------------- ------------ -----
-         0    276  2924.1   5151.2  7385.8 2.173   19  3132.752 -  7274.940            92.8          4.8 0.141
+        --- ------ ------- -------- ------- ----- ---- --------------------- --------------- ------------ -----
+          0    276  2924.1   5151.2  7385.8 2.173   19  3132.752 -  7274.940            92.8          4.8 0.141
 
    The central wavelength and wavelength range should be close to what you set
    using values from the LOUI and `obstools
    <https://lowellobservatory.github.io/LDTObserverTools/deveny_grangle.html>`__
-   package.  Tthe dispersion (``dWave``) should be close to the value listed in
-   the DeVeny Users Manual. Note that the ``SpatID`` listed here should match
-   that from ``pypeit_chk_edges``.
+   package.  The dispersion (``dWave``) should be close to the value listed in
+   the DeVeny Users Manual for the selected grating. Note that the ``SpatID``
+   listed here should match that from ``pypeit_chk_edges``.
 
 -  :ref:`tilts` -- Contains the 2D mapping of the slit to lines of constant
    wavelength. The quality of this step is shown in the images of the
@@ -571,7 +591,6 @@ produced (in the order in which they are created):
    :gap: 2px
    :class-grid: outline
    :width: 100%
-
 
    .. image:: ../figures/deveny_tilts_2d.png
       :alt: 2D arc tilts
@@ -602,18 +621,17 @@ produced (in the order in which they are created):
 Examine the Science Spectra
 ---------------------------
 
-As PypeIt runs (unless the ``-c`` flag is invoked), it will begin generating 2D
-and 1D spectra outputs in the ``Science/`` folder for each science frame in the
-PypeIt Reduction File. Feel free to examine the files as they are created, even
-while the code continues to process the other raw frames.
+As PypeIt runs, it will begin generating 2D and 1D spectra outputs in the
+``Science/`` folder for each science frame in the PypeIt Reduction File. Feel
+free to examine the files as they are created, even while the code continues to
+process the other raw frames.
 
 Examine the 2D Spectral Images
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   During the data-reduction
-   process, PypeIt will create a reduced 2D spectral image product for
-   each science frame prior to the extraction of 1D spectra. These
-   products are stored in multi-extension FITS files with names like:
+   During the data-reduction process, PypeIt will create a reduced 2D spectral
+   image product for each science frame prior to the extraction of 1D spectra.
+   These products are stored in multi-extension FITS files with names like:
 
    ::
 
@@ -637,7 +655,7 @@ Examine the 2D Spectral Images
       but with the object subtracted.  Note that three objects have been
       identified and extracted (orange traces and labels).
 
-   Each extracted object is named by its spatial position on the reduced image
+   PypeIt names each extracted object by its spatial position on the reduced image
    [``SPAT``], slit position on the reduced image [``SLIT``] and the detector
    number [``DET``]. For instance, the three objects shown above have the
    labels ``SPAT0033-SLIT0126-DET01``, ``SPAT0128-SLIT0126-DET01``, and
@@ -648,16 +666,16 @@ Examine the 2D Spectral Images
 Examine the Extracted 1D Spectra
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   If one or more objects have been
-   automatically or manually identified in the reduced 2D spectral image, 1D
-   data products will be produced. These 1D products are the primary outputs of
-   PypeIt, and may be described by a series of 1-dimensional arrays: vacuum
-   wavelength, extracted flux (from one or more methods), and associated error
-   arrays for each identified object. These arrays are packaged into
-   multi-extension FITS files, and are accompanied by files with extraction
-   information (*read*: table of contents) for each 1D spectrum.
+   If one or more objects have been automatically or manually identified in the
+   reduced 2D spectral image, 1D data products will be produced. These 1D
+   products are the primary outputs of PypeIt, and consist of a series of
+   1-dimensional arrays: vacuum wavelength, extracted flux (using one or more
+   methods), and associated error arrays for each identified object. These
+   arrays are packaged into multi-extension FITS files, and are accompanied by
+   ``.txt`` files with extraction information (*read*: table of contents) for
+   each 1D spectrum.
 
-   The 1D spectral files have names like:
+   The 1D spectral FITS files have names like:
 
    ::
 
@@ -677,11 +695,11 @@ Examine the Extracted 1D Spectra
       :math:`1\sigma` uncertainty in the flux values.
 
    The accompanying ``.txt`` file contains information about the extracted
-   object(s), including FWHM of the optimal extraction in arcsec (this should
-   be similar to the seeing on the observing night, convolved with jitter in
-   the star position along the slit), the SNR of the extracted spectrum
-   (useful in identifying spurious objects), and the RMS in pixels of the
-   wavelength solution (for DeVeny should be the same for every object):
+   object(s), including FWHM of the optimal extraction in arcseconds (this
+   should be similar to the seeing on the observing night, convolved with
+   jitter in the star position along the slit), the SNR of the extracted
+   spectrum (useful in identifying spurious objects), and the RMS in pixels
+   of the wavelength solution (for DeVeny should be the same for every object):
 
    ::
 
@@ -697,10 +715,10 @@ Examine the Extracted 1D Spectra
    If there are spurious low-signal objects identified, you may re-run the
    reduction with adjusted object-finding parameters (see
    :ref:`deveny_objfind`). A particular extracted object may be loaded by using
-   the ``--obj`` option to ``pypeit_show_1dspec``.
+   the ``--obj`` option to :ref:`pypeit_show_1dspec`.
 
    By default, PypeIt performs both a boxcar (top-hat) extraction around the
-   trace and a Horne optimal extraction [4]_ using the fitted spatial profile.
+   trace and a Horne optimal extraction\ [4]_ using the fitted spatial profile.
    The boxcar-extracted spectrum may be displayed using the ``--extract BOX``
    option to ``pypeit_show_1dspec``, otherwise the optimal extraction is
    displayed (if available).
@@ -710,30 +728,30 @@ Examine the Extracted 1D Spectra
 Missing 1D Spectra
 ^^^^^^^^^^^^^^^^^^
 
-   Sometimes PypeIt will not extract all (or
-   any) of the objects you expect to be in a given frame. This can look
-   like either:
+   Sometimes PypeIt will not extract all (or any) of the objects you expect to
+   be in a given frame. This can look like either:
 
    -  some, but not all, of the expected objects were found and extracted
       orange traces on the images of ``pypeit_show_2dspec``) and the
       ``spec1d`` file has fewer entries than expected, or
 
-   -  no objects were extracted and no ``spec1d`` file was created.
+   -  no objects were found and no ``spec1d`` file was created.
 
    In either of these cases, the steps for attempting to extract such
    missing objects are the same:
 
    #. You may modify the object finding parameters in your PypeIt Reduction
-      File (see :ref:`deveny_objfind`), remove this ``spec2d`` file, and rerun
-      ``run_pypeit`` *without the* ``-o`` *option*. This will have the effect of
-      processing only the one frame, and should run fairly quick. If the
-      missing objects are found, you're done.
+      File (see :ref:`deveny_objfind`), remove this ``spec2d_*.fits`` file, and
+      rerun ``run_pypeit`` **without the** ``-o`` **option**. This will have
+      the effect of processing only the one frame, and should run fairly
+      quickly. If the missing objects are found, you're done.
 
    #. If the objects are still not extracted with repeated parameter
-      modification, you can attempt to manually identify and extract the 
-      object following the instructions at :ref:`manual`.  For the example
-      2D spectrum described above, the ``manual`` column for this frame would
-      read ``1:77.5:1000:3.1``, where the FWHM (*in pixels*) is the value of
+      modification, you can attempt to :ref:`manually identify and extract
+      <manual>` the object.  For the example 2D spectrum described above, to 
+      manually extract the faint object between the left two identified
+      objects, the ``manual`` column for this frame would read
+      ``1:77.5:1000:3.1``, where the FWHM (*in pixels*) is the value of
       extracted objects listed in the ``spec1d`` text file divided by the
       spatial plate scale of the spectral image (the DeVeny plate scale of
       0.34"/pixel times the spatial binning).
@@ -768,7 +786,7 @@ Post-Processing the Files
 While the main PypeIt run ends with ``spec1d`` files, this is not the end of
 the processing available with the package. There are several
 :ref:`post-processing steps <further_proc_scripts>` that may be considered,
-depending on the needs of your particular program:
+depending on the needs of your particular science program:
 
 -  :ref:`Coadding 2D spectral images <coadd2d>` of the same target to increase S/N in the
    extracted spectra.
@@ -786,21 +804,21 @@ depending on the needs of your particular program:
 Coadding 2D Spectral Images
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-PypeIt has the ability to coadd 2D spectral images of the same object to
-increase signal-to-noise prior to object finding and extraction. This process
-is primarily done with multislit instruments taking multiple frames of the same
-set of faint objects, but can be done for DeVeny data if desired. There is a
-set of :ref:`worked examples <coadd2d_howto>` in the PypeIt documentation
-should you wish to do this.
+PypeIt has the ability to :ref:`coadd 2D spectral images <coadd2d>` of the same
+object to increase signal-to-noise prior to object finding and extraction. This
+process is primarily done with multislit instruments taking multiple frames of
+the same set of faint objects, but can be done for DeVeny data if desired.
+There is a set of :ref:`worked examples <coadd2d_howto>` in the PypeIt
+documentation should you wish to do this.
 
 If you plan to coadd multiple 2D spectral images of the same target, you will
 want to ensure that telescope guiding is on and stable before you take your
 series of exposures. This will ensure your target is in the same place on the
 slit in each frame. Coadding is done after the main PypeIt run and is executed
-with the ``pypeit_coadd_2dspec`` script (see :ref:`pypeit-coadd-2dspec`).
-Because the input files to this script can be a bit cumbersome, there is a
-:ref:`setup script <pypeit_setup_coadd2d>` available that ingests the
-``.pypeit`` file or reads FITS headers in a directory as a starting point.
+with the :ref:`pypeit-coadd-2dspec` script. Because the input files to this
+script can be a bit cumbersome, there is a :ref:`setup script
+<pypeit_setup_coadd2d>` available that ingests the ``.pypeit`` file or reads
+FITS headers in a directory as a starting point.
 
 .. _deveny_flux:
 
@@ -845,11 +863,11 @@ on the specific requirements of your science program.  Please see the
    and requires careful fitting.
 
    The script will produce an output sensitivity function file in the working
-   directory -- you may name the output file anything you like, but preferably
-   something identifiable to the setup and/or date of the observation. The figure
-   below shows the thoughput plot for the spectrophotometric standard star
-   G191-B2B taken on 2022-11-02UT (the same night as the other DV6 data shown
-   above).
+   directory -- you may name the output file anything you like, but it is
+   generally helpful to use  something identifiable to the setup and/or date of
+   the observation. The figure below shows the thoughput plot for the
+   spectrophotometric standard star G191-B2B taken on 2022-11-02UT (the same
+   night as the other DV6 data shown above).
 
    .. figure:: ../figures/deveny_sensfunc_throughput.png
       :alt: DV6 sensitivity function throughput
@@ -860,21 +878,21 @@ on the specific requirements of your science program.  Please see the
       taken of G191-B2B with DV6 with a 1.2" slit on the night of 2022-11-02UT.
 
 -  Once you are satisfied with with the sensitivity function, the next step is
-   to use ``pypeit_flux_setup`` to create a ``.flux`` file that drives the
-   actual flux calibration process. As with the Pypeit Reduction File, you will
-   need to edit the ``ldt_deveny.flux`` file to ensure the flux calibration
-   proceeds as expected.  See :ref:`pypeit_flux_setup` for a description of
-   necessary edits.  The most common for DeVeny users will be to specify the
-   sensitivity function file(s) to be used and specify the ``UVIS`` algorithm
-   be used (for observations blueward of :math:`\sim9000`\ Å):
+   to use ``pypeit_flux_setup`` to create a ``.flux`` input file that drives
+   the actual flux calibration process. As with the Pypeit Reduction File, you
+   will need to edit the ``ldt_deveny.flux`` file to ensure the flux
+   calibration proceeds as expected.  See :ref:`pypeit_flux_setup` for a
+   description of necessary edits.  The most common for DeVeny users will be to
+   specify the sensitivity function file(s) to be used and specify the ``UVIS``
+   algorithm be used (for observations blueward of :math:`\sim9000`\ Å):
 
    .. code-block:: ini
 
       [fluxcalib]
          extinct_correct = True  # Set to True if your SENSFUNC derived with the UVIS algorithm
 
--  After all of the setup work above, the actual flux calibration computation
-   is quite straightforward with a call to ``pypeit_fluc_calibrate``. All of
+-  After all of the setup work above, the actual flux calibration execution
+   is quite straightforward with a call to ``pypeit_flux_calibrate``. All of
    the file information and parameter adjustments are in the
    ``ldt_deveny.flux`` file, and this script requires no additional
    information. Examples of flux-calibrated spectra for the two objects
@@ -903,14 +921,14 @@ on the specific requirements of your science program.  Please see the
 Coadding / Collating Flux-Calibrated 1D Spectra
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-PypeIt has the ability to coadd flux-calibrated 1D spectra of the same object.
-This may be because you have exposures of the same object from different nights
-or the object was placed in different locations along the slit in different
-frames, either of which precludes coadding the processed 2D spectral images. In
-this case, you may use the ``pypeit_coadd_1dspec`` script for coadding these
-individual flux-calibrated extracted spectra. This step is less common for
-DeVeny users; read the :ref:`coadd1d` documentation if you wish to perform this
-action.
+PypeIt has the ability to :ref:`coadd flux-calibrated 1D spectra <coadd1d>` of
+the same object. This may be because you have exposures of the same object from
+different nights or the object was placed in different locations along the slit
+in different frames, either of which precludes coadding the processed 2D
+spectral images. In this case, you may use the ``pypeit_coadd_1dspec`` script
+for coadding these individual flux-calibrated extracted spectra. This step is
+less common for DeVeny users; read the :ref:`coadd1d` documentation if you wish
+to perform this action.
 
 
 Performing a Telluric Correction
@@ -931,7 +949,7 @@ Loading PypeIt 1D Spectra into ``specutils`` for Analysis
 PypeIt is a package for reducing spectroscopic data from raw frames collected
 at the telescope to 1D spectra, ready for analysis. To do the actual analysis
 in service of your particular science program, you will need to employ other
-tools. One possibility is the Astropy-coordinated package ``specutils``. [5]_
+tools. One possibility is the Astropy-coordinated package ``specutils``\ [5]_.
 
 As of ``v1.12.2``, PypeIt includes a loader for importing pipeline outputs into
 ``specutils``, and can import either the ``spec1d`` (all objects in a frame) or
@@ -954,25 +972,28 @@ There are various situations in which you will need to modify the Parameter
 Block of your PypeIt Reduction File. The default DeVeny parameters were chosen
 to cover the major use cases for the spectrograph, but the instrument's high
 configurability and varied uses means there will still be many instances where
-these instrument-specific parameters must be modified. The principal categories
+these instrument-wide parameters must be modified. The principal categories
 of modifiable parameters for DeVeny users are grouped below, but the complete
-list is given at :ref:`parameters`.
+PypeIt list is given at :ref:`parameters`.
 
-Think of parameter modifications as part of an outline, where each level
-represents a unique thought. Therefore, if you need to modify both the list of
-arc lamps and the FWHM of the arc lines under wavelength calibrations, you
-would include something like:
+.. tip::
 
-.. code-block:: ini
+   Think of parameter modifications as part of an outline, where each level
+   represents a unique thought. Therefore, if you need to modify both the list
+   of arc lamps and the FWHM of the arc lines under wavelength calibrations,
+   you would include something like:
 
-   [calibrations]
-      [[wavelengths]]
-         lamps = HgI,CdI,ArI
-         fwhm = 7.0
+   .. code-block:: ini
 
-rather than two individual blocks. In short, each parameter group in brackets
-should appear only once in your Parameter Block. Also, indentation is not
-necessary but may help in visually organizing the outline.
+      [calibrations]
+         [[wavelengths]]
+            lamps = HgI,CdI,ArI
+            fwhm = 7.0
+
+   rather than two individual blocks. In short, each parameter group in
+   brackets should appear only once in your Parameter Block. Also,
+   indentation is not necessary but may help in visually organizing the
+   outline.
 
 
 .. _deveny_wavecalib:
@@ -983,7 +1004,7 @@ Wavelength Calibration Parameters
 Arc Lamps
 ^^^^^^^^^
 
-PypeIt is able to read the identification of the arc lamps energized directly
+PypeIt is able to read the identification of the energized arc lamps directly
 from the DeVeny FITS header, and the user is not generally required to specify
 which line lists should be used in the wavelength calibration process. There
 are, however, cases where such specification is useful or necessary: *a*) when
@@ -991,13 +1012,15 @@ the user wishes to restrict the list of lines PypeIt should consider when
 creating a wavelength solution, and *b*) when frames taken with different lamps
 are combined to create an ``Arc`` Calibration frame.
 
-The first case should only be necessary for the DV4 and DV8 gratings, which
-rely upon the :ref:`wvcalib-holygrail` wavelength calibration method. In some
-cases, including the line lists from all energized lamps in the matching can
-produce spurious results (using the Hg or Cd lists with very red spectra, or
-the Ne list with very blue spectra). For example, say you used all four DeVeny
-lamps when taking arc-line spectra with DV8, centered around 8000 Å.  You may
-want to restrict the lists for matching to only Ne and Ar via:
+The first case should only be necessary at present for the DV4 and DV8
+gratings, which rely upon the :ref:`wvcalib-holygrail` wavelength calibration
+method. In some cases, however, including the line lists from all energized
+lamps in the matching can produce spurious results (*e.g.*, using the Hg or Cd
+lists with very red spectra, or the Ne list with very blue spectra). For
+example, say you energized all four DeVeny lamps when taking arc-line spectra
+with DV8, centered around 8000 Å.  Especially if the first pass of
+``run_pypeit`` fails to produce a workable wavelength solution, you may want to
+restrict the lists for matching to only Ne and Ar via:
 
 .. code-block:: ini
 
@@ -1005,12 +1028,14 @@ want to restrict the lists for matching to only Ne and Ar via:
       [[wavelengths]]
          lamps = NeI_DeVeny,ArI_DeVeny
 
-As of ``v1.15.0``, PypeIt includes instrument-specific line lists for all four
-DeVeny lamps, indicated by the appended "``_DeVeny``" in the lamp name. These
-lists have been vetted against DeVeny spectra to include lines seen with our
-lamps and excluding lines not reliably detected. To specify the PypeIt-default
-line lists, you may do so with the above Parameter Block addition, using
-just the ion name (*e.g.*, ``NeI`` or ``ArI``).
+.. note::
+
+   As of ``v1.15.0``, PypeIt includes instrument-specific line lists for all
+   four DeVeny lamps, indicated by the appended "``_DeVeny``" in the lamp name.
+   These lists have been vetted against DeVeny spectra to include lines seen
+   with our lamps and excluding lines not reliably detected. To specify the
+   PypeIt-default line lists, you may do so with the above Parameter Block
+   addition, using just the ion name (*e.g.*, ``NeI`` or ``ArI``).
 
 For the second case, the combined Calibration frame will not combine the FITS
 keywords from the input frames to produce the complete list of lines, so the
@@ -1032,7 +1057,7 @@ the following to your Parameter Block:
          [[[process]]]
             subtract_continuum = True
 
-The order of the lamps specified here is inconsequential, as the code sorts the
+The order of the lamps specified here is not important, as the code sorts the
 list internally.
 
 
@@ -1088,20 +1113,7 @@ polynomial order of the initial guess and final solution at the wavelength
 calibration are grating-dependent, given the varying wavelength coverages of
 DeVeny's grating complement. Shown in the table below are the default values
 for these orders for each grating based on manual inspection of wavelength
-solutions. If you are unsatisfied with the RMS of the wavelength solution,
-adjusting the solution order may improve the situation. These values may be
-changed by modifying the parameters:
-
-.. code-block:: ini
-
-   [calibrations]
-      [[wavelengths]]
-         n_first = <initial guess>
-         n_final = <final solution>
-
-Here, ``n_first`` is the initial order used in the iterative solution (this may
-need modification if a ``holy-grail`` attempt fails), and ``n_final`` is the
-final order of the solution (this may be modified to alter the RMS of the wavelength solution).
+solutions.
 
 +---------+-------------+-------------+
 | Grating | ``n_first`` | ``n_final`` |
@@ -1124,6 +1136,21 @@ final order of the solution (this may be modified to alter the RMS of the wavele
 +---------+-------------+-------------+
 | DV9     | 2           | 4           |
 +---------+-------------+-------------+
+
+If you are unsatisfied with the RMS of the wavelength solution, adjusting the
+solution order may improve the situation. These values may be changed by
+modifying the parameters:
+
+.. code-block:: ini
+
+   [calibrations]
+      [[wavelengths]]
+         n_first = <initial guess>
+         n_final = <final solution>
+
+Here, ``n_first`` is the initial order used in the iterative solution (this may
+need modification if a ``holy-grail`` attempt fails), and ``n_final`` is the
+final order of the solution (this may be modified to alter the RMS of the wavelength solution).
 
 
 Night Sky Lines for Calibration
@@ -1153,7 +1180,7 @@ Object Finding and Extraction
 -----------------------------
 
 The parameters related to object finding and extraction are generally modified
-*after* you have done an initial pass through ``run_pypeit``, and wish to
+**after** you have done an initial pass through ``run_pypeit``, and you wish to
 improve the ability of the code to work with your data.
 
 
@@ -1163,8 +1190,8 @@ General Object Finding
 Refer to the :ref:`object_finding` documentation for full details on the
 algorithms. Object finding is governed by the ``findobj`` set of parameters,
 and is carried out on the spectrally-smashed image. PypeIt produces a quality
-assurance plot for object finding on each 2D spectral image; this plot is shown
-below for the example frame used in this document.
+assurance plot for object finding on each 2D spectral image (shown below for
+the example frame used in this document).
 
 .. figure:: ../figures/deveny_findobj_qa.png
    :alt: DeVeny ObjFind
@@ -1209,12 +1236,12 @@ Nights with Poor (or Really Excellent) Seeing or Observations of Extended Object
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The default initial object finding kernel size for DeVeny data assumes a seeing
-of ~1.5" regardless of binning, [6]_ which should cover most conditions at LDT
+of ~1.5" regardless of binning\ [6]_, which should cover most conditions at LDT
 when observing pointlike objects. If the seeing is significantly better or
 worse than this value -- or you are observing extended objects -- and you are
 having difficulty automatically finding your desired objects in the frame, you
 may alter the value with the ``find_fwhm`` parameter. Note that this parameter
-*is specified in pixels* rather than arcseconds (the default value is 4.4
+**is specified in pixels** rather than arcseconds (the default value is 4.4
 pixels for unbinned data). Compute the needed value via:
 
 .. math::
@@ -1230,8 +1257,8 @@ For instance, if you had 2.5" seeing with unbinned data, you would specify:
          find_fwhm = 7.4
 
 A related parameter you may need to modify is the radius around the peak of the
-trace to use for boxcar extraction of the source, *which is specified in
-arcseconds*. The DeVeny default value is 1.9" (for a total boxcar width of 3.8"
+trace to use for boxcar extraction of the source, **which is specified in
+arcseconds**. The DeVeny default value is 1.9" (for a total boxcar width of 3.8"
 centered on the trace). You will want this parameter to be ~1.3x the seeing to
 encompass nearly 100% of the flux assuming a Gaussian profile. So, for the
 aforementioned 2.5" seeing, you should specify:
@@ -1360,23 +1387,20 @@ current practices.
 Special Considerations, Advanced Usage, and Troubleshooting
 ===========================================================
 
-This section is devoted to special considerations, advanced usage, and
-troubleshooting.
-
 .. _deveny_flexure:
 
 Special Consideration: Flexure in DeVeny and How PypeIt Handles It
 ------------------------------------------------------------------
 
-The present standard method for flexure correction in the DeVeny camera is to
-apply a flexure shift based on the extracted sky spectrum during the main
-PypeIt run. This method will be applied automatically using the current DeVeny
-parameters, and you should use only single-pointing arcs for wavelength
-calibration (*e.g.*, taken at zenith or the position of the flatfield screen).
+The standard method for flexure correction in the DeVeny camera is to apply a
+shift based on the extracted sky spectrum during the main PypeIt run. This
+method is applied automatically using the current DeVeny parameters, and you
+should use only single-pointing arcs for wavelength calibration (*e.g.*, taken
+at zenith or the position of the flatfield screen).
 
-This default method of flexure correction computes a cross-correlation between
-the extracted sky spectrum and an archived spectrum (currently the sky above
-Cerro Paranal). To use a different sky spectrum, specify (*e.g.*, for the Mt.
+This method of flexure correction computes a cross-correlation between the
+extracted sky spectrum and an archived spectrum (currently the sky above Cerro
+Paranal). To use a different sky spectrum, specify (*e.g.*, for the Mt.
 Hamilton, CA spectrum shown below):
 
 .. code-block:: ini
@@ -1384,10 +1408,10 @@ Hamilton, CA spectrum shown below):
    [flexure]
       spectrum = sky_kastb_600.fits
 
-The correlation thusly computed is used to shift the wavelength solution in
-pixel space to align with the night sky lines extracted from the 2D image via
-simple linear interpolation. Examples of the quality assurance plots for this
-process are shown below.
+The computed correlation is used to shift the wavelength solution in pixel
+space to align with the night sky lines extracted from the 2D image via simple
+linear interpolation. Examples of the quality assurance plots for this process
+are shown below.
 
 .. subfigure:: AB
     :layout-sm: A|B
@@ -1410,7 +1434,7 @@ process are shown below.
     (black) for determining the location of maximum correlation
     (“``flex_shift``”).
 
-If you wish to not have any flexure correction applied, you may specify the
+If you wish to have **no** flexure correction applied, you may specify the
 following:
 
 .. code-block:: ini
@@ -1437,16 +1461,16 @@ programs, this is perfectly acceptable. It is possible, however, to assign
 particular calibration frames to specific science frames as required by the
 science program.
 
-PypeIt uses the concept of a :ref:`"calibration group" <calibration-groups>` to define complete sets of
-calibration frames (*e.g.*, arcs, flats, biases) and the science frames to
-which these calibration frames should be applied. The necessary ``calib``
-column is already included in the PypeIt Reduction File produced by
-``pypeit_setup``, and all that is necessary is to adjust the values there
-according to your requirements. For example, say we wanted to (arbitrarily)
-assign some science frames to the first arc and flat (group 1), some to the
-first arc and last flat (group 2), and some to the last arc and last flat
-(group 3).  You would edit the ``calib`` column of the ``.pypeit`` file to look
-something like this:
+PypeIt uses the concept of a :ref:`"calibration group" <calibration-groups>`
+to define complete sets of calibration frames (*e.g.*, arcs, flats, biases) and
+the science frames to which these calibration frames should be applied. The
+necessary ``calib`` column is already included in the PypeIt Reduction File
+produced by ``pypeit_setup``, and all that is necessary is to adjust the values
+there according to your requirements. For example, say we wanted to
+(arbitrarily) assign some science frames to the first arc and flat (group 1),
+some to the first arc and last flat (group 2), and some to the last arc and
+last flat (group 3). You would edit the ``calib`` column of the ``.pypeit``
+file to look something like this:
 
 ::
 
@@ -1531,8 +1555,8 @@ Troubleshooting: When Wavelength Calibration Fails
 The trickiest piece with spectroscopic data reduction is the production of a
 valid wavelength calibration. PypeIt produces Quality Assurance plots of this
 step for inspection, and you may use the :ref:`pypeit_chk_wavecalib` script to
-determine the accuracy of the calibration. Shown below are examples of both
-accurate and poor wavelength calibrations.
+determine the accuracy of the calibration. Shown below are ``QA/`` examples of
+both accurate and poor wavelength calibrations.
 
 .. subfigure:: A|B
     :layout-sm: A|B
@@ -1548,7 +1572,7 @@ accurate and poor wavelength calibrations.
         :alt: Bad DeVeny DV6 wavelength calibration
         :class: with-shadow
 
-    Examples of good (*left*) and not-so-good (*right*) wavelength
+    Examples of good (*top*) and not-so-good (*bottom*) wavelength
     calibrations for the same setup using DV6 on different nights. For the left
     plots, PypeIt found the bright lines, correctly associated them with the
     line lists, and produced a roughly linear wavelength as a function of pixel
@@ -1573,7 +1597,7 @@ grow.
 
 While examining the calibration outputs from ``run_pypeit -c``
 (:ref:`deveny_calibrations`), if you find either a wavelength calibration akin
-to the right plots above or no wavelength calibration at all, the calibration
+to the bottom plots above or no wavelength calibration at all, the calibration
 has failed. If adjusting wavelength calibration parameters
 (:ref:`deveny_wavecalib`) does not resolve the issue, the most efficient way
 forward is to manually identify the lines using the :ref:`wvcalib-byhand` of
@@ -1703,7 +1727,7 @@ are in the same place.
    `<https://tools.ietf.org/html/rfc1149>`__
 
 .. [3]
-   See `<https://lowellobservatory.github.io/LDTObserverTools/fix_ldt_header.html>`__
+   See `the LDT Observer Tools package <https://lowellobservatory.github.io/LDTObserverTools/fix_ldt_header.html>`__
    for one option.
 
 .. [4]
