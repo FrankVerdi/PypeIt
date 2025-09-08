@@ -144,6 +144,7 @@ class PypeIt:
 
         # Set paths
         self.calibrations_path = Path(self.par['rdx']['redux_path']) / self.par['calibrations']['calib_dir']
+        self.qa_path = os.path.join(self.par['rdx']['redux_path'], self.par['rdx']['qadir'])
 
         # Check for calibrations
         if not self.calib_only:
@@ -173,14 +174,16 @@ class PypeIt:
         """Return the path to the science directory."""
         return Path(self.par['rdx']['redux_path']) / self.par['rdx']['scidir']
 
-    @property
-    def qa_path(self) -> str:
-        """Return the path to the top-level QA directory."""
-        return os.path.join(self.par['rdx']['redux_path'], self.par['rdx']['qadir'])
+    #@property
+    #def qa_path(self) -> str:
+    #    """Return the path to the top-level QA directory."""
+    #    return os.path.join(self.par['rdx']['redux_path'], self.par['rdx']['qadir'])
 
     def build_qa(self):
         """
         Generate QA wrappers
+
+        Called by run_pypeit.py
         """
         msgs.qa_path = self.qa_path
         qa.gen_qa_dir(self.qa_path)
@@ -346,7 +349,9 @@ class PypeIt:
         # Frame indices
         frame_indx = np.arange(len(self.fitstbl))
 
+        # ############################################################################
         # Standard Star(s) Loop
+        # ############################################################################
         # Iterate over each calibration group and reduce the standards
         for calib_ID in self.fitstbl.calib_groups:
 
@@ -375,14 +380,20 @@ class PypeIt:
                     # exposure
                     history = History(self.fitstbl.frame_paths(frames[0]))
                     history.add_reduce(calib_ID, self.fitstbl, frames, bg_frames)
-                    std_spec2d, std_sobjs = self.reduce_exposure(frames, calib_ID, bg_frames=bg_frames)
+                    std_spec2d, std_sobjs = pypeit_steps.reduce_exposure(
+                        self.spectrograph, self.fitstbl, self.par, frames, calib_ID, 
+                        self.calibrations_path, bg_frames=bg_frames,
+                        reuse_calibs=self.reuse_calibs, run_state=self.run_state,
+                        show=self.show)
                     # TODO come up with sensible naming convention for save_exposure for combined files
                     self.save_exposure(frames[0], std_spec2d, std_sobjs, history)
                 else:
                     msgs.info('Output file: {:s} already exists'.format(self.fitstbl.construct_basename(frames[0])) +
                               '. Set overwrite=True to recreate and overwrite.')
 
+        # ############################################################################
         # Science Frame(s) Loop
+        # ############################################################################
         # Iterate over each calibration group again and reduce the science frames
         for calib_ID in self.fitstbl.calib_groups:
             # Find all the frames in this calibration group
@@ -430,8 +441,14 @@ class PypeIt:
                     history.add_reduce(calib_ID, self.fitstbl, frames, bg_frames)
 
                     # TODO -- Should we reset/regenerate self.slits.mask for a new exposure
-                    sci_spec2d, sci_sobjs = self.reduce_exposure(
-                        frames, calib_ID, bg_frames=bg_frames, 
+                    #sci_spec2d, sci_sobjs = self.reduce_exposure(
+                    #    frames, calib_ID, bg_frames=bg_frames, 
+                    #    std_outfile=std_outfile)
+
+                    sci_spec2d, sci_sobjs = pypeit_steps.reduce_exposure(
+                        self.spectrograph, self.fitstbl, self.par, frames, calib_ID, 
+                        self.calibrations_path, bg_frames=bg_frames,
+                        reuse_calibs=self.reuse_calibs, run_state=self.run_state, show=self.show,
                         std_outfile=std_outfile)
 
                     # TODO: come up with sensible naming convention for
@@ -451,216 +468,216 @@ class PypeIt:
         # Finish
         self.print_end_time()
 
-    @staticmethod
-    def select_detectors(spectrograph, detnum, slitspatnum=None):
-        """
-        Get the set of detectors to be reduced.
-
-        This is mostly a wrapper for
-        :func:`~pypeit.spectrographs.spectrograph.Spectrograph.select_detectors`,
-        except that it applies any limitations set by the
-        :class:`~pypeit.par.pypeitpar.ReduxPar` parameters.
-
-        Args:
-            spectrograph (:class:`~pypeit.spectrographs.spectrograph.Spectrograph`):
-                Spectrograph instance that defines the allowed
-                detectors/mosaics.
-            detnum (:obj:`int`, :obj:`tuple`):
-                The detectors/mosaics to parse
-            slitspatnum (:obj:`str`, optional):
-                Used to restrict the reduction to a specified slit.  See
-                :class:`~pypeit.par.pypeitpar.ReduxPar`.
-
-        Returns:
-            :obj:`list`: List of unique detectors or detector mosaics to be
-            reduced.
-        """
-        return spectrograph.select_detectors(subset=detnum if slitspatnum is None else slitspatnum)
+    #@staticmethod
+    #def select_detectors(spectrograph, detnum, slitspatnum=None):
+    #    """
+    #    Get the set of detectors to be reduced.
+#
+#        This is mostly a wrapper for
+#        :func:`~pypeit.spectrographs.spectrograph.Spectrograph.select_detectors`,
+#        except that it applies any limitations set by the
+#        :class:`~pypeit.par.pypeitpar.ReduxPar` parameters.
+#
+#        Args:
+#            spectrograph (:class:`~pypeit.spectrographs.spectrograph.Spectrograph`):
+#                Spectrograph instance that defines the allowed
+#                detectors/mosaics.
+#            detnum (:obj:`int`, :obj:`tuple`):
+#                The detectors/mosaics to parse
+#            slitspatnum (:obj:`str`, optional):
+#                Used to restrict the reduction to a specified slit.  See
+#                :class:`~pypeit.par.pypeitpar.ReduxPar`.
+#
+#        Returns:
+#            :obj:`list`: List of unique detectors or detector mosaics to be
+#            reduced.
+#        """
+#        return spectrograph.select_detectors(subset=detnum if slitspatnum is None else slitspatnum)
 
  
 
-    def reduce_exposure(self, frames, calib_ID, bg_frames=None, std_outfile=None):
-        """
-        Reduce a single exposure
+#    def reduce_exposure(self, frames, calib_ID, bg_frames=None, std_outfile=None):
+#        """
+#        Reduce a single exposure
+#
+#        Args:
+#            frames (:obj:`list`):
+#                List of 0-indexed rows in :attr:`fitstbl` with the frames to
+#                reduce.
+#            bg_frames (:obj:`list`, optional):
+#                List of frame indices for the background.
+#            std_outfile (:obj:`str`, optional):
+#                File with a previously reduced standard spectrum from
+#                PypeIt.
+#
+#        Returns:
+#            dict: The dictionary containing the primary outputs of
+#            extraction.
+#
+#        """
+#
+#        # if show is set, clear the ginga channels at the start of each new sci_ID
+#        if self.show:
+#            # TODO: Put this in a try/except block?
+#            display.clear_all(allow_new=True)
+#
+#        has_bg = True if bg_frames is not None and len(bg_frames) > 0 else False
+#        # Is this an b/g subtraction reduction?
+#        if has_bg:
+#            self.bkg_redux = True
+#            # The default is to find_negative objects if the bg_frames are
+#            # classified as "science", and to not find_negative objects if the
+#            # bg_frames are classified as "sky". This can be explicitly
+#            # overridden if par['reduce']['findobj']['find_negative'] is set to
+#            # something other than the default of None.
+#            self.find_negative = (('science' in self.fitstbl['frametype'][bg_frames[0]]) |
+#                                  ('standard' in self.fitstbl['frametype'][bg_frames[0]])) \
+#                            if self.par['reduce']['findobj']['find_negative'] is None else \
+#                                self.par['reduce']['findobj']['find_negative']
+#        else:
+#            self.bkg_redux = False
+#            self.find_negative= False
+#
+#        # Print status message
+#        msgs_string = 'Reducing target {:s}'.format(self.fitstbl['target'][frames[0]]) + msgs.newline()
+#        # TODO: Print these when the frames are actually combined,
+#        # backgrounds are used, etc?
+#        msgs_string += 'Combining frames:' + msgs.newline()
+#        for iframe in frames:
+#            msgs_string += '{0:s}'.format(self.fitstbl['filename'][iframe]) + msgs.newline()
+#        msgs.info(msgs_string)
+#        if has_bg:
+#            bg_msgs_string = ''
+#            for iframe in bg_frames:
+#                bg_msgs_string += '{0:s}'.format(self.fitstbl['filename'][iframe]) + msgs.newline()
+#            bg_msgs_string = msgs.newline() + 'Using background from frames:' + msgs.newline() + bg_msgs_string
+#            msgs.info(bg_msgs_string)
+#
+#        # Find the detectors to reduce
+#        detectors = self.select_detectors(self.spectrograph, self.par['rdx']['detnum'],
+#                                          slitspatnum=self.par['rdx']['slitspatnum'])
+#        msgs.info(f'Detectors to work on: {detectors}')
+#
+#        # #####################################
+#        # Calibrations
+#        for det in detectors:
+#            msgs.info(f'Calibrating detector {det}')
+#            # run/load calibration
+#            caliBrate = self.calib_one(frames, det, calib_ID)
+#            if not caliBrate.success:
+#                msgs.warn(f'Calibrations for detector {det} were unsuccessful!  The step '
+#                          f'that failed was {caliBrate.failed_step}.  Continuing by '
+#                          f'skipping this detector.')
+#                continue
+#
+#        # #####################################
+#        # Proccess or load processed frames
+#        load_processed = False
+#        if load_processed:
+#            load, write = True, False
+#        else:
+#            load, write = False, True
+#        sciImg_dict, bkg_redux_sciimg_dict = pypeit_steps.process_frames(
+#                self.spectrograph, self.fitstbl, self.par, frames,
+#                   detectors, self.calibrations_path, 
+#                   bg_frames=bg_frames, 
+#                   load=load, write=write)
+#
+#        # #####################################
+#        # Find objects + initial sky
+#        # TODO -- replace this kludge
+#        extras = dict(bkg_redux=self.bkg_redux,
+#                find_negative=self.find_negative,
+#                show=self.show)
+#        load_findobj = False
+#        if load_findobj:
+#            load, write = True, False
+#            all_specobjs_objfind = None
+#        else:
+#            load, write = False, True
+#        initial_sky_dict, all_specobjs_find = \
+#            pypeit_steps.findobj_on_exposure(sciImg_dict, self.spectrograph, 
+#                                self.fitstbl,
+#                                self.par, frames, detectors,
+#                                self.calibrations_path,
+#                                std_outfile=std_outfile,
+#                                extras=extras, 
+#                                load=load, write=write)
+#        #embed(header='576 of x_pypeit')
+#
+#        # #####################################
+#        # slitmask stuff
+#        if self.par['reduce']['slitmask']['assign_obj']:
+#            frame0 = frames[0]
+#            calib_slits = pypeit_steps.adjust_for_slitmask(
+#                sciImg_dict, 
+#                self.spectrograph, 
+#                self.fitstbl, 
+#                self.par, 
+#                detectors,
+#                frame0, 
+#                self.fitstbl['binning'][frame0],
+#                all_specobjs_objfind)
+#
+#        # #####################################
+#        # Extract
+#        all_spec2d, all_specobjs_extract = pypeit_steps.extract_exposure(
+#            sciImg_dict, bkg_redux_sciimg_dict,
+#            self.spectrograph, self.fitstbl, 
+#            self.par, frames, self.calibrations_path, 
+#            detectors,
+#            all_specobjs_find,
+#            initial_sky_dict, 
+#            bkg_redux=self.bkg_redux,
+#            find_negative=self.find_negative)
+#
+#        return all_spec2d, all_specobjs_extract
 
-        Args:
-            frames (:obj:`list`):
-                List of 0-indexed rows in :attr:`fitstbl` with the frames to
-                reduce.
-            bg_frames (:obj:`list`, optional):
-                List of frame indices for the background.
-            std_outfile (:obj:`str`, optional):
-                File with a previously reduced standard spectrum from
-                PypeIt.
-
-        Returns:
-            dict: The dictionary containing the primary outputs of
-            extraction.
-
-        """
-
-        # if show is set, clear the ginga channels at the start of each new sci_ID
-        if self.show:
-            # TODO: Put this in a try/except block?
-            display.clear_all(allow_new=True)
-
-        has_bg = True if bg_frames is not None and len(bg_frames) > 0 else False
-        # Is this an b/g subtraction reduction?
-        if has_bg:
-            self.bkg_redux = True
-            # The default is to find_negative objects if the bg_frames are
-            # classified as "science", and to not find_negative objects if the
-            # bg_frames are classified as "sky". This can be explicitly
-            # overridden if par['reduce']['findobj']['find_negative'] is set to
-            # something other than the default of None.
-            self.find_negative = (('science' in self.fitstbl['frametype'][bg_frames[0]]) |
-                                  ('standard' in self.fitstbl['frametype'][bg_frames[0]])) \
-                            if self.par['reduce']['findobj']['find_negative'] is None else \
-                                self.par['reduce']['findobj']['find_negative']
-        else:
-            self.bkg_redux = False
-            self.find_negative= False
-
-        # Print status message
-        msgs_string = 'Reducing target {:s}'.format(self.fitstbl['target'][frames[0]]) + msgs.newline()
-        # TODO: Print these when the frames are actually combined,
-        # backgrounds are used, etc?
-        msgs_string += 'Combining frames:' + msgs.newline()
-        for iframe in frames:
-            msgs_string += '{0:s}'.format(self.fitstbl['filename'][iframe]) + msgs.newline()
-        msgs.info(msgs_string)
-        if has_bg:
-            bg_msgs_string = ''
-            for iframe in bg_frames:
-                bg_msgs_string += '{0:s}'.format(self.fitstbl['filename'][iframe]) + msgs.newline()
-            bg_msgs_string = msgs.newline() + 'Using background from frames:' + msgs.newline() + bg_msgs_string
-            msgs.info(bg_msgs_string)
-
-        # Find the detectors to reduce
-        detectors = self.select_detectors(self.spectrograph, self.par['rdx']['detnum'],
-                                          slitspatnum=self.par['rdx']['slitspatnum'])
-        msgs.info(f'Detectors to work on: {detectors}')
-
-        # #####################################
-        # Calibrations
-        for det in detectors:
-            msgs.info(f'Calibrating detector {det}')
-            # run/load calibration
-            caliBrate = self.calib_one(frames, det, calib_ID)
-            if not caliBrate.success:
-                msgs.warn(f'Calibrations for detector {det} were unsuccessful!  The step '
-                          f'that failed was {caliBrate.failed_step}.  Continuing by '
-                          f'skipping this detector.')
-                continue
-
-        # #####################################
-        # Proccess or load processed frames
-        load_processed = False
-        if load_processed:
-            load, write = True, False
-        else:
-            load, write = False, True
-        sciImg_dict, bkg_redux_sciimg_dict = pypeit_steps.process_frames(
-                self.spectrograph, self.fitstbl, self.par, frames,
-                   detectors, self.calibrations_path, 
-                   bg_frames=bg_frames, 
-                   load=load, write=write)
-
-        # #####################################
-        # Find objects + initial sky
-        # TODO -- replace this kludge
-        extras = dict(bkg_redux=self.bkg_redux,
-                find_negative=self.find_negative,
-                show=self.show)
-        load_findobj = False
-        if load_findobj:
-            load, write = True, False
-            all_specobjs_objfind = None
-        else:
-            load, write = False, True
-        initial_sky_dict, all_specobjs_find = \
-            pypeit_steps.findobj_on_exposure(sciImg_dict, self.spectrograph, 
-                                self.fitstbl,
-                                self.par, frames, detectors,
-                                self.calibrations_path,
-                                std_outfile=std_outfile,
-                                extras=extras, 
-                                load=load, write=write)
-        #embed(header='576 of x_pypeit')
-
-        # #####################################
-        # slitmask stuff
-        if self.par['reduce']['slitmask']['assign_obj']:
-            frame0 = frames[0]
-            calib_slits = pypeit_steps.adjust_for_slitmask(
-                sciImg_dict, 
-                self.spectrograph, 
-                self.fitstbl, 
-                self.par, 
-                detectors,
-                frame0, 
-                self.fitstbl['binning'][frame0],
-                all_specobjs_objfind)
-
-        # #####################################
-        # Extract
-        all_spec2d, all_specobjs_extract = pypeit_steps.extract_exposure(
-            sciImg_dict, bkg_redux_sciimg_dict,
-            self.spectrograph, self.fitstbl, 
-            self.par, frames, self.calibrations_path, 
-            detectors,
-            all_specobjs_find,
-            initial_sky_dict, 
-            bkg_redux=self.bkg_redux,
-            find_negative=self.find_negative)
-
-        return all_spec2d, all_specobjs_extract
-
-    def calib_one(self, frames, det, calib_ID, stop_at_step:str=None):
-        """
-        Run Calibration for a single exposure/detector pair
-
-        Args:
-            frames (:obj:`list`):
-                List of frames (rows) to calibrate
-                Only used to idetify the setup and calibration group
-            det (:obj:`int`):
-                Detector number (1-indexed)
-            stop_at_step (:obj:`str`, optional):
-                Run only up to this calibration step.
-                
-
-        Returns:
-            caliBrate (:class:`pypeit.calibrations.Calibrations`)
-
-        """
-
-        msgs.info(f'Building/loading calibrations for detector {det}')
-        # Instantiate Calibrations class
-        user_slits = slittrace.merge_user_slit(self.par['rdx']['slitspatnum'],
-                                               self.par['rdx']['maskIDs'])
-        caliBrate = calibrations.Calibrations.get_instance(
-            self.fitstbl, self.par['calibrations'], self.spectrograph,
-            self.calibrations_path, qadir=self.qa_path,
-            reuse_calibs=self.reuse_calibs, show=self.show, user_slits=user_slits,
-            chk_version=self.par['rdx']['chk_version'],
-            state=self.run_state)
-
-
-        # Check
-        if stop_at_step is not None and stop_at_step not in caliBrate.steps:
-            msgs.error(f"Requested stop_at_step={stop_at_step} is not a valid calibration step.\n Allowed steps are: {caliBrate.steps}")
-            
-        # These need to be separate to accomodate COADD2D
-        caliBrate.set_config(frames[0], det, self.par['calibrations'])
-        caliBrate.calib_ID = calib_ID
-
-        # Run
-        caliBrate.run_the_steps(stop_at_step=stop_at_step)
-
-        #embed(header='742 of pypeit')
-
-        return caliBrate
+#    def calib_one(self, frames, det, calib_ID, stop_at_step:str=None):
+#        """
+#        Run Calibration for a single exposure/detector pair
+#
+#        Args:
+#            frames (:obj:`list`):
+#                List of frames (rows) to calibrate
+#                Only used to identify the setup and calibration group
+#            det (:obj:`int`):
+#                Detector number (1-indexed)
+#            stop_at_step (:obj:`str`, optional):
+#                Run only up to this calibration step.
+#                
+#
+#        Returns:
+#            caliBrate (:class:`pypeit.calibrations.Calibrations`)
+#
+#        """
+#
+#        msgs.info(f'Building/loading calibrations for detector {det}')
+#        # Instantiate Calibrations class
+#        user_slits = slittrace.merge_user_slit(self.par['rdx']['slitspatnum'],
+#                                               self.par['rdx']['maskIDs'])
+#        caliBrate = calibrations.Calibrations.get_instance(
+#            self.fitstbl, self.par['calibrations'], self.spectrograph,
+#            self.calibrations_path, qadir=self.qa_path,
+#            reuse_calibs=self.reuse_calibs, show=self.show, user_slits=user_slits,
+#            chk_version=self.par['rdx']['chk_version'],
+#            state=self.run_state)
+#
+#
+#        # Check
+#        if stop_at_step is not None and stop_at_step not in caliBrate.steps:
+#            msgs.error(f"Requested stop_at_step={stop_at_step} is not a valid calibration step.\n Allowed steps are: {caliBrate.steps}")
+#            
+#        # These need to be separate to accomodate COADD2D
+#        caliBrate.set_config(frames[0], det, self.par['calibrations'])
+#        caliBrate.calib_ID = calib_ID  # Yes, this is set again here and needs to be ..
+#
+#        # Run
+#        caliBrate.run_the_steps(stop_at_step=stop_at_step)
+#
+#        #embed(header='742 of pypeit')
+#
+#        return caliBrate
 
     def save_exposure(self, frame:int, all_spec2d:spec2dobj.AllSpec2DObj,
                       all_specobjs:specobjs.SpecObjs, history:History=None,

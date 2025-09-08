@@ -141,7 +141,8 @@ class Calibrations:
     __metaclass__ = ABCMeta
 
     @staticmethod
-    def get_instance(fitstbl, par, spectrograph, caldir, **kwargs):
+    def get_instance(fitstbl, par, spectrograph, caldir, calib_ID:str, 
+        frame:int, det:int, **kwargs):
         """
         Get the instance of the appropriate subclass of :class:`Calibrations` to
         use for reducing data from the provided ``spectrograph``.  For argument
@@ -149,9 +150,11 @@ class Calibrations:
         """
         calibclass = MultiSlitCalibrations if spectrograph.pypeline in ['MultiSlit', 'Echelle'] \
                         else IFUCalibrations
-        return calibclass(fitstbl, par, spectrograph, caldir, **kwargs)
+        return calibclass(fitstbl, par, spectrograph, caldir, calib_ID, frame, det,
+                          **kwargs)
 
-    def __init__(self, fitstbl, par, spectrograph, caldir, qadir=None,
+    def __init__(self, fitstbl, par, spectrograph, caldir, calib_ID:str, 
+                 frame:int, det:int, qadir=None,
                  reuse_calibs=False, show=False, user_slits=None, chk_version=True,
                  state:state.RunPypeItState=None):
 
@@ -169,6 +172,9 @@ class Calibrations:
         self.fitstbl = fitstbl
         self.par = par
         self.spectrograph = spectrograph
+        self.calib_ID = calib_ID
+        self.det = det
+        self.frame = frame
 
         # Calibrations
         self.reuse_calibs = reuse_calibs
@@ -196,9 +202,6 @@ class Calibrations:
         self.user_slits = user_slits
 
         # Attributes
-        self.det = None
-        self.frame = None
-
         self.msarc = None
         self.mstilt = None
         self.alignments = None
@@ -211,7 +214,6 @@ class Calibrations:
 
         self.wavetilts = None
         self.flatimages = None
-        self.calib_ID = None
 
         # Steps
         self.steps = self.__class__.default_steps()
@@ -320,37 +322,37 @@ class Calibrations:
         return self.fitstbl.frame_paths(rows), cal_file, calib_key, setup, \
                     frameclass.ingest_calib_id(calib_id), detname
 
-    def set_config(self, frame, det, par=None):
-        """
-        Specify the critical attributes of the class to perform a set of calibrations.
-
-        Operations are:
-
-            - Set the frame
-            - Use the frame to find the calibration group
-            - Set the detector/mosaic
-            - Set the parameters
-
-        Args:
-            frame (:obj:`int`):
-                The row index in :attr:`fitstbl` with the frame to calibrate.
-            det (:obj:`int`):
-                Detector number.
-            par (:class:`~pypeit.par.pypeitpar.CalibrationsPar`, optional):
-                Parameters used by the calibration procedures.  If None, use
-                :attr:`par`.
-        """
-        # Initialize for this setup
-        self.frame = frame
-        # Find the calibration groups associated with this frame.  Note
-        # find_frame_calib_groups *always* returns a list.  Science frames only
-        # have one calibration group, but calibration frames can have many.  So
-        # for both science and calibration frames, we just set the calibration
-        # group to the first group in the returned list.
-        self.calib_ID = self.fitstbl.find_frame_calib_groups(self.frame)[0]
-        self.det = det
-        if par is not None:
-            self.par = par
+#    def set_config(self, frame, det, par=None):
+#        """
+#        Specify the critical attributes of the class to perform a set of calibrations.
+#
+#        Operations are:
+#
+#            - Set the frame
+#            - Use the frame to find the calibration group
+#            - Set the detector/mosaic
+#            - Set the parameters
+#
+#        Args:
+#            frame (:obj:`int`):
+#                The row index in :attr:`fitstbl` with the frame to calibrate.
+#            det (:obj:`int`):
+#                Detector number.
+#            par (:class:`~pypeit.par.pypeitpar.CalibrationsPar`, optional):
+#                Parameters used by the calibration procedures.  If None, use
+#                :attr:`par`.
+#        """
+#        # Initialize for this setup
+#        self.frame = frame
+#        # Find the calibration groups associated with this frame.  Note
+#        # find_frame_calib_groups *always* returns a list.  Science frames only
+#        # have one calibration group, but calibration frames can have many.  So
+#        # for both science and calibration frames, we just set the calibration
+#        # group to the first group in the returned list.
+#        self.calib_ID = self.fitstbl.find_frame_calib_groups(self.frame)[0]
+#        self.det = det
+#        if par is not None:
+#            self.par = par
 
     def get_arc(self, force:str=None):
         """
