@@ -4,6 +4,7 @@ import numpy as np
 import copy
 
 from astropy.table import Table
+from astropy.io import fits
 
 from pypeit import msgs
 from pypeit.calibframe import CalibFrame
@@ -17,6 +18,7 @@ from pypeit import spec2dobj
 from pypeit.core import wave
 from pypeit.images import pypeitimage
 from pypeit.display import display
+from pypeit.history import History
 
 from pypeit import slittrace
 from pypeit import calibrations
@@ -1023,3 +1025,93 @@ def reduce_exposure(spectrograph, fitstbl, par, frames, calib_ID,
 
     # Return
     return all_spec2d, all_specobjs_extract
+
+
+def save_exposure(science_path:Path, spectrograph, fitstbl, par, 
+                  frame:int, all_spec2d:spec2dobj.AllSpec2DObj,
+                  all_specobjs:specobjs.SpecObjs, 
+                  calibrations_path:str,
+                  history:History=None,
+                  skip_write_2d:bool=False):
+    """
+    Save the outputs from extraction for a given exposure
+
+    Args:
+        science_path (:class:`pathlib.Path`):
+            Path to the science directory where the output files
+            will be written. 
+        frame (:obj:`int`):
+            0-indexed row in the metadata table with the frame
+            that has been reduced.
+        all_spec2d(:class:`~pypeit.spec2dobj.AllSpec2DObj`):
+            The 2D reduced spectrum objects.
+        all_specobjs (:class:`~pypeit.specobjs.SpecObjs`):
+            The 1D spectral extraction objects.
+        history (:class:`~pypeit.history.History`), optional:
+            History entries to be added to fits header
+        skip_write_2d (:obj:`bool`), optional:
+            Skip writing the 2D spectrum to disk
+    """
+    # TODO: Need some checks here that the exposure has been reduced?
+    obstime  = fitstbl.construct_obstime(frame)
+    basename = fitstbl.construct_basename(frame, obstime=obstime)
+
+    # Determine the headers
+    row_fitstbl = fitstbl[frame]
+    # Need raw file header information
+    rawfile = fitstbl.frame_paths(frame)
+    head2d = fits.getheader(rawfile, ext=spectrograph.primary_hdrext)
+
+    # Check for the directory
+    if not science_path.is_dir():
+        science_path.mkdir()
+
+    # NOTE: There are some gymnastics here to keep from altering
+    # self.par['rdx']['detnum'].  I.e., I can't just set update_det =
+    # self.par['rdx']['detnum'] because that can alter the latter if I don't
+    # deepcopy it...
+    if par['rdx']['detnum'] is None:
+        update_det = None
+    elif isinstance(par['rdx']['detnum'], list):
+        update_det = [spectrograph.allowed_mosaics.index(d)+1 
+                        if isinstance(d, tuple) else d for d in par['rdx']['detnum']]
+    else:
+        update_det = par['rdx']['detnum']
+
+    subheader = spectrograph.subheader_for_spec(row_fitstbl, head2d)
+    # 1D spectra
+    if all_specobjs.nobj > 0 and not par['reduce']['extraction']['skip_extraction']:
+        # Spectra
+        outfile1d = science_path / f'spec1d_{basename}.fits'
+        # TODO
+        #embed(header='deal with the following for maskIDs;  713 of pypeit')
+        all_specobjs.write_to_fits(subheader, outfile1d,
+                                    update_det=update_det,
+                                    slitspatnum=par['rdx']['slitspatnum'],
+                                    history=history)
+        # Info
+        outfiletxt = science_path / f'spec1d_{basename}.txt'
+        # TODO: Note we re-read in the specobjs from disk to deal with situations where
+        # only a single detector is run in a second pass but in the same reduction directory.
+        # This was to address Issue #1116 in PR #1154. Slightly inefficient, but only other
+        # option is to re-work write_info to also "append"
+        sobjs = specobjs.SpecObjs.from_fitsfile(outfile1d, chk_version=False)
+        sobjs.write_info(outfiletxt, spectrograph.pypeline)
+        #all_specobjs.write_info(outfiletxt, self.spectrograph.pypeline)
+
+    if skip_write_2d:
+        return
+
+    # 2D spectra
+    outfile2d = science_path / f'spec2d_{basename}.fits'
+    # Build header
+    pri_hdr = all_spec2d.build_primary_hdr(head2d, spectrograph,
+                                            redux_path=par['rdx']['redux_path'],
+                                            calib_dir=calibrations_path,
+                                            subheader=subheader,
+                                            history=history)
+
+    # Write
+    all_spec2d.write_to_fits(outfile2d, pri_hdr=pri_hdr,
+                                update_det=update_det,
+                                slitspatnum=par['rdx']['slitspatnum'])

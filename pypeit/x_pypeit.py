@@ -22,25 +22,17 @@ from IPython import embed
 
 import numpy as np
 
-from astropy.io import fits
 
 from pypeit import inputfiles
 from pypeit.core import parse, wave, qa
-from pypeit import spec2dobj
-from pypeit import specobjs
 from pypeit import msgs
 from pypeit import calibrations
-from pypeit.display import display
-from pypeit import slittrace
 from pypeit import utils
 from pypeit.history import History
 from pypeit.metadata import PypeItMetaData
 from pypeit import state
 
 from pypeit import pypeit_steps
-
-from linetools import utils as ltu
-
 
 class PypeIt:
     """
@@ -144,7 +136,6 @@ class PypeIt:
 
         # Set paths
         self.calibrations_path = Path(self.par['rdx']['redux_path']) / self.par['calibrations']['calib_dir']
-        self.qa_path = os.path.join(self.par['rdx']['redux_path'], self.par['rdx']['qadir'])
 
         # Check for calibrations
         if not self.calib_only:
@@ -174,10 +165,10 @@ class PypeIt:
         """Return the path to the science directory."""
         return Path(self.par['rdx']['redux_path']) / self.par['rdx']['scidir']
 
-    #@property
-    #def qa_path(self) -> str:
-    #    """Return the path to the top-level QA directory."""
-    #    return os.path.join(self.par['rdx']['redux_path'], self.par['rdx']['qadir'])
+    @property
+    def qa_path(self) -> str:
+        """Return the path to the top-level QA directory."""
+        return os.path.join(self.par['rdx']['redux_path'], self.par['rdx']['qadir'])
 
     def build_qa(self):
         """
@@ -386,7 +377,11 @@ class PypeIt:
                         reuse_calibs=self.reuse_calibs, run_state=self.run_state,
                         show=self.show)
                     # TODO come up with sensible naming convention for save_exposure for combined files
-                    self.save_exposure(frames[0], std_spec2d, std_sobjs, history)
+                    pypeit_steps.save_exposure(self.science_path, self.spectrograph,
+                                            self.fitstbl, self.par, frames[0], 
+                                            std_spec2d, std_sobjs, self.calibrations_path,
+                                            history=history)
+                    #self.save_exposure(frames[0], std_spec2d, std_sobjs, history)
                 else:
                     msgs.info('Output file: {:s} already exists'.format(self.fitstbl.construct_basename(frames[0])) +
                               '. Set overwrite=True to recreate and overwrite.')
@@ -454,8 +449,13 @@ class PypeIt:
                     # TODO: come up with sensible naming convention for
                     # save_exposure for combined files
                     if len(sci_spec2d.detectors) > 0:
-                        self.save_exposure(frames[0], sci_spec2d, sci_sobjs, history,
-                                           skip_write_2d=self.par['scienceframe']['process']['skip_write_2d'])
+                        #self.save_exposure(frames[0], sci_spec2d, sci_sobjs, history,
+                        #                   skip_write_2d=self.par['scienceframe']['process']['skip_write_2d'])
+                        pypeit_steps.save_exposure(self.science_path, self.spectrograph,
+                                            self.fitstbl, self.par, frames[0], 
+                                            sci_spec2d, sci_sobjs, self.calibrations_path,
+                                            history=history,
+                                            skip_write_2d=self.par['scienceframe']['process']['skip_write_2d'])
                     else:
                         msgs.warn('No spec2d and spec1d saved to file because the '
                                   'calibration/reduction was not successful for all the detectors')
@@ -679,88 +679,88 @@ class PypeIt:
 #
 #        return caliBrate
 
-    def save_exposure(self, frame:int, all_spec2d:spec2dobj.AllSpec2DObj,
-                      all_specobjs:specobjs.SpecObjs, history:History=None,
-                      skip_write_2d:bool=False):
-        """
-        Save the outputs from extraction for a given exposure
-
-        Args:
-            frame (:obj:`int`):
-                0-indexed row in the metadata table with the frame
-                that has been reduced.
-            all_spec2d(:class:`~pypeit.spec2dobj.AllSpec2DObj`):
-                The 2D reduced spectrum objects.
-            all_specobjs (:class:`~pypeit.specobjs.SpecObjs`):
-                The 1D spectral extraction objects.
-            history (:class:`~pypeit.history.History`), optional:
-                History entries to be added to fits header
-            skip_write_2d (:obj:`bool`), optional:
-                Skip writing the 2D spectrum to disk
-        """
-        # TODO: Need some checks here that the exposure has been reduced?
-        obstime  = self.fitstbl.construct_obstime(frame)
-        basename = self.fitstbl.construct_basename(frame, obstime=obstime)
-
-        # Determine the headers
-        row_fitstbl = self.fitstbl[frame]
-        # Need raw file header information
-        rawfile = self.fitstbl.frame_paths(frame)
-        head2d = fits.getheader(rawfile, ext=self.spectrograph.primary_hdrext)
-
-        # Check for the directory
-        if not self.science_path.is_dir():
-            self.science_path.mkdir()
-
-        # NOTE: There are some gymnastics here to keep from altering
-        # self.par['rdx']['detnum'].  I.e., I can't just set update_det =
-        # self.par['rdx']['detnum'] because that can alter the latter if I don't
-        # deepcopy it...
-        if self.par['rdx']['detnum'] is None:
-            update_det = None
-        elif isinstance(self.par['rdx']['detnum'], list):
-            update_det = [self.spectrograph.allowed_mosaics.index(d)+1 
-                            if isinstance(d, tuple) else d for d in self.par['rdx']['detnum']]
-        else:
-            update_det = self.par['rdx']['detnum']
-
-        subheader = self.spectrograph.subheader_for_spec(row_fitstbl, head2d)
-        # 1D spectra
-        if all_specobjs.nobj > 0 and not self.par['reduce']['extraction']['skip_extraction']:
-            # Spectra
-            outfile1d = self.science_path / f'spec1d_{basename}.fits'
-            # TODO
-            #embed(header='deal with the following for maskIDs;  713 of pypeit')
-            all_specobjs.write_to_fits(subheader, outfile1d,
-                                       update_det=update_det,
-                                       slitspatnum=self.par['rdx']['slitspatnum'],
-                                       history=history)
-            # Info
-            outfiletxt = self.science_path / f'spec1d_{basename}.txt'
-            # TODO: Note we re-read in the specobjs from disk to deal with situations where
-            # only a single detector is run in a second pass but in the same reduction directory.
-            # This was to address Issue #1116 in PR #1154. Slightly inefficient, but only other
-            # option is to re-work write_info to also "append"
-            sobjs = specobjs.SpecObjs.from_fitsfile(outfile1d, chk_version=False)
-            sobjs.write_info(outfiletxt, self.spectrograph.pypeline)
-            #all_specobjs.write_info(outfiletxt, self.spectrograph.pypeline)
-
-        if skip_write_2d:
-            return
-
-        # 2D spectra
-        outfile2d = self.science_path / f'spec2d_{basename}.fits'
-        # Build header
-        pri_hdr = all_spec2d.build_primary_hdr(head2d, self.spectrograph,
-                                               redux_path=self.par['rdx']['redux_path'],
-                                               calib_dir=self.calibrations_path,
-                                               subheader=subheader,
-                                               history=history)
-
-        # Write
-        all_spec2d.write_to_fits(outfile2d, pri_hdr=pri_hdr,
-                                 update_det=update_det,
-                                 slitspatnum=self.par['rdx']['slitspatnum'])
+#    def save_exposure(self, frame:int, all_spec2d:spec2dobj.AllSpec2DObj,
+#                      all_specobjs:specobjs.SpecObjs, history:History=None,
+#                      skip_write_2d:bool=False):
+#        """
+#        Save the outputs from extraction for a given exposure
+#
+#        Args:
+#            frame (:obj:`int`):
+#                0-indexed row in the metadata table with the frame
+#                that has been reduced.
+#            all_spec2d(:class:`~pypeit.spec2dobj.AllSpec2DObj`):
+#                The 2D reduced spectrum objects.
+#            all_specobjs (:class:`~pypeit.specobjs.SpecObjs`):
+#                The 1D spectral extraction objects.
+#            history (:class:`~pypeit.history.History`), optional:
+#                History entries to be added to fits header
+#            skip_write_2d (:obj:`bool`), optional:
+#                Skip writing the 2D spectrum to disk
+#        """
+#        # TODO: Need some checks here that the exposure has been reduced?
+#        obstime  = self.fitstbl.construct_obstime(frame)
+#        basename = self.fitstbl.construct_basename(frame, obstime=obstime)
+#
+#        # Determine the headers
+#        row_fitstbl = self.fitstbl[frame]
+#        # Need raw file header information
+#        rawfile = self.fitstbl.frame_paths(frame)
+#        head2d = fits.getheader(rawfile, ext=self.spectrograph.primary_hdrext)
+#
+#        # Check for the directory
+#        if not self.science_path.is_dir():
+#            self.science_path.mkdir()
+#
+#        # NOTE: There are some gymnastics here to keep from altering
+#        # self.par['rdx']['detnum'].  I.e., I can't just set update_det =
+#        # self.par['rdx']['detnum'] because that can alter the latter if I don't
+#        # deepcopy it...
+#        if self.par['rdx']['detnum'] is None:
+#            update_det = None
+#        elif isinstance(self.par['rdx']['detnum'], list):
+#            update_det = [self.spectrograph.allowed_mosaics.index(d)+1 
+#                            if isinstance(d, tuple) else d for d in self.par['rdx']['detnum']]
+#        else:
+#            update_det = self.par['rdx']['detnum']
+#
+#        subheader = self.spectrograph.subheader_for_spec(row_fitstbl, head2d)
+#        # 1D spectra
+#        if all_specobjs.nobj > 0 and not self.par['reduce']['extraction']['skip_extraction']:
+#            # Spectra
+#            outfile1d = self.science_path / f'spec1d_{basename}.fits'
+#            # TODO
+#            #embed(header='deal with the following for maskIDs;  713 of pypeit')
+#            all_specobjs.write_to_fits(subheader, outfile1d,
+#                                       update_det=update_det,
+#                                       slitspatnum=self.par['rdx']['slitspatnum'],
+#                                       history=history)
+#            # Info
+#            outfiletxt = self.science_path / f'spec1d_{basename}.txt'
+#            # TODO: Note we re-read in the specobjs from disk to deal with situations where
+#            # only a single detector is run in a second pass but in the same reduction directory.
+#            # This was to address Issue #1116 in PR #1154. Slightly inefficient, but only other
+#            # option is to re-work write_info to also "append"
+#            sobjs = specobjs.SpecObjs.from_fitsfile(outfile1d, chk_version=False)
+#            sobjs.write_info(outfiletxt, self.spectrograph.pypeline)
+#            #all_specobjs.write_info(outfiletxt, self.spectrograph.pypeline)
+#
+#        if skip_write_2d:
+#            return
+#
+#        # 2D spectra
+#        outfile2d = self.science_path / f'spec2d_{basename}.fits'
+#        # Build header
+#        pri_hdr = all_spec2d.build_primary_hdr(head2d, self.spectrograph,
+#                                               redux_path=self.par['rdx']['redux_path'],
+#                                               calib_dir=self.calibrations_path,
+#                                               subheader=subheader,
+#                                               history=history)
+#
+#        # Write
+#        all_spec2d.write_to_fits(outfile2d, pri_hdr=pri_hdr,
+#                                 update_det=update_det,
+#                                 slitspatnum=self.par['rdx']['slitspatnum'])
 
     def msgs_reset(self):
         """
