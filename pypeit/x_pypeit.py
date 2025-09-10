@@ -778,14 +778,6 @@ class PypeIt:
         # Capture the end time and print it to user
         msgs.info(utils.get_time_string(time.perf_counter()-self.tstart))
 
-    ## TODO: Move this to fitstbl?
-    #def show_science(self):
-    #    """
-    #    Simple print of science frames
-    #    """
-    #    indx = self.fitstbl.find_frames('science')
-    #    print(self.fitstbl[['target','ra','dec','exptime','dispname']][indx])
-
     def __repr__(self):
         # Generate sets string
         return '<{:s}: pypeit_file={}>'.format(self.__class__.__name__, self.pypeit_file)
