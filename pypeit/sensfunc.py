@@ -248,7 +248,10 @@ class SensFunc(datamodel.DataContainer):
         # Read in the Standard star data
         self.sobjs_std = specobjs.SpecObjs.from_fitsfile(
                                 self.spec1df, chk_version=self.chk_version).get_std(
-                                    multi_spec_det=self.par['multi_spec_det'])
+                                    multi_spec_det=self.par['multi_spec_det'], split_mosaic=True)
+        # splice together also mosaic reduced spectra that have been split
+        if self.sobjs_std.SPEC_DET is not None and np.unique(self.sobjs_std.SPEC_DET[self.sobjs_std.SPEC_DET > 0]).size > 1:
+            self.splice_multi_det = True
 
         if self.sobjs_std is None:
             msgs.error(f'There is a problem with your standard star spec1d file: {self.spec1df}')

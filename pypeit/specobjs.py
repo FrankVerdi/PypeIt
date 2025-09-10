@@ -316,7 +316,7 @@ class SpecObjs:
             meta_spec['ECH_ORDERS'] = ech_orders
             return wave, flux, flux_ivar, flux_gpm, blaze_function, meta_spec, self.header
 
-    def get_std(self, multi_spec_det=None):
+    def get_std(self, multi_spec_det=None, split_mosaic=False):
         """
         Return the standard star from this :class:`SpecObjs`. For MultiSlit this
         will be a single specobj in SpecObjs container, for Echelle it
@@ -326,6 +326,11 @@ class SpecObjs:
             multi_spec_det (list):
                 If there are multiple detectors arranged in the spectral
                 direction, return the sobjs for the standard on each detector.
+            split_mosaic (:obj:`bool`, optional):
+                If True and the data were reduced as a mosaic, break up the
+                standard star specobj into the different detectors. This is
+                helpful for fluxing when the detectors have different QE.
+                Only applies to MultiSlit data. Default is False.
 
         Returns:
             SpecObj or SpecObjs or None
@@ -341,7 +346,8 @@ class SpecObjs:
                 SNR = np.median(self.BOX_COUNTS * np.sqrt(self.BOX_COUNTS_IVAR), axis=1)
             else:
                 return None
-
+            # initialize sobjs_std
+            sobjs_std = SpecObjs(header=self.header)
             # For multiple detectors grab the requested detectors
             if multi_spec_det is not None:
                 # TODO: This is a hack assuming the integers in multi_spec_det
@@ -351,7 +357,6 @@ class SpecObjs:
                                             for d in multi_spec_det]
                 else:
                     _multi_spec_det = multi_spec_det
-                sobjs_std = SpecObjs(header=self.header)
                 # Now append the maximum S/N object on each detector
                 for idet in _multi_spec_det:
                     this_det = self.DET == idet
@@ -363,9 +368,23 @@ class SpecObjs:
                     sobjs_std.add_sobj(self[this_det][istd])
             else: # For normal multislit take the brightest object
                 istd = SNR.argmax()
-                # Return
-                sobjs_std = SpecObjs(specobjs=[self[istd]], header=self.header)
-            sobjs_std.header = self.header
+                # if not a mosaic reduction, just return the single object
+                if self[istd].SPEC_DET is None or not split_mosaic:
+                    sobjs_std.add_sobj(self[istd])
+                # if a mosaic reduction, break up the std spectrum into the different detectors.
+                # This takes into account different QE in different detectors
+                else:
+                    dets = np.unique(self[istd].SPEC_DET[self[istd].SPEC_DET > 0])
+                    for idet in dets:
+                        not_idet = self[istd].SPEC_DET != idet
+                        this_sobj = self[istd].copy()
+                        this_sobj.DET = DetectorContainer.get_name(idet)
+                        this_sobj.set_name()
+                        for att in this_sobj.keys():
+                            if isinstance(this_sobj[att], np.ndarray) and this_sobj[att].shape == this_sobj['TRACE_SPAT'].shape:
+                                this_sobj[att][not_idet] = 0
+                        sobjs_std.add_sobj(this_sobj)
+            # Return
             return sobjs_std
         elif 'Echelle' in pypeline:
             uni_objid = np.unique(self.ECH_FRACPOS)  # A little risky using floats
