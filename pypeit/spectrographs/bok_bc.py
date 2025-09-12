@@ -350,7 +350,10 @@ class BokBCSpectrograph(spectrograph.Spectrograph):
             grating = self.get_meta_value(scifile, 'dispname')
 
         # Wavelength calibrations
-        if grating == '300':
+        # NOTE: The str() is needed because this value can be interpreted as
+        #       an :obj:`int` -- i.e., no "300L" or other such unit identifier
+        #       as is common for most other spectrographs.
+        if str(grating) == '300':
             par['calibrations']['wavelengths']['reid_arxiv'] = 'bok_bc_300.fits'
             par['calibrations']['wavelengths']['method'] = 'full_template'
 
