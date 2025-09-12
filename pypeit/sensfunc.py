@@ -76,8 +76,8 @@ class SensFunc(datamodel.DataContainer):
 
     datamodel = {'PYP_SPEC': dict(otype=str, descr='PypeIt spectrograph name'),
                  'pypeline': dict(otype=str, descr='PypeIt pipeline reduction path'),
-                 'spec1df': dict(otype=str,
-                                 descr='PypeIt spec1D file used to for sensitivity function'),
+                 # 'spec1df': dict(otype=np.ndarray, atype=str,
+                 #                 descr='PypeIt spec1D file(s) used to for sensitivity function'),
                  'extr': dict(otype=str, descr='Extraction method used for the standard star (OPT or BOX)'),
                  'std_name': dict(otype=str, descr='Type of standard source'),
                  'std_cal': dict(otype=str,
@@ -108,6 +108,7 @@ class SensFunc(datamodel.DataContainer):
     """DataContainer datamodel."""
 
     internals = ['sensfile',
+                 'spec1df',
                  'spectrograph',
                  'par',
                  'par_fluxcalib',
@@ -206,20 +207,20 @@ class SensFunc(datamodel.DataContainer):
                         spec1dfile, sensfile, par, par_fluxcalib=par_fluxcalib, debug=debug,
                         chk_version=chk_version)
 
-    def __init__(self, spec1dfile, sensfile, par, par_fluxcalib=None, debug=False,
+    def __init__(self, spec1dfiles, sensfile, par, par_fluxcalib=None, debug=False,
                  chk_version=True):
 
         # Instantiate as an empty DataContainer
         super().__init__()
 
         # Input and Output files
-        self.spec1df = spec1dfile
+        self.spec1df = np.array(spec1dfiles)
         self.extr = par['extr']
         self.sensfile = sensfile
         self.par = par
         self.chk_version = chk_version
         # Spectrograph
-        header = fits.getheader(self.spec1df)
+        header = fits.getheader(self.spec1df[0])
         self.PYP_SPEC = header['PYP_SPEC']
         self.spectrograph = load_spectrograph(self.PYP_SPEC)
         self.pypeline = self.spectrograph.pypeline
@@ -247,14 +248,24 @@ class SensFunc(datamodel.DataContainer):
 
         # Read in the Standard star data
         self.sobjs_std = specobjs.SpecObjs.from_fitsfile(
-                                self.spec1df, chk_version=self.chk_version).get_std(
+                                self.spec1df[0], chk_version=self.chk_version).get_std(
                                     multi_spec_det=self.par['multi_spec_det'], split_mosaic=True)
+        if self.spec1df.size > 1:
+            for _spec1df in self.spec1df[1:]:
+                sobjs_std_tmp = specobjs.SpecObjs.from_fitsfile(
+                                        _spec1df, chk_version=self.chk_version).get_std(
+                    multi_spec_det=self.par['multi_spec_det'], split_mosaic=True)
+                self.sobjs_std.add_sobj(sobjs_std_tmp)
+            # Sort by wavelength
+            s_sort = np.argsort(np.max(self.sobjs_std[f'{self.extr}_WAVE'], axis=1), kind='stable')
+            self.sobjs_std = self.sobjs_std[s_sort]
+
         # splice together also mosaic-reduced spectra that have been split
         if self.sobjs_std.SPEC_DET[0] is not None and np.unique(self.sobjs_std.SPEC_DET[self.sobjs_std.SPEC_DET > 0]).size > 1:
             self.splice_multi_det = True
 
         if self.sobjs_std is None:
-            msgs.error(f'There is a problem with your standard star spec1d file: {self.spec1df}')
+            msgs.error(f'There is a problem with your standard star spec1d file(s): {self.spec1df}')
 
         # Unpack standard
         wave, counts, counts_ivar, counts_mask, log10_blaze_function, self.meta_spec, header \

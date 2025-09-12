@@ -331,6 +331,11 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
         # Always correct for flexure
         par['flexure']['spec_method'] = 'boxcar'
 
+        # sensfunc
+        par['sensfunc']['trim_std_pixs'] = [20,20]  # Trim each side of the standard star spectrum
+        par['sensfunc']['extrap_blu'] = 0.01
+        par['sensfunc']['extrap_red'] = 0.01
+
         # TODO: Note the default is now to mosaic the detectors.  This means the
         # user will need to set this if they ever reduce single detectors at a
         # time.
