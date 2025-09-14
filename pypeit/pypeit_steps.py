@@ -385,31 +385,6 @@ def load_skyregions(initial_slits=False, scifile=None, frame=None):
                                 slits_left, slits_right, spat_flexure=spat_flexure)
 
 
-def adjust_for_slitmask(sciImg_dict, spectrograph, fitstbl, par, detectors,
-                        frame0, binning, all_specobjs_objfind):
-    # get object positions from slitmask design and slitmask offsets for all the detectors
-    spat_flexure = np.array([ss.spat_flexure for ss in sciImg_dict])
-    # Grab platescale with binning
-    bin_spec, bin_spat = parse.parse_binning(binning)
-    platescale = np.array([ss.detector.platescale*bin_spat for ss in sciImg_dict])
-    # get the dither offset if available and if desired
-    dither_off = None
-    if par['reduce']['slitmask']['use_dither_offset']:
-        if 'dithoff' in fitstbl.keys():
-            dither_off = fitstbl['dithoff'][frame0]
-
-    calib_slits = slittrace.get_maskdef_objpos_offset_alldets(
-        all_specobjs_objfind, calib_slits, spat_flexure, platescale,
-        par['calibrations']['slitedges']['det_buffer'],
-        par['reduce']['slitmask'], dither_off=dither_off)
-    # determine if slitmask offsets exist and compute an average offsets over all the detectors
-    calib_slits = slittrace.average_maskdef_offset(
-        calib_slits, platescale[0], spectrograph.list_detectors(mosaic='MSC' in calib_slits[0].detname))
-    # slitmask design matching and add undetected objects
-    all_specobjs_objfind = slittrace.assign_addobjs_alldets(
-        all_specobjs_objfind, calib_slits, spat_flexure, platescale,
-        par['reduce']['slitmask'], par['reduce']['findobj']['find_fwhm'])
-
 def extract_det(spectrograph, fitstbl, par, 
                 frames, det, calib_ID:str, calibrations_path:str,
                 sciImg, bkg_redux_sciimg, 
