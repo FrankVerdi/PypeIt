@@ -158,7 +158,7 @@ def extract_exposure(sciImg_dict, bkg_redux_sciimg_dict,
     # Extract
     for i,det in enumerate(detectors):
         # Load calibrations
-        caliBrate = load_calibrations_for_frame(
+        caliBrate = pypeit_steps.load_calibrations_for_frame(
             spectrograph, fitstbl, par, frames[0], det, calib_ID, calibrations_path)
         if calib_slits is not None:
             caliBrate.slits = calib_slits[i]
@@ -196,103 +196,6 @@ def extract_exposure(sciImg_dict, bkg_redux_sciimg_dict,
 
     # Return
     return all_spec2d, all_specobjs_extract
-def reduce_calibID(spectrograph, par, fitstbl, calib_ID:str, 
-                   calibrations_path:str,
-                   reduce_standard:bool=False, overwrite:bool=False,
-                   show:bool=False,
-                   run_state=None,
-                   reuse_calibs:bool=True):
-
-    if reduce_standard:
-        is_this = fitstbl.find_frames('standard')
-        rtype = 'standard'
-    else:
-        is_this = fitstbl.find_frames('science')
-        rtype = 'science'
-
-    # Frame indices
-    frame_indx = np.arange(len(fitstbl))
-
-    # Find all the frames in this calibration group
-    in_grp = fitstbl.find_calib_group(calib_ID)
-
-    if not np.any(is_this & in_grp):
-        return
-
-    # Find the indices of the science frames in this calibration group:
-    grp_this = frame_indx[is_this & in_grp]
-    msgs.info(f'Found {len(grp_this)} {rtype} frames in calibration group {calib_ID}.')
-
-    # Associate standards (previously reduced above) for this setup
-    if not reduce_standard:
-        is_standard = fitstbl.find_frames('standard')
-        std_outfile = outputfiles.get_std_outfile(fitstbl, par, frame_indx[is_standard])
-    else:
-        std_outfile = None
-
-    # Loop on unique comb_id
-    u_combid = np.unique(fitstbl['comb_id'][grp_this])
-
-    for j, comb_id in enumerate(u_combid):
-        # TODO: This was causing problems when multiple science frames
-        # were provided to quicklook and the user chose *not* to stack
-        # the frames.  But this means it now won't skip processing the
-        # B-A pair when the background image(s) are defined.  Punting
-        # for now...
-#                # Quicklook mode?
-#                if self.par['rdx']['quicklook'] and j > 0:
-#                    msgs.warn('PypeIt executed in quicklook mode.  Only reducing science frames '
-#                              'in the first combination group!')
-#                    break
-        #
-        frames = np.where(fitstbl['comb_id'] == comb_id)[0]
-        # Find all frames whose comb_id matches the current frames bkg_id.
-        bg_frames = np.where((fitstbl['comb_id'] == fitstbl['bkg_id'][frames][0])
-                                & (fitstbl['comb_id'] >= 0))[0]
-        # JFH changed the syntax below to that above, which allows
-        # frames to be used more than once as a background image. The
-        # syntax below would require that we could somehow list multiple
-        # numbers for the bkg_id which is impossible without a comma
-        # separated list
-#                bg_frames = np.where(self.fitstbl['bkg_id'] == comb_id)[0]
-
-        outfile2d = outputfiles.spec_output_file(fitstbl, par,
-                                            frames[0], twod=True)
-        if not outfile2d.is_file() or overwrite:
-
-            # Build history to document what contributd to the reduced
-            # exposure
-            history = History(fitstbl.frame_paths(frames[0]))
-            history.add_reduce(calib_ID, fitstbl, frames, bg_frames)
-
-            # TODO -- Should we reset/regenerate self.slits.mask for a new exposure
-            #sci_spec2d, sci_sobjs = self.reduce_exposure(
-            #    frames, calib_ID, bg_frames=bg_frames, 
-            #    std_outfile=std_outfile)
-
-            this_spec2d, this_sobjs = reduce_exposure(
-                spectrograph, fitstbl, par, frames, calib_ID, 
-                calibrations_path, bg_frames=bg_frames,
-                reuse_calibs=reuse_calibs, run_state=run_state,
-                show=show,
-                std_outfile=std_outfile)
-
-            # TODO: come up with sensible naming convention for
-            # save_exposure for combined files
-            if len(this_spec2d.detectors) > 0:
-                #self.save_exposure(frames[0], sci_spec2d, sci_sobjs, history,
-                #                   skip_write_2d=self.par['scienceframe']['process']['skip_write_2d'])
-                save_exposure(spectrograph,
-                                    fitstbl, par, frames[0], 
-                                    this_spec2d, this_sobjs, calibrations_path,
-                                    history=history,
-                                    skip_write_2d=par['scienceframe']['process']['skip_write_2d'])
-            else:
-                msgs.warn('No spec2d and spec1d saved to file because the '
-                            'calibration/reduction was not successful for all the detectors')
-        else:
-            msgs.warn(f'Output file: {fitstbl.construct_basename(frames[0])} already '
-                        'exists. Set overwrite=True to recreate and overwrite.')
 
 def reduce_exposure(spectrograph, fitstbl, par, frames, calib_ID, 
                     calibrations_path:str, bg_frames=None, 
@@ -362,6 +265,8 @@ def reduce_exposure(spectrograph, fitstbl, par, frames, calib_ID,
     #                                    slitspatnum=self.par['rdx']['slitspatnum'])
     msgs.info(f'Detectors to work on: {detectors}')
 
+    load, write = False, False
+
     # #####################################
     # Calibrations
     for det in detectors:
@@ -378,11 +283,11 @@ def reduce_exposure(spectrograph, fitstbl, par, frames, calib_ID,
 
     # #####################################
     # Proccess or load processed frames
-    load_processed = False
-    if load_processed:
-        load, write = True, False
-    else:
-        load, write = False, True
+    #load_processed = False
+    #if load_processed:
+    #    load, write = True, False
+    #else:
+    #    load, write = False, True
     sciImg_dict, bkg_redux_sciimg_dict = process_exposure(
             spectrograph, fitstbl, par, frames, calib_ID,
                 detectors, calibrations_path, 
@@ -393,12 +298,12 @@ def reduce_exposure(spectrograph, fitstbl, par, frames, calib_ID,
     # Find objects + initial sky
     # TODO -- replace this kludge
     extras = dict(bkg_redux=bkg_redux, find_negative=find_negative, show=show)
-    load_findobj = False
-    if load_findobj:
-        load, write = True, False
-        all_specobjs_objfind = None
-    else:
-        load, write = False, True
+    #load_findobj = False
+    #if load_findobj:
+    #    load, write = True, False
+    #    all_specobjs_objfind = None
+    #else:
+    #    load, write = False, True
     initial_sky_dict, all_specobjs_find = \
         findobj_on_exposure(sciImg_dict, spectrograph, 
                             fitstbl,
@@ -465,7 +370,7 @@ def save_exposure(spectrograph, fitstbl, par,
             Skip writing the 2D spectrum to disk
     """
     # Check for the Science/ directory
-    science_path = outputfiles(par)
+    science_path = outputfiles.science_path(par)
     if not science_path.is_dir():
         science_path.mkdir()
 
