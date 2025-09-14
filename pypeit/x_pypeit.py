@@ -24,6 +24,7 @@ import numpy as np
 
 
 from pypeit import inputfiles
+from pypeit import outputfiles
 from pypeit.core import parse, wave, qa
 from pypeit import msgs
 from pypeit import calibrations
@@ -160,10 +161,10 @@ class PypeIt:
         #self.basename = None
         self.obstime = None
 
-    @property
-    def science_path(self) -> Path:
-        """Return the path to the science directory."""
-        return Path(self.par['rdx']['redux_path']) / self.par['rdx']['scidir']
+    #@property
+    #def science_path(self) -> Path:
+    #    """Return the path to the science directory."""
+    #    return Path(self.par['rdx']['redux_path']) / self.par['rdx']['scidir']
 
     @property
     def qa_path(self) -> str:
@@ -181,52 +182,54 @@ class PypeIt:
         qa.gen_mf_html(self.pypeit_file, self.qa_path)
         qa.gen_exp_html()
 
-    # TODO: This should go in a more relevant place
-    def spec_output_file(self, frame:int, twod:bool=False) -> Path:
-        """
-        Return the path to the spectral output data file.
-        
-        Args:
-            frame (:obj:`int`):
-                Frame index from :attr:`fitstbl`.
-            twod (:obj:`bool`), optional:
-                Name for the 2D output file; 1D file otherwise.
-        
-        Returns:
-            `Path`_: The path for the output file
-        """
-        return self.get_spec_file_name(self.science_path, self.fitstbl.construct_basename(frame),
-                                       twod=twod)
+#    # TODO: This should go in a more relevant place
+#    def spec_output_file(self, frame:int, twod:bool=False) -> Path:
+#        """
+#        Return the path to the spectral output data file.
+#        
+#        Args:
+#            frame (:obj:`int`):
+#                Frame index from :attr:`fitstbl`.
+#            twod (:obj:`bool`), optional:
+#                Name for the 2D output file; 1D file otherwise.
+#        
+#        Returns:
+#            `Path`_: The path for the output file
+#        """
+#        return self.get_spec_file_name(self.science_path, 
+#                                       self.fitstbl.construct_basename(frame),
+#                                       twod=twod)
 
-    @staticmethod
-    def get_spec_file_name(science_path:Path, basename:str, twod:bool=False) -> Path:
-        """
-        Get the spectrum filename
+    #@staticmethod
+    #def get_spec_file_name(science_path:Path, basename:str, twod:bool=False) -> Path:
+    #    """
+    #    Get the spectrum filename
+#
+#        Args:
+#            science_path (`Path`_):
+#                Path to the science files
+#            basename (:obj:`str`):
+#                Base name for this frame
+#            twod (:obj:`bool`), optional:
+#                Is this a 2D science frame?
+#
+#        Returns:
+#            `Path`_: The spectrum filename
+#        """
+#        return science_path / f'spec{"2" if twod else "1"}d_{basename}.fits'
 
-        Args:
-            science_path (`Path`_):
-                Path to the science files
-            basename (:obj:`str`):
-                Base name for this frame
-            twod (:obj:`bool`), optional:
-                Is this a 2D science frame?
-
-        Returns:
-            `Path`_: The spectrum filename
-        """
-        return science_path / f'spec{"2" if twod else "1"}d_{basename}.fits'
-
-    def outfile_exists(self, frame:int) -> bool:
-        """
-        Check whether the 2D outfile of a given frame already exists
-
-        Args:
-            frame (:obj:`int`): Frame index from fitstbl
-
-        Returns:
-            :obj:`bool`: True if the 2d file exists, False if it does not exist
-        """
-        return self.spec_output_file(frame, twod=True).is_file()
+#    def outfile_exists(self, frame:int) -> bool:
+#        """
+#        Check whether the 2D outfile of a given frame already exists
+#
+#        Args:
+#            frame (:obj:`int`): Frame index from fitstbl
+#
+#        Returns:
+#            :obj:`bool`: True if the 2d file exists, False if it does not exist
+#        """
+#        return outputfiles.spec_output_file(self.fitstbl, self.par,
+#                                            frame, twod=True).is_file()
 
     def get_std_outfile(self, standard_frames):
         """
@@ -320,25 +323,25 @@ class PypeIt:
                                          'flexure'])
         self.tstart = time.perf_counter()
 
-        # Find the standard frames
-        is_standard = self.fitstbl.find_frames('standard')
-        if np.any(is_standard):
-            msgs.info(f'Found {np.sum(is_standard)} standard frames to reduce.')
-
-        # Find the science frames
-        is_science = self.fitstbl.find_frames('science')
-        if np.any(is_science):
-            msgs.info(f'Found {np.sum(is_science)} science frames to reduce.')
-
-        # This will give an error to alert the user that no reduction will be
-        # run if there are no science/standard frames and `run_pypeit` is run
-        # without -c flag
-        if not np.any(is_science) and not np.any(is_standard):
-            msgs.error('No science/standard frames provided. Add them to your PypeIt file '
-                       'if this is a standard run! Otherwise run calib_only reduction using -c flag')
-
-        # Frame indices
-        frame_indx = np.arange(len(self.fitstbl))
+#        # Find the standard frames
+#        is_standard = self.fitstbl.find_frames('standard')
+#        if np.any(is_standard):
+#            msgs.info(f'Found {np.sum(is_standard)} standard frames to reduce.')
+#
+#        # Find the science frames
+#        is_science = self.fitstbl.find_frames('science')
+#        if np.any(is_science):
+#            msgs.info(f'Found {np.sum(is_science)} science frames to reduce.')
+#
+#        # This will give an error to alert the user that no reduction will be
+#        # run if there are no science/standard frames and `run_pypeit` is run
+#        # without -c flag
+#        if not np.any(is_science) and not np.any(is_standard):
+#            msgs.error('No science/standard frames provided. Add them to your PypeIt file '
+#                       'if this is a standard run! Otherwise run calib_only reduction using -c flag')
+#
+#        # Frame indices
+#        frame_indx = np.arange(len(self.fitstbl))
 
         # ############################################################################
         # Standard Star(s) Loop
@@ -346,122 +349,132 @@ class PypeIt:
         # Iterate over each calibration group and reduce the standards
         for calib_ID in self.fitstbl.calib_groups:
 
-            # Find all the frames in this calibration group
-            in_grp = self.fitstbl.find_calib_group(calib_ID)
-
-            if not np.any(is_standard & in_grp):
-                continue
-
-            # Find the indices of the standard frames in this calibration group:
-            grp_standards = frame_indx[is_standard & in_grp]
-
-            msgs.info(f'Found {len(grp_standards)} standard frames in calibration group '
-                      f'{calib_ID}.')
-
-            # Reduce all the standard frames, loop on unique comb_id
-            u_combid_std = np.unique(self.fitstbl['comb_id'][grp_standards])
-            for j, comb_id in enumerate(u_combid_std):
-                frames = np.where(self.fitstbl['comb_id'] == comb_id)[0]
-                # Find all frames whose comb_id matches the current frames
-                # bkg_id (same as for science frames).
-                bg_frames = np.where((self.fitstbl['comb_id'] == self.fitstbl['bkg_id'][frames][0])
-                                     & (self.fitstbl['comb_id'] >= 0))[0]
-                if not self.outfile_exists(frames[0]) or self.overwrite:
-                    # Build history to document what contributed to the reduced
-                    # exposure
-                    history = History(self.fitstbl.frame_paths(frames[0]))
-                    history.add_reduce(calib_ID, self.fitstbl, frames, bg_frames)
-                    std_spec2d, std_sobjs = pypeit_steps.reduce_exposure(
-                        self.spectrograph, self.fitstbl, self.par, frames, calib_ID, 
-                        self.calibrations_path, bg_frames=bg_frames,
-                        reuse_calibs=self.reuse_calibs, run_state=self.run_state,
-                        show=self.show)
-                    # TODO come up with sensible naming convention for save_exposure for combined files
-                    pypeit_steps.save_exposure(self.science_path, self.spectrograph,
-                                            self.fitstbl, self.par, frames[0], 
-                                            std_spec2d, std_sobjs, self.calibrations_path,
-                                            history=history)
-                    #self.save_exposure(frames[0], std_spec2d, std_sobjs, history)
-                else:
-                    msgs.info('Output file: {:s} already exists'.format(self.fitstbl.construct_basename(frames[0])) +
-                              '. Set overwrite=True to recreate and overwrite.')
+            pypeit_steps.reduce_calibID(self.spectrograph, self.par, self.fitstbl,
+                                        calib_ID, self.calibrations_path,
+                                        reduce_standard=True, overwrite=self.overwrite,
+                                        show=self.show, run_state=self.run_state,
+                                        reuse_calibs=self.reuse_calibs)
+#            # Find all the frames in this calibration group
+#            in_grp = self.fitstbl.find_calib_group(calib_ID)
+#
+#            if not np.any(is_standard & in_grp):
+#                continue
+#
+#            # Find the indices of the standard frames in this calibration group:
+#            grp_standards = frame_indx[is_standard & in_grp]
+#
+#            msgs.info(f'Found {len(grp_standards)} standard frames in calibration group '
+#                      f'{calib_ID}.')
+#
+#            # Reduce all the standard frames, loop on unique comb_id
+#            u_combid_std = np.unique(self.fitstbl['comb_id'][grp_standards])
+#            for j, comb_id in enumerate(u_combid_std):
+#                frames = np.where(self.fitstbl['comb_id'] == comb_id)[0]
+#                # Find all frames whose comb_id matches the current frames
+##                # bkg_id (same as for science frames).
+#                bg_frames = np.where((self.fitstbl['comb_id'] == self.fitstbl['bkg_id'][frames][0])
+#                                     & (self.fitstbl['comb_id'] >= 0))[0]
+#                if not self.outfile_exists(frames[0]) or self.overwrite:
+#                    # Build history to document what contributed to the reduced
+#                    # exposure
+#                    history = History(self.fitstbl.frame_paths(frames[0]))
+#                    history.add_reduce(calib_ID, self.fitstbl, frames, bg_frames)
+#                    std_spec2d, std_sobjs = pypeit_steps.reduce_exposure(
+#                        self.spectrograph, self.fitstbl, self.par, frames, calib_ID, 
+#                        self.calibrations_path, bg_frames=bg_frames,
+#                        reuse_calibs=self.reuse_calibs, run_state=self.run_state,
+#                        show=self.show)
+#                    # TODO come up with sensible naming convention for save_exposure for combined files
+#                    pypeit_steps.save_exposure(self.science_path, self.spectrograph,
+#                                            self.fitstbl, self.par, frames[0], 
+#                                            std_spec2d, std_sobjs, self.calibrations_path,
+#                                            history=history)
+#                    #self.save_exposure(frames[0], std_spec2d, std_sobjs, history)
+#                else:
+#                    msgs.info('Output file: {:s} already exists'.format(self.fitstbl.construct_basename(frames[0])) +
+#                              '. Set overwrite=True to recreate and overwrite.')
 
         # ############################################################################
         # Science Frame(s) Loop
         # ############################################################################
         # Iterate over each calibration group again and reduce the science frames
         for calib_ID in self.fitstbl.calib_groups:
-            # Find all the frames in this calibration group
-            in_grp = self.fitstbl.find_calib_group(calib_ID)
-
-            if not np.any(is_science & in_grp):
-                continue
-
-            # Find the indices of the science frames in this calibration group:
-            grp_science = frame_indx[is_science & in_grp]
-            msgs.info(f'Found {len(grp_science)} science frames in calibration group {calib_ID}.')
-
-            # Associate standards (previously reduced above) for this setup
-            std_outfile = self.get_std_outfile(frame_indx[is_standard])
-            # Loop on unique comb_id
-            u_combid = np.unique(self.fitstbl['comb_id'][grp_science])
-        
-            for j, comb_id in enumerate(u_combid):
-                # TODO: This was causing problems when multiple science frames
-                # were provided to quicklook and the user chose *not* to stack
-                # the frames.  But this means it now won't skip processing the
-                # B-A pair when the background image(s) are defined.  Punting
-                # for now...
+            pypeit_steps.reduce_calibID(self.spectrograph, self.par, self.fitstbl,
+                                        calib_ID, self.calibrations_path,
+                                        reduce_standard=False, overwrite=self.overwrite,
+                                        show=self.show, run_state=self.run_state,
+                                        reuse_calibs=self.reuse_calibs)
+#            # Find all the frames in this calibration group
+#            in_grp = self.fitstbl.find_calib_group(calib_ID)
+#
+#            if not np.any(is_science & in_grp):
+#                continue
+#
+#            # Find the indices of the science frames in this calibration group:
+#            grp_science = frame_indx[is_science & in_grp]
+#            msgs.info(f'Found {len(grp_science)} science frames in calibration group {calib_ID}.')
+#
+#            # Associate standards (previously reduced above) for this setup
+#            std_outfile = self.get_std_outfile(frame_indx[is_standard])
+#            # Loop on unique comb_id
+#            u_combid = np.unique(self.fitstbl['comb_id'][grp_science])
+#        
+#            for j, comb_id in enumerate(u_combid):
+#                # TODO: This was causing problems when multiple science frames
+#                # were provided to quicklook and the user chose *not* to stack
+##                # the frames.  But this means it now won't skip processing the
+#                # B-A pair when the background image(s) are defined.  Punting
+#                # for now...
 #                # Quicklook mode?
 #                if self.par['rdx']['quicklook'] and j > 0:
 #                    msgs.warn('PypeIt executed in quicklook mode.  Only reducing science frames '
 #                              'in the first combination group!')
 #                    break
-                #
-                frames = np.where(self.fitstbl['comb_id'] == comb_id)[0]
-                # Find all frames whose comb_id matches the current frames bkg_id.
-                bg_frames = np.where((self.fitstbl['comb_id'] == self.fitstbl['bkg_id'][frames][0])
-                                     & (self.fitstbl['comb_id'] >= 0))[0]
-                # JFH changed the syntax below to that above, which allows
-                # frames to be used more than once as a background image. The
-                # syntax below would require that we could somehow list multiple
-                # numbers for the bkg_id which is impossible without a comma
-                # separated list
+#                #
+#                frames = np.where(self.fitstbl['comb_id'] == comb_id)[0]
+#                # Find all frames whose comb_id matches the current frames bkg_id.
+#                bg_frames = np.where((self.fitstbl['comb_id'] == self.fitstbl['bkg_id'][frames][0])
+#                                     & (self.fitstbl['comb_id'] >= 0))[0]
+#                # JFH changed the syntax below to that above, which allows
+#                # frames to be used more than once as a background image. The
+#                # syntax below would require that we could somehow list multiple
+#                # numbers for the bkg_id which is impossible without a comma
+#                # separated list
 #                bg_frames = np.where(self.fitstbl['bkg_id'] == comb_id)[0]
-                if not self.outfile_exists(frames[0]) or self.overwrite:
-
-                    # Build history to document what contributd to the reduced
-                    # exposure
-                    history = History(self.fitstbl.frame_paths(frames[0]))
-                    history.add_reduce(calib_ID, self.fitstbl, frames, bg_frames)
-
-                    # TODO -- Should we reset/regenerate self.slits.mask for a new exposure
-                    #sci_spec2d, sci_sobjs = self.reduce_exposure(
-                    #    frames, calib_ID, bg_frames=bg_frames, 
+#                if not self.outfile_exists(frames[0]) or self.overwrite:
+#
+#                    # Build history to document what contributd to the reduced
+#                    # exposure
+#                    history = History(self.fitstbl.frame_paths(frames[0]))
+#                    history.add_reduce(calib_ID, self.fitstbl, frames, bg_frames)
+#
+##                    # TODO -- Should we reset/regenerate self.slits.mask for a new exposure
+#                    #sci_spec2d, sci_sobjs = self.reduce_exposure(
+#                    #    frames, calib_ID, bg_frames=bg_frames, 
                     #    std_outfile=std_outfile)
-
-                    sci_spec2d, sci_sobjs = pypeit_steps.reduce_exposure(
-                        self.spectrograph, self.fitstbl, self.par, frames, calib_ID, 
-                        self.calibrations_path, bg_frames=bg_frames,
-                        reuse_calibs=self.reuse_calibs, run_state=self.run_state, show=self.show,
-                        std_outfile=std_outfile)
-
-                    # TODO: come up with sensible naming convention for
-                    # save_exposure for combined files
-                    if len(sci_spec2d.detectors) > 0:
-                        #self.save_exposure(frames[0], sci_spec2d, sci_sobjs, history,
-                        #                   skip_write_2d=self.par['scienceframe']['process']['skip_write_2d'])
-                        pypeit_steps.save_exposure(self.science_path, self.spectrograph,
-                                            self.fitstbl, self.par, frames[0], 
-                                            sci_spec2d, sci_sobjs, self.calibrations_path,
-                                            history=history,
-                                            skip_write_2d=self.par['scienceframe']['process']['skip_write_2d'])
-                    else:
-                        msgs.warn('No spec2d and spec1d saved to file because the '
-                                  'calibration/reduction was not successful for all the detectors')
-                else:
-                    msgs.warn(f'Output file: {self.fitstbl.construct_basename(frames[0])} already '
-                              'exists. Set overwrite=True to recreate and overwrite.')
+#
+#                    sci_spec2d, sci_sobjs = pypeit_steps.reduce_exposure(
+#                        self.spectrograph, self.fitstbl, self.par, frames, calib_ID, 
+#                        self.calibrations_path, bg_frames=bg_frames,
+#                        reuse_calibs=self.reuse_calibs, run_state=self.run_state, show=self.show,
+#                        std_outfile=std_outfile)
+#
+#                    # TODO: come up with sensible naming convention for
+#                    # save_exposure for combined files
+#                    if len(sci_spec2d.detectors) > 0:
+#                        #self.save_exposure(frames[0], sci_spec2d, sci_sobjs, history,
+#                        #                   skip_write_2d=self.par['scienceframe']['process']['skip_write_2d'])
+#                        pypeit_steps.save_exposure(self.science_path, self.spectrograph,
+#                                            self.fitstbl, self.par, frames[0], 
+#                                            sci_spec2d, sci_sobjs, self.calibrations_path,
+#                                            history=history,
+#                                            skip_write_2d=self.par['scienceframe']['process']['skip_write_2d'])
+#                    else:
+#                        msgs.warn('No spec2d and spec1d saved to file because the '
+#                                  'calibration/reduction was not successful for all the detectors')
+#                else:
+#                    msgs.warn(f'Output file: {self.fitstbl.construct_basename(frames[0])} already '
+#                              'exists. Set overwrite=True to recreate and overwrite.')
 
             msgs.info(f'Finished calibration group {calib_ID}')
 
