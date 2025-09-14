@@ -16,8 +16,7 @@ from pypeit import pypeit_steps
 
 def process_exposure(spectrograph, fitstbl, par, frames:list, calib_ID:str,
                    detectors:list, calibrations_path:str,
-                   bg_frames:list=None, 
-                   load:bool=False, write:bool=False):
+                   bg_frames:list=None): 
 
     # dict of sciImg
     sciImg_dict = {}
@@ -26,66 +25,27 @@ def process_exposure(spectrograph, fitstbl, par, frames:list, calib_ID:str,
 
     # Loop on the detectors
     for det in detectors:
-        # Filenames
-        _, _, _, basename, binning \
-            = pypeit_steps.get_sci_metadata(spectrograph, fitstbl, frames[0], det)
-        sci_filename = outputfiles.intermediate_filename('sciImg', basename, 
-                                        spectrograph.get_det_name(det))
-        bkg_filename = outputfiles.intermediate_filename('bkgImg', basename, 
-                                                spectrograph.get_det_name(det))
-        # Load?
-        if load:
-            msgs.info(f'Loading images for detector {det}')
-            sciImg = pypeitimage.PypeItImage.from_file(sci_filename)
-            if bg_frames is not None and len(bg_frames) > 0:
-                bkg_redux_sciimg = pypeitimage.PypeItImage.from_file(bkg_filename)
-            else:
-                bkg_redux_sciimg = None
-            sciImg_dict[det] = sciImg
-            bkg_redux_sciimg_dict[det] = bkg_redux_sciimg
-            continue
-
         msgs.info(f'Reducing detector {det}')
-        # run/load calibration
-        caliBrate = pypeit_steps.load_calibrations_for_frame(
-            spectrograph, fitstbl, par, frames[0], det, calib_ID, calibrations_path)
-        if not caliBrate.success:
-            msgs.error(f'Calibrations for detector {det} were unsuccessful!  The step '
-                        f'that failed was {caliBrate.failed_step}.')  
-            continue
 
         # Process
         sciImg, bkg_redux_sciimg = pypeit_steps.process_one_det(
-            spectrograph, fitstbl, caliBrate,
-            par, frames, det, bg_frames=bg_frames)
+            spectrograph, fitstbl, par, frames, det, calib_ID, calibrations_path, 
+            bg_frames=bg_frames)
 
         # List em up
         sciImg_dict[det] = sciImg
         bkg_redux_sciimg_dict[det] = bkg_redux_sciimg
 
-        # Write them?
-        if write:
-            # Generate the folder?
-            if not sci_filename.parent.is_dir():
-                sci_filename.parent.mkdir()
-            # Write sciImg
-            sciImg.to_file(sci_filename, overwrite=True)
-            msgs.info(f'Wrote intermediate science image to {sci_filename}')
-            # bkg_redux_sciimg?
-            if bkg_redux_sciimg is not None:
-                bkg_redux_sciimg.to_file(bkg_filename, overwrite=True)
-                msgs.info(f'Wrote intermediate background image to {bkg_filename}')
-
-
     # Return
     return sciImg_dict, bkg_redux_sciimg_dict
 
-def findobj_on_exposure(sciImg_dict:dict, spectrograph, 
-                        fitstbl, par, frames:list, 
+def findobj_on_exposure(sciImg_dict:dict, spectrograph,
+                        fitstbl, par, frames:list,
                         detectors:list, calib_ID:str, calibrations_path:str, 
                         std_outfile:str=None,
-                        load:bool=False, write:bool=False,
-                        extras=None):
+                        bkg_redux=False,
+                        find_negative=False,
+                        show=False):
     
     # Output
     initial_sky_dict = {}
@@ -97,15 +57,6 @@ def findobj_on_exposure(sciImg_dict:dict, spectrograph,
     for det in detectors:
         _, _, _, basename, binning \
             = pypeit_steps.get_sci_metadata(spectrograph, fitstbl, frames[0], det)
-        initsky_filename = outputfiles.intermediate_filename('initSky', basename, 
-                                        spectrograph.get_det_name(det))
-
-        # Load?
-        if load:
-            msgs.info(f'Loading initial sky for detector {det}')
-            tmp = pypeitimage.PypeItImage.from_file(initsky_filename)
-            initial_sky_dict[det] = tmp.image
-            continue
 
         # Grab the science image
         sciImg = sciImg_dict[det]
@@ -115,26 +66,23 @@ def findobj_on_exposure(sciImg_dict:dict, spectrograph,
             pypeit_steps.findobj_on_det(sciImg, spectrograph, fitstbl, par, frames, 
                            calib_ID, det, 
                            calibrations_path, 
-                           std_outfile=std_outfile, extras=extras)
+                        bkg_redux=bkg_redux,
+                        find_negative=find_negative,
+                        show=show,
+                           std_outfile=std_outfile)
 
         # Store em
         initial_sky_dict[det] = initial_sky
         if len(sobjs_obj)>0:
             all_specobjs_objfind.add_sobj(sobjs_obj)
 
-        # Write?
-        if write:
-            init_pypeit = pypeitimage.PypeItImage(initial_sky)
-            if not initsky_filename.parent.is_dir():
-                initsky_filename.parent.mkdir()
-            init_pypeit.to_file(initsky_filename, overwrite=True)
 
     # Spec1D
-    spec1d_filename = outputfiles.intermediate_filename('spec1d', basename, 'all')
-    if load:
-        all_specobjs_objfind = specobjs.SpecObjs.from_fitsfile(spec1d_filename)
-    elif write: 
-        all_specobjs_objfind.write_to_fits({}, spec1d_filename)
+    #spec1d_filename = outputfiles.intermediate_filename('spec1d', basename, 'all')
+    #if load:
+    #    all_specobjs_objfind = specobjs.SpecObjs.from_fitsfile(spec1d_filename)
+    #elif write: 
+    #    all_specobjs_objfind.write_to_fits({}, spec1d_filename)
 
     # Return
     return initial_sky_dict, all_specobjs_objfind
@@ -161,7 +109,10 @@ def extract_exposure(sciImg_dict, bkg_redux_sciimg_dict,
         caliBrate = pypeit_steps.load_calibrations_for_frame(
             spectrograph, fitstbl, par, frames[0], det, calib_ID, calibrations_path)
         if calib_slits is not None:
-            caliBrate.slits = calib_slits[i]
+            this_calib_slits = calib_slits[i]
+            #caliBrate.slits = calib_slits[i]
+        else:
+            this_calib_slits = None
 
         detname = sciImg_dict[det].detector.name
 
@@ -176,12 +127,14 @@ def extract_exposure(sciImg_dict, bkg_redux_sciimg_dict,
         # Extract
         all_spec2d[detname], tmp_sobjs = pypeit_steps.extract_det(
             spectrograph, fitstbl, par, frames, det,
-            caliBrate, sciImg_dict[det],
+            calib_ID, calibrations_path,
+            sciImg_dict[det],
             bkg_redux_sciimg_dict[det],
             initial_sky_dict[det],
             all_specobjs_on_det,
             bkg_redux=bkg_redux,
-            find_negative=find_negative)
+            find_negative=find_negative,
+            calib_slits=this_calib_slits)
 
         # Hold em
         if tmp_sobjs.nobj > 0:
@@ -226,22 +179,9 @@ def reduce_exposure(spectrograph, fitstbl, par, frames, calib_ID,
         # TODO: Put this in a try/except block?
         display.clear_all(allow_new=True)
 
-    has_bg = True if bg_frames is not None and len(bg_frames) > 0 else False
-    # Is this an b/g subtraction reduction?
-    if has_bg:
-        bkg_redux = True
-        # The default is to find_negative objects if the bg_frames are
-        # classified as "science", and to not find_negative objects if the
-        # bg_frames are classified as "sky". This can be explicitly
-        # overridden if par['reduce']['findobj']['find_negative'] is set to
-        # something other than the default of None.
-        find_negative = (('science' in fitstbl['frametype'][bg_frames[0]]) |
-                                ('standard' in fitstbl['frametype'][bg_frames[0]])) \
-                        if par['reduce']['findobj']['find_negative'] is None else \
-                            par['reduce']['findobj']['find_negative']
-    else:
-        bkg_redux = False
-        find_negative= False
+    # Prep for background subtraction and finding negative traces
+    has_bg, bkg_redux, find_negative = pypeit_steps.set_bkg_negative(
+        fitstbl, par, bg_frames)
 
     # Print status message
     msgs_string = 'Reducing target {:s}'.format(fitstbl['target'][frames[0]]) + msgs.newline()
@@ -279,39 +219,33 @@ def reduce_exposure(spectrograph, fitstbl, par, frames, calib_ID,
             msgs.warn(f'Calibrations for detector {det} were unsuccessful!  The step '
                         f'that failed was {caliBrate.failed_step}.  Continuing by '
                         f'skipping this detector.')
+            # Remove from list of detectors
+            detectors.remove(det)
             continue
 
     # #####################################
-    # Proccess or load processed frames
+    # Process or load processed frames
     #load_processed = False
     #if load_processed:
     #    load, write = True, False
     #else:
     #    load, write = False, True
-    sciImg_dict, bkg_redux_sciimg_dict = process_exposure(
+    sciImg_dict, bkg_redhas_bg, = process_exposure(
             spectrograph, fitstbl, par, frames, calib_ID,
                 detectors, calibrations_path, 
-                bg_frames=bg_frames, 
-                load=load, write=write)
+                bg_frames=bg_frames) 
 
     # #####################################
     # Find objects + initial sky
-    # TODO -- replace this kludge
-    extras = dict(bkg_redux=bkg_redux, find_negative=find_negative, show=show)
-    #load_findobj = False
-    #if load_findobj:
-    #    load, write = True, False
-    #    all_specobjs_objfind = None
-    #else:
-    #    load, write = False, True
     initial_sky_dict, all_specobjs_find = \
         findobj_on_exposure(sciImg_dict, spectrograph, 
                             fitstbl,
                             par, frames, detectors,
                             calib_ID, calibrations_path,
                             std_outfile=std_outfile,
-                            extras=extras, 
-                            load=load, write=write)
+                            bkg_redux=bkg_redux,
+                            find_negative=find_negative,
+                            show=show)
     #embed(header='576 of x_pypeit')
 
     # #####################################
@@ -327,6 +261,8 @@ def reduce_exposure(spectrograph, fitstbl, par, frames, calib_ID,
             frame0, 
             fitstbl['binning'][frame0],
             all_specobjs_objfind)
+    else:
+        calib_slits = None
 
     # #####################################
     # Extract
@@ -339,7 +275,8 @@ def reduce_exposure(spectrograph, fitstbl, par, frames, calib_ID,
         all_specobjs_find,
         initial_sky_dict, 
         bkg_redux=bkg_redux,
-        find_negative=find_negative)
+        find_negative=find_negative,
+        calib_slits=calib_slits)
 
     # Return
     return all_spec2d, all_specobjs_extract
@@ -349,6 +286,7 @@ def save_exposure(spectrograph, fitstbl, par,
                   all_specobjs:specobjs.SpecObjs, 
                   calibrations_path:str,
                   history:History=None,
+                  in_update_det:int=None,
                   skip_write_2d:bool=False):
     """
     Save the outputs from extraction for a given exposure
@@ -385,7 +323,9 @@ def save_exposure(spectrograph, fitstbl, par,
     # self.par['rdx']['detnum'].  I.e., I can't just set update_det =
     # self.par['rdx']['detnum'] because that can alter the latter if I don't
     # deepcopy it...
-    if par['rdx']['detnum'] is None:
+    if in_update_det is not None:
+        update_det = in_update_det
+    elif par['rdx']['detnum'] is None:
         update_det = None
     elif isinstance(par['rdx']['detnum'], list):
         update_det = [spectrograph.allowed_mosaics.index(d)+1 

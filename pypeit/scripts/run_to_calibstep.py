@@ -80,7 +80,7 @@ class RunToCalibStep(scriptbase.ScriptBase):
         if args.science_frame is not None:
             row = np.where(pypeIt.fitstbl['filename'] == args.science_frame)[0]
             if len(row) != 1:
-                msgs.error(f"Frame {args.frame} not found or not unique")
+                msgs.error(f"Frame {args.science_frame} not found or not unique")
         elif args.calib_group is not None:
             rows = np.where((pypeIt.fitstbl['calib'].data.astype(str) == args.calib_group))[0] 
             if len(rows) == 0:

@@ -58,6 +58,27 @@ def get_sci_metadata(spectrograph, fitstbl, frame, det):
                                                 spectrograph.get_det_name(det))
     return objtype_out, calib_key, obstime, basename, binning
 
+def set_bkg_negative(fitstbl, par, bg_frames):
+    has_bg = True if bg_frames is not None and len(bg_frames) > 0 else False
+    # Is this an b/g subtraction reduction?
+    if has_bg:
+        bkg_redux = True
+        # The default is to find_negative objects if the bg_frames are
+        # classified as "science", and to not find_negative objects if the
+        # bg_frames are classified as "sky". This can be explicitly
+        # overridden if par['reduce']['findobj']['find_negative'] is set to
+        # something other than the default of None.
+        find_negative = (('science' in fitstbl['frametype'][bg_frames[0]]) |
+                                ('standard' in fitstbl['frametype'][bg_frames[0]])) \
+                        if par['reduce']['findobj']['find_negative'] is None else \
+                            par['reduce']['findobj']['find_negative']
+    else:
+        bkg_redux = False
+        find_negative= False
+
+    # Return
+    return has_bg, bkg_redux, find_negative
+
 def calib_one(spectrograph, fitstbl, par, det, calib_ID, calibrations_path:str, 
               reuse_calibs:bool=True,
               qa_path:str=None, show:bool=False, run_state:dict=None,
@@ -105,8 +126,8 @@ def calib_one(spectrograph, fitstbl, par, det, calib_ID, calibrations_path:str,
     return caliBrate
 
 
-def process_one_det(spectrograph, fitstbl, caliBrate, par, frames:list, 
-                det, bg_frames:list=None): 
+def process_one_det(spectrograph, fitstbl, par, frames:list, 
+                det, calib_ID:str, calibrations_path:str, bg_frames:list=None): 
     """
     Process one set of files
 
@@ -122,6 +143,10 @@ def process_one_det(spectrograph, fitstbl, caliBrate, par, frames:list,
     # Grab some meta-data needed for the reduction from the fitstbl
     objtype, setup, obstime, basename, binning \
             = get_sci_metadata(spectrograph, fitstbl, frames[0], det)
+
+    # Grab the calibrations
+    caliBrate = load_calibrations_for_frame(
+        spectrograph, fitstbl, par, frames[0], det, calib_ID, calibrations_path)
 
     msgs.info("Image processing begins for {} on det={}".format(basename, det))
 
@@ -185,6 +210,8 @@ def process_one_det(spectrograph, fitstbl, caliBrate, par, frames:list,
 
 def findobj_on_det(sciImg, spectrograph, fitstbl, par, frames:list, calib_ID:str,
                         det, calibrations_path:str, std_outfile:str=None, 
+                        bkg_redux=False,
+                        find_negative=False,
                         show:bool=False,
                         extras=None):
 
@@ -201,7 +228,7 @@ def findobj_on_det(sciImg, spectrograph, fitstbl, par, frames:list, calib_ID:str
         std_trace = None
     msgs.info("Object finding begins for {} on det={}".format(basename, det))
 
-    # Load the image?
+    # Grab the calibrations
     caliBrate = load_calibrations_for_frame(
         spectrograph, fitstbl, par, frames[0], det, calib_ID, calibrations_path)
 
@@ -212,8 +239,8 @@ def findobj_on_det(sciImg, spectrograph, fitstbl, par, frames:list, calib_ID:str
     # At instantiaton, the fullmask in self.sciImg is modified
     objFind = instantiate_objfind(sciImg, spectrograph, fitstbl,
                                   par, frames, det, caliBrate,
-                                  extras['bkg_redux'],
-                                  extras['find_negative'], show=show)
+                                  bkg_redux,
+                                  find_negative, show=show)
     # Do it
     #embed(header='187 of pypeit_steps.py')
     initial_sky, sobjs_obj = objFind.run(std_trace=std_trace, 
@@ -236,6 +263,10 @@ def load_calibrations_for_frame(spectrograph, fitstbl, par, frame, det,
         chk_version=par['rdx']['chk_version'])
     #caliBrate.set_config(frame, det, par['calibrations'])
     caliBrate.run_the_steps(reload_only=True)
+
+    if not caliBrate.success:
+        msgs.error(f'Calibrations for detector {det} were unsuccessful!  The step '
+                    f'that failed was {caliBrate.failed_step}.')  
 
     return caliBrate
 
@@ -380,10 +411,12 @@ def adjust_for_slitmask(sciImg_dict, spectrograph, fitstbl, par, detectors,
         par['reduce']['slitmask'], par['reduce']['findobj']['find_fwhm'])
 
 def extract_det(spectrograph, fitstbl, par, 
-                frames, det, caliBrate, sciImg, bkg_redux_sciimg, 
+                frames, det, calib_ID:str, calibrations_path:str,
+                sciImg, bkg_redux_sciimg, 
                 initial_sky, sobjs_obj, 
                 bkg_redux:bool=False,
                 find_negative:bool=False,
+                calib_slits=None,
                 show:bool=False):
     """
     Extract Objects in a single exposure/detector pair
@@ -426,6 +459,11 @@ def extract_det(spectrograph, fitstbl, par,
     #        = self.get_sci_metadata(frames[0], det)
     objtype, setup, obstime, basename, binning \
             = get_sci_metadata(spectrograph, fitstbl, frames[0], det)
+
+    # Grab the calibrations
+    caliBrate = load_calibrations_for_frame(
+        spectrograph, fitstbl, par, frames[0], det, calib_ID, calibrations_path)
+
     # Is this a standard star?
     std_redux = 'standard' in objtype
 

@@ -401,7 +401,7 @@ class PypeIt:
         # ############################################################################
         # Iterate over each calibration group again and reduce the science frames
         for calib_ID in self.fitstbl.calib_groups:
-            pypeit_steps.reduce_calibID(self.spectrograph, self.par, self.fitstbl,
+            reduce_calibID(self.spectrograph, self.par, self.fitstbl,
                                         calib_ID, self.calibrations_path,
                                         reduce_standard=False, overwrite=self.overwrite,
                                         show=self.show, run_state=self.run_state,
