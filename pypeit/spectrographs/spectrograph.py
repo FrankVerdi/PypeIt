@@ -490,6 +490,21 @@ class Spectrograph:
              if card in raw_header.keys():
                  subheader[card] = raw_header[card]  # Self-assigned instrument name
 
+        # The following are added for SlicerIFU spectrographs, as they are
+        #   needed by the coadd3d routine
+        if self.pypeline == "SlicerIFU":
+            slicer_keys = [
+                "slitwid", "airmass", "parangle", "pressure", "temperature", "humidity"
+            ]
+            for key in slicer_keys:
+                if key not in subheader:
+                    try:
+                        subheader[key] = row_fitstbl[key]
+                    except KeyError:
+                        msgs.error(
+                            f"Required SlicerIFU keyword {key} not present in your fitstbl/Header"
+                        )
+
         # Specify which pipeline created this file
         subheader['PYPELINE'] = self.pypeline
         subheader['PYP_SPEC'] = (self.name, 'PypeIt: Spectrograph name')

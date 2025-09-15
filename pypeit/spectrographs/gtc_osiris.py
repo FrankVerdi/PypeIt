@@ -253,7 +253,7 @@ class GTCOSIRISPlusSpectrograph(spectrograph.Spectrograph):
             :class:`~pypeit.metadata.PypeItMetaData` instance to print to the
             :ref:`pypeit_file`.
         """
-        return super().pypeit_file_keys() + ['idname', 'slitwid', 'parangle']
+        return super().pypeit_file_keys() + ['idname']
 
     def raw_header_cards(self):
         """
@@ -985,7 +985,7 @@ class GTCOSIRISSpectrograph(spectrograph.Spectrograph):
             :class:`~pypeit.metadata.PypeItMetaData` instance to print to the
             :ref:`pypeit_file`.
         """
-        return super().pypeit_file_keys() + ['idname', 'slitwid', 'parangle']
+        return super().pypeit_file_keys() + ['idname']
 
     def raw_header_cards(self):
         """
