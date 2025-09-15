@@ -11,7 +11,6 @@ from pypeit.images import buildimage
 from pypeit import specobjs
 from pypeit import find_objects
 from pypeit import extraction
-from pypeit.core import parse
 from pypeit.manual_extract import ManualExtractionObj
 from pypeit import spec2dobj
 from pypeit.core import wave
@@ -23,13 +22,19 @@ from linetools import utils as ltu
 
 from IPython import embed
 
-def get_sci_metadata(spectrograph, fitstbl, frame, det):
+def get_sci_metadata(spectrograph, fitstbl, frame:int, det):
     """
     Grab the meta data for a given science frame and specific detector
 
     Args:
-        frame (int): Frame index
-        det (int): Detector index
+        spectrograph (:class:`pypeit.spectrographs.spectrograph.Spectrograph`):
+            The spectrograph instance
+        fitstbl (:class:`~pypeit.metadata.PypeItMetaData`):
+            The class holding the metadata for all the frames in this PypeIt run.
+        frame (:obj:`int`):
+            The index of the frame in the fitstbl
+        det (:obj:`int`):
+            The detector number (1-indexed)
 
     Returns:
         5 objects are returned::
@@ -58,7 +63,32 @@ def get_sci_metadata(spectrograph, fitstbl, frame, det):
                                                 spectrograph.get_det_name(det))
     return objtype_out, calib_key, obstime, basename, binning
 
-def set_bkg_negative(fitstbl, par, bg_frames):
+def set_bkg_negative(fitstbl, par, bg_frames:list):
+    """
+    Determine background subtraction settings for a reduction.
+
+    Args:
+        fitstbl (:class:`~pypeit.metadata.PypeItMetaData`):
+            The class holding the metadata for all the frames in this PypeIt run.
+        par (:class:`~pypeit.par.pypeitpar.CalibrationsPar`):
+            The parameter set for the reduction process, 
+            including slitmask and object finding parameters.
+        bg_frames : list
+            A list of indices corresponding to the background frames in the
+            `fitstbl`. If empty or None, no background subtraction is performed.
+
+    Returns:
+        tuple: Returns three objects:
+            has_bg (:obj:`bool`):
+                True if background frames are provided and non-empty, False otherwise.
+            bkg_redux (:obj:`bool`):
+                True if the reduction involves background subtraction, False otherwise.
+            find_negative (:obj:`bool`):
+                Indicates whether to find negative objects during the reduction. The
+                default behavior depends on the type of the background frames
+                ('science' or 'sky') unless explicitly overridden by the parameter
+                `par['reduce']['findobj']['find_negative']`.
+    """
     has_bg = True if bg_frames is not None and len(bg_frames) > 0 else False
     # Is this an b/g subtraction reduction?
     if has_bg:
@@ -87,8 +117,29 @@ def calib_one(spectrograph, fitstbl, par, det, calib_ID, calibrations_path:str,
     Run Calibration for a single detector, calib_ID pair
 
     Args:
+        spectrograph (:class:`pypeit.spectrographs.spectrograph.Spectrograph`):
+            The spectrograph instance
+        fitstbl (:class:`~pypeit.metadata.PypeItMetaData`):
+            The class holding the metadata for all the frames in this PypeIt run.
+        par (:class:`~pypeit.par.pypeitpar.PypeItPar`):
+            The parameter set for the reduction, including slitmask and
+            object finding parameters.
         det (:obj:`int`):
             Detector number (1-indexed)
+        calib_ID (:obj:`str`):
+            The calibration group ID
+        calibrations_path (:obj:`str`):
+            Path to the calibration files
+        reuse_calibs (:obj:`bool`, optional):
+            If True, reuse existing calibration files if they exist.
+        qa_path (:obj:`str`, optional):
+            Path to the QA files; if None, use the default path
+            defined by the parameters.
+        show (:obj:`bool`, optional):
+            Show the QA during processing
+        run_state (:obj:`dict`, optional):
+            A dictionary containing the current state of the reduction.
+            If None, a new empty dictionary is created.
         stop_at_step (:obj:`str`, optional):
             Run only up to this calibration step.
 
@@ -127,19 +178,48 @@ def calib_one(spectrograph, fitstbl, par, det, calib_ID, calibrations_path:str,
 
 
 def process_one_det(spectrograph, fitstbl, par, frames:list, 
-                det, calib_ID:str, calibrations_path:str, bg_frames:list=None): 
+                    det, calib_ID:str, calibrations_path:str, bg_frames:list=None): 
     """
-    Process one set of files
+    Process a single detector for a given set of frames.
 
-    Returns
-    -------
-    sciImg : :class:`~pypeit.images.pypeitimage.PypeItImage`
-        Science image
-    bkg_redux_sciimg : :class:`~pypeit.images.pypeitimage.PypeItImage`
-        Science image before background subtraction
-        if self.bkg_redux is True, otherwise None.
-        It's used to generate a global sky model without bkg subtraction.
+    This function handles the image processing for a specific detector, including
+    loading calibrations, building the science image, and optionally subtracting
+    a background image.
+
+    Args:
+        spectrograph (:class:`pypeit.spectrographs.spectrograph.Spectrograph`):
+            The spectrograph instance
+        fitstbl (:class:`~pypeit.metadata.PypeItMetaData`):
+            The class holding the metadata for all the frames in this PypeIt run.
+        par (:class:`~pypeit.par.pypeitpar.PypeItPar`):
+            The parameter set for the reduction, including slitmask and
+            object finding parameters.
+        frames (:obj:`list`):
+            List of indices corresponding to the science frames in the
+            `fitstbl` to be processed together.
+        det (:obj:`int`):
+            Detector number (1-indexed)
+        calib_ID (:obj:`str`):
+            The calibration group ID
+        calibrations_path (:obj:`str`):
+            Path to the calibration files
+        bg_frames (:obj:`list`, optional):
+            List of indices corresponding to the background frames in the
+            `fitstbl`. If None or empty, no A-B background subtraction is performed.
+            Default is None.
+
+    Returns:
+        tuple:
+            - sciImg (:class:`~pypeit.images.pypeitimage.PypeItImage`): 
+              The processed science image, with background
+              subtraction applied if `bg_frames` is provided.
+            - bkg_redux_sciimg (:class:`~pypeit.images.pypeitimage.PypeItImage` or None):
+              The science image without
+              background subtraction, used to generate a global sky model. This is
+              a dictionary with `image` and `ivar` keys if `bg_frames` is provided,
+              otherwise it is None.
     """
+
     # Grab some meta-data needed for the reduction from the fitstbl
     objtype, setup, obstime, basename, binning \
             = get_sci_metadata(spectrograph, fitstbl, frames[0], det)
@@ -193,27 +273,57 @@ def process_one_det(spectrograph, fitstbl, par, frames:list,
         # spatial flexure determined for the background image.
         sciImg = bkg_redux_sciimg.sub(bgimg)
 
-    '''
-    # Save intermediate files
-    if science_path is not None:
-        # sciImg
-        outfile_sci = science_path / f'sciImg_{basename}.fits'
-        sciImg.to_file(outfile_sci, overwrite=True)
-        if bkg_redux_sciimg is not None:
-            # bkg_redux_sciimg
-            outfile_bkg = science_path / f'bkg_{basename}.fits'
-            bkg_redux_sciimg.to_file(outfile_bkg, overwrite=True)
-    '''
-
     # Return
     return sciImg, bkg_redux_sciimg
 
-def findobj_on_det(sciImg, spectrograph, fitstbl, par, frames:list, calib_ID:str,
-                        det, calibrations_path:str, std_outfile:str=None, 
-                        bkg_redux=False,
-                        find_negative=False,
-                        show:bool=False,
-                        extras=None):
+def findobj_on_det(sciImg, spectrograph, fitstbl, par, frames:list, calib_ID:str, 
+                   det, calibrations_path:str, std_outfile:str=None, 
+                   bkg_redux=False, find_negative=False, show:bool=False):
+    """
+    Perform object finding on a specific detector.
+
+    This function is responsible for identifying objects on a given detector
+    during the data reduction process. It utilizes calibration data, metadata,
+    and reduction parameters to locate and characterize objects in the science image.
+
+    Args:
+        sciImg (:class:`~pypeit.images.pypeitimage.PypeItImage`):
+            Data container that holds a single image from a
+            single detector and its related images (e.g. ivar, mask)
+        spectrograph (:class:`pypeit.spectrographs.spectrograph.Spectrograph`):
+            The spectrograph instance
+        fitstbl (:class:`~pypeit.metadata.PypeItMetaData`):
+            The class holding the metadata for all the frames in this PypeIt run.
+        par (:class:`~pypeit.par.pypeitpar.PypeItPar`):
+            The parameter set for the reduction, including slitmask and
+            object finding parameters.
+        frames (:obj:`list`):
+            List of indices corresponding to the science frames in the
+            `fitstbl` to be processed together.
+        calib_ID (:obj:`str`):
+            The calibration group ID
+        det (:obj:`int`):
+            Detector number (1-indexed)
+        calibrations_path (:obj:`str`):
+            Path to the calibration files
+        std_outfile (:obj:`str`, optional):
+            The standard star output file, if this is a standard star
+            reduction. Default is None.
+        bkg_redux (:obj:`bool`, optional):
+            Indicates whether the reduction involves background subtraction.
+            Default is False.
+        find_negative (:obj:`bool`, optional):
+            Indicates whether to find negative objects during the reduction.
+            Default is False.
+        show (:obj:`bool`, optional):
+            Show the QA during processing. Default is False.
+
+    Returns:
+        tuple: A tuple containing:
+            - initial_sky (object): The initial sky model.
+            - sobjs_obj (object): The detected objects.
+            - objFind (object): The object finding instance used for the reduction.
+    """
 
     # Grab some meta-data needed for the reduction from the fitstbl
     objtype, setup, obstime, basename, binning \
@@ -242,15 +352,45 @@ def findobj_on_det(sciImg, spectrograph, fitstbl, par, frames:list, calib_ID:str
                                   bkg_redux,
                                   find_negative, show=show)
     # Do it
-    #embed(header='187 of pypeit_steps.py')
     initial_sky, sobjs_obj = objFind.run(std_trace=std_trace, 
                                          show_peaks=show)
 
     return initial_sky, sobjs_obj, objFind
 
 
-def load_calibrations_for_frame(spectrograph, fitstbl, par, frame, det,
-        calib_ID, calibrations_path:str):
+def load_calibrations_for_frame(spectrograph, fitstbl, par, frame, det, 
+                                calib_ID, calibrations_path:str):
+    """
+    Load calibrations for a specific frame and detector.
+
+    This function initializes the Calibrations class, runs the calibration steps,
+    and ensures that the calibrations are successfully loaded for the given frame
+    and detector.
+
+    Args:
+        spectrograph (:class:`pypeit.spectrographs.spectrograph.Spectrograph`):
+            The spectrograph instance
+        fitstbl (:class:`~pypeit.metadata.PypeItMetaData`):
+            The class holding the metadata for all the frames in this PypeIt run.
+        par (:class:`~pypeit.par.pypeitpar.PypeItPar`):
+            The parameter set for the reduction, including slitmask and
+            object finding parameters.
+        frame (:obj:`int`):
+            The index of the frame in the fitstbl
+        det (:obj:`int`):
+            Detector number (1-indexed)
+        calib_ID (:obj:`str`):
+            The calibration group ID
+        calibrations_path (:obj:`str`):
+            Path to the calibration files
+
+    Returns:
+        :class:`pypeit.calibrations.Calibrations`:
+            The loaded calibrations for the specified frame and detector.
+
+    Raises:
+        PypeItError: If the calibrations for the specified detector are unsuccessful.
+    """
 
     # Instantiate Calibrations class
     user_slits = slittrace.merge_user_slit(par['rdx']['slitspatnum'],
@@ -399,11 +539,22 @@ def extract_det(spectrograph, fitstbl, par,
     sci_ID and det need to have been set internally prior to calling this method
 
     Args:
+        spectrograph (:class:`pypeit.spectrographs.spectrograph.Spectrograph`):
+            The spectrograph instance
+        fitstbl (:class:`~pypeit.metadata.PypeItMetaData`):
+            The class holding the metadata for all the frames in this PypeIt run.
+        par (:class:`~pypeit.par.pypeitpar.PypeItPar`):
+            The parameter set for the reduction, including slitmask and
+            object finding parameters.
         frames (:obj:`list`):
             List of frames to extract; stacked if more than one
             is provided
         det (:obj:`int`):
             Detector number (1-indexed)
+        calib_ID (:obj:`str`):
+            The calibration group ID
+        calibrations_path (:obj:`str`):
+            Path to the calibration files
         sciImg (:class:`~pypeit.images.pypeitimage.PypeItImage`):
             Data container that holds a single image from a
             single detector and its related images (e.g. ivar, mask)
@@ -413,21 +564,29 @@ def extract_det(spectrograph, fitstbl, par,
             before background subtraction if self.bkg_redux is True,
             otherwise None. It's used to generate a global sky
             model without bkg subtraction.
-        objFind : :class:`~pypeit.find_objects.FindObjects`
-            Object finding object
         initial_sky (`numpy.ndarray`_):
             Initial global sky model
         sobjs_obj (:class:`pypeit.specobjs.SpecObjs`):
             List of objects found during `run_objfind`
+        bkg_redux (:obj:`bool`, optional):
+            Indicates whether the reduction involves background subtraction.
+            Default is False.
+        find_negative (:obj:`bool`, optional):
+            Indicates whether to find negative objects during the reduction.
+            Default is False.
+        calib_slits (:class:`pypeit.slittrace.SlitTraceSet`, optional):
+            If provided, use these slits instead of those from the
+            calibrations. Default is None.
+        show (:obj:`bool`, optional):
+            Show the QA during processing. Default is False.0
 
     Returns:
-        tuple: Returns six `numpy.ndarray`_ objects and a
-        :class:`pypeit.specobjs.SpecObjs` object with the
-        extracted spectra from this exposure/detector pair. The
-        six `numpy.ndarray`_ objects are (1) the science image,
-        (2) its inverse variance, (3) the sky model, (4) the
-        object model, (5) the model inverse variance, and (6) the
-        mask.
+        tuple: A tuple containing:
+            - spec2DObj (:class:`pypeit.spec2dobj.Spec2DObj`):
+              The 2D spectrum object containing the 2D spectral images
+            - sobj (:class:`pypeit.specobjs.SpecObjs`):
+                The extracted 1D spectra
+            
     """
     # Grab some meta-data needed for the reduction from the fitstbl
     #self.objtype, self.setup, self.obstime, self.basename, self.binning \
@@ -438,6 +597,8 @@ def extract_det(spectrograph, fitstbl, par,
     # Grab the calibrations
     caliBrate = load_calibrations_for_frame(
         spectrograph, fitstbl, par, frames[0], det, calib_ID, calibrations_path)
+    if calib_slits is not None:
+        caliBrate.slits = calib_slits
 
     # Is this a standard star?
     std_redux = 'standard' in objtype
@@ -590,6 +751,42 @@ def extract_det(spectrograph, fitstbl, par,
 def instantiate_objfind(sciImg, spectrograph, fitstbl, par, frames, det,
                         caliBrate, bkg_redux, find_negative, 
                         show:bool=False):
+    """
+    Instantiate the FindObjects class for object finding in spectroscopic data.
+
+    Args:
+        sciImg (:class:`~pypeit.images.pypeitimage.PypeItImage`):
+            Data container that holds a single image from a
+            single detector and its related images (e.g. ivar, mask)
+        spectrograph (:class:`pypeit.spectrographs.spectrograph.Spectrograph`):
+            The spectrograph instance
+        fitstbl (:class:`~pypeit.metadata.PypeItMetaData`):
+            The class holding the metadata for all the frames in this PypeIt run.
+        par (:class:`~pypeit.par.pypeitpar.PypeItPar`):
+            The parameter set for the reduction, including slitmask and
+            object finding parameters.
+        frames (:obj:`list`):
+            List of indices corresponding to the science frames in the
+            `fitstbl` to be processed together.
+        det (:obj:`int`):
+            Detector number (1-indexed)
+        caliBrate (:class:`pypeit.calibrations.Calibrations`):
+            The calibration data for the current frame and detector.
+        bkg_redux (:obj:`bool`):
+            Indicates whether the reduction involves background subtraction.
+        find_negative (:obj:`bool`):
+            Indicates whether to find negative objects during the reduction.
+        show (:obj:`bool`, optional):
+            Show the QA during processing. Default is False.
+
+    Returns:
+        FindObjects: An instance of the FindObjects class configured for object finding.
+
+    Notes:
+        - This function handles manual extraction if specified in the FITS table.
+        - It also builds an initial sky mask if user-defined sky regions are provided.
+        - The FindObjects instance is initialized with the relevant parameters for object finding.
+    """
     objtype, setup, obstime, basename, binning \
             = get_sci_metadata(spectrograph, fitstbl, frames[0], det)
     std_redux = objtype == 'standard'
@@ -624,7 +821,6 @@ def instantiate_objfind(sciImg, spectrograph, fitstbl, par, frames, det,
     return objFind
 
 
-# TODO :: Should this be moved outside of this class?
 def refframe_correct(spectrograph, par, slits, ra, dec, obstime, slitgpm=None, 
                      waveimg=None, sobjs=None):
     """ Correct the calibrated wavelength to the user-supplied reference frame

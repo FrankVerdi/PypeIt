@@ -27,7 +27,7 @@ def adjust_for_slitmask(sciImg_dict:dict, spectrograph, fitstbl, par,
     calibration data. It also matches slitmask design to detected objects 
     and adds undetected objects based on the design.
 
-    Parameters:
+    Args:
         sciImg_dict (:obj:`dict`): A dict of science image objects, one for each 
             detector, containing information such as spatial flexure and 
             detector properties.
