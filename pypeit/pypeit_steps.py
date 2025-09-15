@@ -667,12 +667,12 @@ def extract_det(spectrograph, fitstbl, par,
             bkg_redux=bkg_redux, 
             return_negative=par['reduce']['extraction']['return_negative'],
             std_redux=std_redux, basename=basename, show=show)
-        #embed(header='465 of pypeit_steps.py')
         # Perform the extraction
         skymodel, bkg_redux_skymodel, objmodel, ivarmodel, outmask, sobjs, waveImg,\
             tilts, slits = exTract.run()
         slitgpm = np.logical_not(exTract.extract_bpm)
         slitshift = exTract.slitshift
+        embed(header='675 of pypeit_steps.py')
     else:
         msgs.info(f"Extraction skipped for {basename} on det={det}")
         # TODO

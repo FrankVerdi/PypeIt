@@ -401,7 +401,6 @@ def reduce_exposure(spectrograph, fitstbl, par, frames, calib_ID,
                             find_negative=find_negative,
                             show=show)
 
-    embed(header='402 of exposure.py')
     # #####################################
     # slitmask stuff
     if par['reduce']['slitmask']['assign_obj']:
