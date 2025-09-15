@@ -15,6 +15,8 @@ from pypeit import calibrations
 
 from pypeit import pypeit_steps
 
+from IPython import embed
+
 
 def adjust_for_slitmask(sciImg_dict:dict, spectrograph, fitstbl, par, 
                         frame0:int, binning, all_specobjs_objfind,
@@ -399,6 +401,7 @@ def reduce_exposure(spectrograph, fitstbl, par, frames, calib_ID,
                             find_negative=find_negative,
                             show=show)
 
+    embed(header='402 of exposure.py')
     # #####################################
     # slitmask stuff
     if par['reduce']['slitmask']['assign_obj']:
