@@ -1,11 +1,10 @@
+""" Module for constructing output file names and paths for PypeIt reductions."""
 import numpy as np
 from pathlib import Path
 
 from pypeit import msgs
 
-
-
-def get_std_outfile(fitstbl, par, standard_frames):
+def get_std_outfile(fitstbl, par, standard_frames:list):
     """
     Return the spec1d file name for a reduced standard to use as a tracing
     crutch.
@@ -17,14 +16,17 @@ def get_std_outfile(fitstbl, par, standard_frames):
     ``standard_frames``, the first index is used.
 
     Args:
-        standard_frames (array-like):
-            Set of rows in :attr:`fitstbl` with standards.
+        fitstbl (:class:`pypeit.metadata.PypeItMetaData`):
+            The metadata table for the current reduction.
+        par (:class:`pypeit.par.pypeitpar.PypeItPar`):
+            The parameter set for the current reduction.
+        standard_frames (:obj:`list`):
+            List of frame indices in ``fitstbl`` corresponding to
+            standard star frames.
 
     Returns:
         :obj:`str`: Full path to the standard spec1d output file to use.
     """
-    # NOTE: I'm not sure if this is the best place to put this, but it does
-    # isolate where the name of the standard-star spec1d file is defined.
     std_outfile = par['reduce']['findobj']['std_spec1d']
     if std_outfile is not None:
         if not par['reduce']['findobj']['use_std_trace']:
@@ -56,6 +58,8 @@ def intermediate_filename(itype:str, basename:str, det_name:str,
     Args:
         itype (:obj:`str`):
             Type of intermediate file
+        basename (:obj:`str`):
+            Basename of the file
         det_name (:obj:`str`):
             Name of the detector
         inter_path (:obj:`str`, optional):
@@ -67,7 +71,17 @@ def intermediate_filename(itype:str, basename:str, det_name:str,
     return Path(inter_path) / f'{itype}_{basename}_{det_name}.fits'
 
 def science_path(par) -> Path:
-    """Return the path to the science directory."""
+    """
+    Constructs the path to the science directory based on the provided parameters.
+
+    Args:
+        par (:class:`~pypeit.par.pypeitpar.PypeItPar`):
+            The parameter set for the reduction, including slitmask and
+            object finding parameters.
+
+    Returns:
+        Path: The full path to the science directory as a `Path` object.
+    """
     return Path(par['rdx']['redux_path']) / par['rdx']['scidir']
 
 def spec_output_file(fitstbl, par, frame:int, twod:bool=False,
@@ -76,10 +90,16 @@ def spec_output_file(fitstbl, par, frame:int, twod:bool=False,
     Return the path to the spectral output data file.
     
     Args:
+        fitstbl (:class:`pypeit.metadata.PypeItMetaData`):
+            The metadata table for the current reduction.
+        par (:class:`pypeit.par.pypeitpar.PypeItPar`):
+            The parameter set for the current reduction.
         frame (:obj:`int`):
             Frame index from :attr:`fitstbl`.
         twod (:obj:`bool`), optional:
             Name for the 2D output file; 1D file otherwise.
+        txt (:obj:`bool`), optional:
+            Use a text file extension; FITS file otherwise.
     
     Returns:
         `Path`_: The path for the output file
