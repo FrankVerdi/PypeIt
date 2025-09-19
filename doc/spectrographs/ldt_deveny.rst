@@ -587,26 +587,34 @@ produced (in the order in which they are created):
    ``QA/PNGs`` directory (examples below), and should rarely need much scrutiny
    for DeVeny data if you have strong arc lines and a good wavelength solution.
 
-.. subfigure:: AABBB|CCCCC
-   :layout-sm: A|B|C
-   :gap: 2px
-   :class-grid: outline
-   :width: 100%
+.. grid:: 3
 
-   .. image:: ../figures/deveny_tilts_2d.png
-      :alt: 2D arc tilts
-      :class: with-shadow
+   .. grid-item::
+      :columns: 4
 
-   .. image:: ../figures/deveny_tilts_spat.png
-      :alt: Spatial tilt residuals
-      :class: with-shadow
+      .. image:: ../figures/deveny_tilts_2d.png
+         :alt: 2D arc tilts
+         :class: with-shadow
 
-   .. image:: ../figures/deveny_tilts_spec.png
-      :alt: Spectral tilt residuals
-      :class: with-shadow
+   .. grid-item::
+      :columns: 7
 
-   Example PypeIt QA plots for the ``Tilts`` file associated with the example
-   DV2 data set.
+      .. image:: ../figures/deveny_tilts_spat.png
+         :alt: Spatial tilt residuals
+         :class: with-shadow
+
+   .. grid-item::
+      :columns: 12
+
+      .. image:: ../figures/deveny_tilts_spec.png
+         :alt: Spectral tilt residuals
+         :class: with-shadow
+
+   .. grid-item::
+      :columns: 12
+
+      Example PypeIt QA plots for the ``Tilts`` file associated with the
+      example DV2 data set.
 
 -  :ref:`flat` -- Processed combined dome flat fields for removing
    pixel-to-pixel sensitivity variations. PypeIt fits a basis spline
@@ -762,23 +770,28 @@ Missing 1D Spectra
       though the object is detectable to the human eye, it does not contain
       enough signal to produce a useable spectrum (SNR ~ 1).
 
-   .. subfigure:: AB
-      :layout-sm: A|B
-      :gap: 2px
-      :class-grid: outline
-      :width: 100%
+   .. grid:: 2
 
-      .. image:: ../figures/deveny_spec2d_manual.png
-         :alt: Manual extraction in a spec2d file
-         :class: with-shadow
+      .. grid-item::
+         :columns: 6
 
-      .. image:: ../figures/deveny_spec1d_manual.png
-         :alt: Manual extraction in a spec1d file
-         :class: with-shadow
+         .. image:: ../figures/deveny_spec2d_manual.png
+            :alt: Manual extraction in a spec2d file
+            :class: with-shadow
 
-      Example of PypeIt manual extraction. The left panel is the 2D spectrum
-      with the manually object identified in blue, and the right panel is its
-      extracted spectrum.
+      .. grid-item::
+         :columns: 6
+
+         .. image:: ../figures/deveny_spec1d_manual.png
+            :alt: Manual extraction in a spec1d file
+            :class: with-shadow
+
+      .. grid-item::
+         :columns: 12
+
+         Example of PypeIt manual extraction. The left panel is the 2D spectrum
+         with the manually object identified in blue, and the right panel is its
+         extracted spectrum.
 
 
 Post-Processing the Files
@@ -900,23 +913,28 @@ on the specific requirements of your science program.  Please see the
    described above (automatically identified and manually identified) are shown
    below.
 
-   .. subfigure:: AB
-      :layout-sm: A|B
-      :gap: 2px
-      :class-grid: outline
-      :width: 100%
+   .. grid:: 2
 
-      .. image:: ../figures/deveny_spec1d_fluxed_A.png
-         :alt: Automatically identified object, flux calibrated
-         :class: with-shadow
+      .. grid-item::
+         :columns: 6
 
-      .. image:: ../figures/deveny_spec1d_fluxed_B.png
-         :alt: Manually identified object, flux calibrated
-         :class: with-shadow
+         .. image:: ../figures/deveny_spec1d_fluxed_A.png
+            :alt: Automatically identified object, flux calibrated
+            :class: with-shadow
 
-      Example of flux-calibrated spectra for the objects shown above. As with
-      the uncalibrated spectra, the red dashed line indicates the 1-:math:`\sigma`
-      uncertainty in the data.
+      .. grid-item::
+         :columns: 6
+
+         .. image:: ../figures/deveny_spec1d_fluxed_B.png
+            :alt: Manually identified object, flux calibrated
+            :class: with-shadow
+
+      .. grid-item::
+         :columns: 12
+
+         Example of flux-calibrated spectra for the objects shown above. As with
+         the uncalibrated spectra, the red dashed line indicates the 1-:math:`\sigma`
+         uncertainty in the data.
 
 
 Coadding / Collating Flux-Calibrated 1D Spectra
@@ -1414,26 +1432,31 @@ space to align with the night sky lines extracted from the 2D image via simple
 linear interpolation. Examples of the quality assurance plots for this process
 are shown below.
 
-.. subfigure:: AB
-    :layout-sm: A|B
-    :gap: 2px
-    :class-grid: outline
-    :width: 100%
+.. grid:: 2
 
-    .. image:: ../figures/deveny_flexure_qa1.png
-        :alt: Selected spectral lines in science sky and archived sky
-        :class: with-shadow
+   .. grid-item::
+      :columns: 6
 
-    .. image:: ../figures/deveny_flexure_qa2.png
-        :alt: Cross-corelation between science sky and archived sky
-        :class: with-shadow
+      .. image:: ../figures/deveny_flexure_qa1.png
+         :alt: Selected spectral lines in science sky and archived sky
+         :class: with-shadow
 
-    Example of PypeIt flexure QA for a science frame of BD+28 4211. *Left:*
-    Plots of selected spectral lines for the science frame (black) and archived
-    sky spectrum above Mt. Hamilton, CA (red). *Right:* The cross-correlation
-    between the red and black sky spectra (blue dots) and a parabolic fit
-    (black) for determining the location of maximum correlation
-    ("``flex_shift``").
+   .. grid-item::
+      :columns: 6
+
+      .. image:: ../figures/deveny_flexure_qa2.png
+         :alt: Cross-corelation between science sky and archived sky
+         :class: with-shadow
+
+   .. grid-item::
+      :columns: 12
+
+      Example of PypeIt flexure QA for a science frame of BD+28 4211. *Left:*
+      Plots of selected spectral lines for the science frame (black) and
+      archived sky spectrum above Mt. Hamilton, CA (red). *Right:* The
+      cross-correlation between the red and black sky spectra (blue dots) and a
+      parabolic fit (black) for determining the location of maximum correlation
+      ("``flex_shift``").
 
 If you wish to have **no** flexure correction applied, you may specify the
 following:
@@ -1559,27 +1582,32 @@ step for inspection, and you may use the :ref:`pypeit_chk_wavecalib` script to
 determine the accuracy of the calibration. Shown below are ``QA/`` examples of
 both accurate and poor wavelength calibrations.
 
-.. subfigure:: A|B
-    :layout-sm: A|B
-    :gap: 2px
-    :class-grid: outline
-    :width: 60%
+.. grid:: 3
 
-    .. image:: ../figures/deveny_DV6_wavecal_good.png
-        :alt: Good DeVeny DV6 wavelength calibration
-        :class: with-shadow
+   .. grid-item::
+      :columns: 7
 
-    .. image:: ../figures/deveny_DV6_wavecal_bad.png
-        :alt: Bad DeVeny DV6 wavelength calibration
-        :class: with-shadow
+      .. image:: ../figures/deveny_DV6_wavecal_good.png
+         :alt: Good DeVeny DV6 wavelength calibration
+         :class: with-shadow
 
-    Examples of good (*top*) and not-so-good (*bottom*) wavelength
-    calibrations for the same setup using DV6 on different nights. For the left
-    plots, PypeIt found the bright lines, correctly associated them with the
-    line lists, and produced a roughly linear wavelength as a function of pixel
-    number. In the right plots, the ``holy-grail`` method was not able to
-    correctly identify the lines, latching onto noise in the continuum, and
-    produced a nonsensical wavelength solution.
+   .. grid-item::
+      :columns: 7
+
+      .. image:: ../figures/deveny_DV6_wavecal_bad.png
+         :alt: Bad DeVeny DV6 wavelength calibration
+         :class: with-shadow
+
+   .. grid-item::
+      :columns: 12
+
+      Examples of good (*top*) and not-so-good (*bottom*) wavelength
+      calibrations for the same setup using DV6 on different nights. For the
+      top plots, PypeIt found the bright lines, correctly associated them with
+      the line lists, and produced a roughly linear wavelength as a function of
+      pixel number. In the bottom plots, the ``holy-grail`` method was not able
+      to correctly identify the lines, latching onto noise in the continuum,
+      and produced a nonsensical wavelength solution.
 
 As of ``v1.9.0``, PypeIt contains full wavelength templates for the 150g/mm
 (DV1), 300g/mm (DV2, DV3), 600g/mm (DV6, DV7), and 1200g/mm (DV9) gratings,

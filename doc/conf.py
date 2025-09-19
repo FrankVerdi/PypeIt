@@ -40,7 +40,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
-    "sphinx_subfigure",
+    "sphinx_design",
 #    'sphinx.ext.autosectionlabel',
 ]
 
