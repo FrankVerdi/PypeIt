@@ -40,15 +40,28 @@ host up to 5 instruments simultaneously at its Cassegrain focus with fast
 
 The DeVeny spectrograph was built at Kitt Peak National Observatory (KPNO)
 and was known as the White Spectrograph. It had a long career at the #1 36-inch
-and 84-inch telescopes there before being retired; Lowell Observatory acquired
-the spectrograph from KPNO on indefinite loan in 1998. A new CCD camera was
-built for it, and the instrument was further modified for installation on the
-72-inch Perkins telescope in 2005. Following 8 years of service there, it was
-removed in 2013 for upgrades for installation on the Lowell Discovery Telescope
-(LDT) instrument cube. DeVeny has been in service at LDT since February 2015.
-The spectrograph was designed for and operates internally with f/7.5 optics;
-new re-imaging optics were designed and fabricated to match the spectrograph
-with LDT's f/6.1 beam.
+and 84-inch telescopes there before being retired. Lowell Observatory acquired
+the spectrograph from KPNO on indefinite loan in 1998 and renamed the
+instrument in honor of the longtime KPNO Instrument Support Scientist Jim
+DeVeny (see `a photo of DeVeny with the spectrograph
+<https://noirlab.edu/public/images/noao-02617/>`__ on the 84-inch telescope).
+A new CCD camera was built for it, and the spectrograph was further modified
+for installation on the 72-inch Perkins telescope in 2005. Following 8 years of
+service there, it was removed in 2013 for upgrades for installation on the
+Lowell Discovery Telescope (LDT) instrument cube (see image below). DeVeny has
+been in service at LDT since February 2015. The spectrograph was designed for
+and operates internally with f/7.5 optics; new re-imaging optics were designed
+and fabricated to match the spectrograph with LDT's f/6.1 beam.
+
+.. figure:: ../figures/deveny_on_ldt.png
+   :alt: DeVeny Spectrograph on LDT
+   :scale: 70
+   :class: with-shadow
+         
+   The DeVeny spectrograph mounted on one of the large side ports of the LDT
+   instrument cube.  The instrument is the white cylinder, with various
+   electronics boxes mounted to the side and the (black-anodized) CCD camera
+   dewar and cooler seen at a 45\ :math:`^\circ` angle the main instrument.
 
 
 EMI Pickup Noise
@@ -109,14 +122,14 @@ instructions.
 Planning Your Observations for Reduction with PypeIt
 ----------------------------------------------------
 
-Because PypeIt is an automated data reduction pipeline with minimal
+Because PypeIt is an "end-to-end" data reduction pipeline with minimal
 opportunity to interact with the reduction in progress, pre-telescope
 planning is required to obtain the proper calibration frames. While most
 observing programs will already collect all of the frames necessary for
 smooth operation of the pipeline, several items bear pointing out:
 
--  Bias frames are used to remove fixed-pattern noise in the data generate
-   the default bad pixel mask for reductions.
+-  Bias frames are used to remove fixed-pattern noise in the data and
+   generate the default bad pixel mask for reductions.
 
 -  Dome flats are used for the dual purposes of removing pixel-to-pixel
    variations in sensitivity and tracing the edges of the slit.  (Slit edges 
@@ -191,7 +204,8 @@ Focus frames may be present or deleted -- PypeIt will ignore them. You should ha
 
 -  Bias frames (to remove fixed-pattern noise from the data)
 
--  Dome Flat frames (to remove pixel-to-pixel sensitivity variations)
+-  Dome Flat frames (to remove pixel-to-pixel sensitivity variations and trace
+   the slit edges)
 
 -  Comparison Arc frames (for wavelength calibration)
 
@@ -217,16 +231,20 @@ Setup
 
 .. tip::
 
-   All PypeIt command-line scripts (*e.g.*, ``pypeit_setup``) have online help
-   available using the ``-h`` option.
+   All PypeIt command-line scripts (*e.g.*, ``pypeit_setup``) will display
+   script usage by calling the script with the ``-h`` option.
 
 Running PypeIt on a set of data is controlled by a :ref:`pypeit_file` that
 details what the software should do to each file along the way to producing
-reduced and calibrated data. The package provides a script ``pypeit_setup``
-that reads through the FITS headers in the raw directory to generate the
-reduction file (and directory tree) based on what it finds. PypeIt determines
-unique instrument configurations, and sorts data in preparation for the data
-reduction.
+reduced and calibrated data. PypeIt determines unique instrument
+configurations, and sorts data in preparation for the data reduction.
+
+The package provides two setup methods (:ref:`automated <pypeit_setup>` and
+GUI) -- both available through the ``pypeit_setup`` script -- that read through
+the FITS headers in the raw directory to generate the Reduction File (and
+directory tree) based on what it finds.  The Setup GUI (call using
+``pypeit_setup -G``) provides the ability to interactively produce a PypeIt
+Reduction File, which is very helpful for first-time users.
 
 For DeVeny data, instrument configurations are defined by unique combinations
 of the grating (FITS keyword ``GRATING``), grating tilt angle (``GRANGLE``),
@@ -275,11 +293,9 @@ nearest 5\ :math:`\mathring{A}`.
    FITS header keyword ``IMAGETYP = FOCUS``) will have a ``frametype`` listed
    as ``None`` in this file and are commented out. If there are
    non-focus frames with ``frametype None`` listed, this indicates the FITS
-   keyword was not correctly set. You may either modify the affected FITS
-   headers directly using your preferred method\ [3]_ (**recommended**), or
-   simply note the affected frames and later edit the relevant PypeIt Reduction
-   File(s) (:ref:`deveny_edit`) with the correct frame type. If you modify any
-   FITS headers directly, re-run step #1 above, and reexamine the output file.
+   keyword was not correctly set. You should note the affected frames so that
+   you can later edit the relevant PypeIt Reduction File(s)
+   (:ref:`deveny_edit`) with the correct frame type.
 
    The ``ldt_deveny.sorted`` file is divided into sections enumerating the
    unique instrument configurations and the list of frames associated
@@ -355,19 +371,21 @@ tilt angles, binning schemes, or even different gratings used on different
 nights.  See :ref:`the relevant documentation <pypeit_file>` for descriptions
 of the file format and common edits a user may wish to make.  
 
-**Specific LDT/DeVeny considerations:**
+
+Specific LDT/DeVeny considerations:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 #. The DeVeny-specific modifications to default PypeIt reduction parameters are
-   already included in the ``LDTDeVenySpectrograph()`` class (:ref:`listed here
-   <ldt_deveny_class>`) and loaded using the ``spectrograph = ldt_deveny``
-   line at the top of the :ref:`parameter_block` -- it is not necessary to
-   reproduce all those parameters in the :ref:`parameter_block` of your file.
-   What do go here are changes **away** from the *DeVeny default configuration*
-   you wish to use for reducing a particular data set. For instance, to specify
-   that PypeIt should use the ``illumflat`` files to correct for illumination
-   variations along the slit and that it should only find and extract the one
-   brightest object in each science frame, you would add the following to your
-   parameter block:
+   already included in the
+   :class:`~pypeit.spectrographs.ldt_deveny.LDTDeVenySpectrograph` class and
+   loaded using the ``spectrograph = ldt_deveny`` line at the top of the
+   :ref:`parameter_block` -- it is not necessary to reproduce all those
+   parameters in the :ref:`parameter_block` of your file. What do go here are
+   changes **away** from the *DeVeny default configuration* you wish to use for
+   reducing a particular data set. For instance, to specify that PypeIt should
+   use the ``illumflat`` files to correct for illumination variations along the
+   slit and that it should only find and extract the one brightest object in
+   each science frame, you would add the following to your parameter block:
 
    .. code-block:: ini
 
@@ -384,7 +402,8 @@ of the file format and common edits a user may wish to make.
 #. Here is yet another reminder to **not include bad calibration frames** in
    the reduction (frames that you do not want to use, frames with incorrectly
    identified types, or frames that could not be automatically classified and
-   have a ``None`` type). Check them now and remove them if they are bad.
+   have a ``None`` type). Check them now and remove or comment them out if
+   they are bad.
 
    You may need to add configuration-independent files from one setup to the
    Data Block of another, but PypeIt is getting better at including
@@ -526,7 +545,7 @@ produced (in the order in which they are created):
    This command will launch a :ref:`GUI viewer <pypeit_chk_edges>` to display
    the combined trace image along with a sobel-filtered version used to
    identify illumination discontinuities in the spatial direction (see figure
-   below). For DeVeny data, it should identify a single, wide slit with a
+   below). For DeVeny data, it should identify a single, wide longslit with a
    (spatial ID) approximately half the spatial extent of the CCD image
    (mid-200s for spatially unbinned data). The exact number will vary from
    grating to grating due to differing small roll angles about the dispersion
@@ -718,16 +737,21 @@ Examine the Extracted 1D Spectra
       |  120 | SPAT0231-SLIT0120-DET01 |       231.2 |        0.984 |      3.80 |    1.641 |   5.17 |  0.065 |
 
    By default, ``pypeit_show_1dspec`` loads the first (lowest ``SPAT`` code)
-   object extracted from the 2D spectrum. Examination of the spectral image
-   with ``pypeit_show_2dspec`` or printing the ``.txt`` file will help you
-   identify which extracted object(s) corresponds to your desired target(s).
-   If there are spurious low-signal objects identified, you may re-run the
-   reduction with adjusted object-finding parameters (see
-   :ref:`deveny_objfind`). A particular extracted object may be loaded by using
-   the ``--obj`` option to :ref:`pypeit_show_1dspec`.
+   object extracted from the 2D spectrum. Examination of the spectral image with
+   ``pypeit_show_2dspec`` or printing the ``.txt`` file will help you identify
+   which extracted object(s) corresponds to your desired target(s). If there
+   are spurious low-signal objects identified, you may re-run the reduction
+   with adjusted object-finding parameters (see :ref:`deveny_objfind`). A
+   particular extracted object may be loaded by using the ``--obj`` option to
+   :ref:`pypeit_show_1dspec`.
+
+   .. tip::
+
+      To load the spectrum into a Ginga window rather than launch the default
+      GUI, use the ``--ginga`` option to ``pypeit_show_1dspec``.
 
    By default, PypeIt performs both a boxcar (top-hat) extraction around the
-   trace and a Horne optimal extraction\ [4]_ using the fitted spatial profile.
+   trace and a Horne optimal extraction\ [3]_ using the fitted spatial profile.
    The boxcar-extracted spectrum may be displayed using the ``--extract BOX``
    option to ``pypeit_show_1dspec``, otherwise the optimal extraction is
    displayed (if available).
@@ -968,7 +992,7 @@ Loading PypeIt 1D Spectra into ``specutils`` for Analysis
 PypeIt is a package for reducing spectroscopic data from raw frames collected
 at the telescope to 1D spectra, ready for analysis. To do the actual analysis
 in service of your particular science program, you will need to employ other
-tools. One possibility is the AstroPy-coordinated package ``specutils``\ [5]_.
+tools. One possibility is the AstroPy-coordinated package ``specutils``\ [4]_.
 
 As of ``v1.12.2``, PypeIt includes a loader for importing pipeline outputs into
 ``specutils``, and can import either the ``spec1d`` (all objects in a frame) or
@@ -1237,8 +1261,8 @@ Block:
       [[findobj]]
          snr_thresh = 10.
 
-On the flip side, if you observed fairly bright objects want to eliminate the
-inclusion of spurious faint sources in your final ``spec1d`` file, you may
+On the flip side, if you observed fairly bright objects and want to eliminate
+the inclusion of spurious faint sources in your final ``spec1d`` file, you may
 *increase* ``snr_thresh`` to the point that only a single object is detected.
 Similarly, you could use the parameter ``maxnumber_sci`` to limit the object
 finding to a specified number of objects in each science frame (ordered by
@@ -1255,7 +1279,7 @@ Nights with Poor (or Really Excellent) Seeing or Observations of Extended Object
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The default initial object finding kernel size for DeVeny data assumes a seeing
-of ~1.5" regardless of binning\ [6]_, which should cover most conditions at LDT
+of ~1.5" regardless of binning\ [5]_, which should cover most conditions at LDT
 when observing pointlike objects. If the seeing is significantly better or
 worse than this value -- or you are observing extended objects -- and you are
 having difficulty automatically finding your desired objects in the frame, you
@@ -1755,21 +1779,21 @@ are in the same place.
 .. [2]
    `<https://tools.ietf.org/html/rfc1149>`__
 
-.. [3]
-   See `the LDT Observer Tools package <https://lowellobservatory.github.io/LDTObserverTools/fix_ldt_header.html>`__
-   for one option.
+.. .. [3]
+..    See `the LDT Observer Tools package <https://lowellobservatory.github.io/LDTObserverTools/fix_ldt_header.html>`__
+..    for one option.
 
-.. [4]
+.. [3]
    `Horne, K. 1986, PASP, 98,
    609 <https://ui.adsabs.harvard.edu/abs/1986PASP...98..609H/abstract>`__
 
-.. [5]
+.. [4]
    `<https://specutils.readthedocs.io/en/stable/index.html>`__ In
    contrast to PypeIt itself, the use of ``specutils`` *does* require knowledge
    of Python for use. This is but one possible analysis tool, and the reader is
    encouraged to seek out the best tool for their particular work.
 
-.. [6]
+.. [5]
    The actual seeing is usually better than this, but intermittent
    vibration in the instrument cube tends to smear out spectra along the
    slit.
