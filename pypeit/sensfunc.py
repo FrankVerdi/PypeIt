@@ -281,12 +281,12 @@ class SensFunc(datamodel.DataContainer):
         # check if this is the right standard star for the observation, i.e., if there is overlap in the wavelength
         # coverage between the archival and observed standard star spectrum
 
-        overlap = (self.wave_cnts[:,0] <= self.std_dict['wave'].value.max()) & \
-                  (self.wave_cnts[:,0] >= self.std_dict['wave'].value.min())
+        overlap = (self.wave_cnts[self.counts_mask] <= self.std_dict['wave'].value.max()) & \
+                  (self.wave_cnts[self.counts_mask] >= self.std_dict['wave'].value.min())
         if np.sum(overlap) == 0:
             msgs.error(f'No wavelength overlap between the archival and observed standard star spectrum. '
                        'This is not the right standard star for your observations.')
-        elif np.sum(overlap)/self.nspec_in < 0.8:
+        elif np.sum(overlap)/self.wave_cnts[self.counts_mask].size < 0.8:
             msgs.warn(f'Only {np.sum(overlap)/self.nspec_in:.1%} of the observed wavelength range is covered by the '
                       f'archival standard star. This may not be the right standard star for your observations. ')
 
