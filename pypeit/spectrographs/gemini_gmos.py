@@ -859,6 +859,8 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
     def get_detector_par(self, det, hdu=None):
         """
         Return metadata for the selected detector.
+        Values of gain and ronoise are taken from DRAGONS.
+        https://github.com/GeminiDRSoftware/DRAGONS/blob/master/gemini_instruments/gmos/lookup.py
 
         Args:
             det (:obj:`int`):
@@ -889,8 +891,8 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
             nonlinear       = 0.95,
             mincounts       = -1e10,
             numamplifiers   = 4,
-            gain            = np.atleast_1d([1.86]*4),  # Slow Readout,	Low Gain
-            ronoise         = np.atleast_1d([4.19]*4),  # Slow Readout,	Low Gain
+            gain            = np.atleast_1d([1.852, 1.878, 1.874, 1.834]),  # Slow Readout,	Low Gain
+            ronoise         = np.atleast_1d([4.240, 4.000, 4.250, 4.030]),  # Slow Readout,	Low Gain
             )
         # Detector 2
         detector_dict2 = dict(
@@ -906,8 +908,8 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
             nonlinear       = 0.95,
             mincounts       = -1e10,
             numamplifiers   = 4,
-            gain            = np.atleast_1d([1.89]*4),  # Slow Readout,	Low Gain
-            ronoise         = np.atleast_1d([4.13]*4),  # Slow Readout,	Low Gain
+            gain            = np.atleast_1d([1.878, 1.840, 1.933, 1.908]),  # Slow Readout,	Low Gain
+            ronoise         = np.atleast_1d([4.120, 3.830, 3.980, 3.800]),  # Slow Readout,	Low Gain
             )
         # Detector 3
         detector_dict3 = dict(
@@ -923,8 +925,8 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
             nonlinear       = 0.95,
             mincounts       = -1e10,
             numamplifiers   = 4,
-            gain            = np.atleast_1d([1.74]*4),  # Slow Readout,	Low Gain
-            ronoise         = np.atleast_1d([3.75]*4),  # Slow Readout,	Low Gain
+            gain            = np.atleast_1d([1.652, 1.761, 1.724, 1.813]),  # Slow Readout,	Low Gain
+            ronoise         = np.atleast_1d([3.460, 3.350, 3.250, 3.500]),  # Slow Readout,	Low Gain
             )
 
         # account for the CCD upgrade happened on 2023-12-14
@@ -936,13 +938,12 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
             if obs_date >= t_upgrade:
                 # These values are taken from
                 # https://github.com/GeminiDRSoftware/DRAGONS/blob/v3.2.0/gemini_instruments/gmos/lookup.py
-                # For each detector, we use the values averaged over the 4 amps for Slow Readout+Low Gain
-                detector_dict1['gain'] = np.atleast_1d([2.00]*4)
-                detector_dict2['gain'] = np.atleast_1d([1.78]*4)
-                detector_dict3['gain'] = np.atleast_1d([1.69]*4)
-                detector_dict1['ronoise'] = np.atleast_1d([4.19]*4)
-                detector_dict2['ronoise'] = np.atleast_1d([3.82]*4)
-                detector_dict3['ronoise'] = np.atleast_1d([3.50]*4)
+                detector_dict1['gain'] = np.atleast_1d([2.038, 2.016, 2.020, 1.943])  # Slow Readout, Low Gain
+                detector_dict2['gain'] = np.atleast_1d([1.798, 1.745, 1.787, 1.787])
+                detector_dict3['gain'] = np.atleast_1d([1.594, 1.699, 1.681, 1.770,])
+                detector_dict1['ronoise'] = np.atleast_1d([4.22, 4.29, 4.20, 4.05])
+                detector_dict2['ronoise'] = np.atleast_1d([3.79, 3.68, 3.59, 4.22])
+                detector_dict3['ronoise'] = np.atleast_1d([3.39, 3.67, 3.39, 3.53])
                 # TODO: we may need to update the saturation values
 
         detectors = [detector_dict1, detector_dict2, detector_dict3]
@@ -1160,6 +1161,8 @@ class GeminiGMOSNHamSpectrograph(GeminiGMOSNSpectrograph):
     def get_detector_par(self, det, hdu=None):
         """
         Return metadata for the selected detector.
+        Values of gain and ronoise are taken from DRAGONS.
+        https://github.com/GeminiDRSoftware/DRAGONS/blob/master/gemini_instruments/gmos/lookup.py
 
         Args:
             det (:obj:`int`):
@@ -1190,8 +1193,8 @@ class GeminiGMOSNHamSpectrograph(GeminiGMOSNSpectrograph):
             nonlinear       = 0.95,
             mincounts       = -1e10,
             numamplifiers   = 4,
-            gain            = np.atleast_1d([1.63]*4),
-            ronoise         = np.atleast_1d([4.14]*4),
+            gain            = np.atleast_1d([1.568, 1.620, 1.618, 1.675]),  # Slow Readout,	Low Gain
+            ronoise         = np.atleast_1d([3.99, 4.12, 4.12, 4.06]),  # Slow Readout,	Low Gain
             )
         # Detector 2
         detector_dict2 = dict(
@@ -1207,8 +1210,8 @@ class GeminiGMOSNHamSpectrograph(GeminiGMOSNSpectrograph):
             nonlinear       = 0.95,
             mincounts       = -1e10,
             numamplifiers   = 4,
-            gain            = np.atleast_1d([1.63]*4),
-            ronoise         = np.atleast_1d([4.14]*4),
+            gain            = np.atleast_1d([1.664, 1.633, 1.65, 1.69]),
+            ronoise         = np.atleast_1d([4.20, 3.88, 3.98, 4.20]),
             )
         # Detector 3
         detector_dict3 = dict(
@@ -1224,8 +1227,8 @@ class GeminiGMOSNHamSpectrograph(GeminiGMOSNSpectrograph):
             nonlinear       = 0.95,
             mincounts       = -1e10,
             numamplifiers   = 4,
-            gain            = np.atleast_1d([1.63]*4),
-            ronoise         = np.atleast_1d([4.14]*4),
+            gain            = np.atleast_1d([1.654, 1.587, 1.63, 1.604]),
+            ronoise         = np.atleast_1d([4.55, 4.02, 4.35, 4.04]),
             )
         detectors = [detector_dict1, detector_dict2, detector_dict3]
 
