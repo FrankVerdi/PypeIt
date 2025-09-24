@@ -42,6 +42,7 @@ class ChkForCalibs(scriptbase.ScriptBase):
 
         """
 
+        from pathlib import Path
         import os
         import pathlib
         import time

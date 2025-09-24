@@ -46,3 +46,5 @@ Under-the-hood Improvements
 Bug Fixes
 ---------
 
+- Removed last vestiges of support for Python 3.10 in the form of ``datetime.UTC``
+  crutches left over from the start of support of Python 3.12.

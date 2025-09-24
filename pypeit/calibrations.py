@@ -221,7 +221,7 @@ class Calibrations:
         # Loop on the files
         for ii, ifile in enumerate(file_list):
             # Save the lamp status
-            headarr = copy.deepcopy(self.spectrograph.get_headarr(ifile))
+            headarr = [h.copy() for h in self.spectrograph.get_headarr(ifile)]
             lampstat[ii] = self.spectrograph.get_lamps_status(headarr)
 
         # Check that the lamps being combined are all the same
