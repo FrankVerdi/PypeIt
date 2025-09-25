@@ -569,7 +569,7 @@ class KuruczModelStandard(ModelFluxStandard):
 
         Spectra can currently only be generated for spectral types provided in
         the Schmidt-Kaler (1982) table.  See
-        :ref:`here<https://github.com/pypeit/PypeIt/blob/release/pypeit/data/standards/kurucz93/schmidt-kaler_table.txt>`
+        `here <https://github.com/pypeit/PypeIt/blob/release/pypeit/data/standards/kurucz93/schmidt-kaler_table.txt>`__
         for available spectral types.
 
     Parameters
