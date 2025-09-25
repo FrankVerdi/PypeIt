@@ -15,6 +15,7 @@ def pixelated_gaussian(x, c=0.0, s=1.0):
     dx = np.mean(np.diff(x))
     return (special.erf((d+dx/2.)/n) - special.erf((d-dx/2.)/n))/2./dx
 
+
 def get_fake_spec():
 
     # Wavelengths
@@ -152,11 +153,3 @@ def test_resample():
     assert np.std(spec.flux[spec.gpm][:-1] - _spec.flux[_spec.gpm]) < 1e-4, 'fluxes too different'
     indx = (_spec.wave < spec.wave[0]) | (_spec.wave > spec.wave[-1])
     assert not np.any(indx & _spec.gpm), 'pixels outside original wavelength range should be masked'
-
-
-
-
-
-
-
-
