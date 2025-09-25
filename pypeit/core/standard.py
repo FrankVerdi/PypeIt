@@ -17,8 +17,9 @@ import numpy as np
 from pypeit import msgs
 from pypeit import dataPaths
 from pypeit.pypmsgs import PypeItError
-from pypeit.core.meta import convert_radec
 from pypeit.core import spectrum
+from pypeit.core.meta import convert_radec
+from pypeit.core.wave import airtovac
 from pypeit.utils import all_subclasses
 
 
@@ -46,30 +47,30 @@ def mAB_to_cgs(wave, mAB):
     return 10**((-48.6-_mAB)/2.5) * 3e18 / _wave**2
 
 
-def airtovac(wave):
-    """
-    Convert air-based wavelengths to vacuum.
-
-    .. note::
-
-        Wavelengths less than 2000 angstroms are *not* modified.
-
-    Parameters
-    ----------
-    wave : scalar-like, array-like
-        Air wavelengths in Angstroms
-
-    Returns
-    -------
-    float, `numpy.ndarray`_
-        Vacuum wavelengths in Angstroms.  Type matches input.
-    """
-    # Standard conversion format
-    _wave = wave if isinstance(wave, (float, np.floating, int, np.integer)) else np.asarray(wave)
-    sigma_sq = (1.e4/_wave)**2. #wavenumber squared
-    factor = 1 + (5.792105e-2/(238.0185-sigma_sq)) + (1.67918e-3/(57.362-sigma_sq))
-    factor = factor*(_wave>=2000.) + 1.*(_wave<2000.) #only modify above 2000A
-    return _wave * factor
+#def airtovac(wave):
+#    """
+#    Convert air-based wavelengths to vacuum.
+#
+#    .. note::
+#
+#        Wavelengths less than 2000 angstroms are *not* modified.
+#
+#    Parameters
+#    ----------
+#    wave : scalar-like, array-like
+#        Air wavelengths in Angstroms
+#
+#    Returns
+#    -------
+#    float, `numpy.ndarray`_
+#        Vacuum wavelengths in Angstroms.  Type matches input.
+#    """
+#    # Standard conversion format
+#    _wave = wave if isinstance(wave, (float, np.floating, int, np.integer)) else np.asarray(wave)
+#    sigma_sq = (1.e4/_wave)**2. #wavenumber squared
+#    factor = 1 + (5.792105e-2/(238.0185-sigma_sq)) + (1.67918e-3/(57.362-sigma_sq))
+#    factor = factor*(_wave>=2000.) + 1.*(_wave<2000.) #only modify above 2000A
+#    return _wave * factor
 
 
 def archive_entry(archive, name):
@@ -355,7 +356,7 @@ class XShooterFluxStandard(ArchivedFluxStandard):
         self.file = self.path.get_file_path(file)
         std_spec = table.Table.read(self.file, format='ascii')
         # XShooter standard files use air wavelengths, convert them to vacuum
-        wave = airtovac(std_spec['col1'])
+        wave = airtovac(std_spec['col1'] * units.AA).value
         flux = std_spec['col2'] * 1e17
         super().__init__(wave, flux, meta=meta)
 

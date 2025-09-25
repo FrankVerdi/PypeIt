@@ -40,22 +40,6 @@ def test_mab_to_cgs():
     with pytest.raises(ValueError):
         _cgs = standard.mAB_to_cgs(wave, mAB) * 1e17
 
-def test_airtovac():
-    air = 5000.
-    vac = standard.airtovac(air)
-    assert isinstance(vac, (float, np.floating)), 'Should return scalar'
-    assert np.absolute(vac - 5001.4) < 0.01, 'Bad value'
-
-    air = [5000., 5100.]
-    _vac = standard.airtovac(air)
-    assert isinstance(_vac, np.ndarray), 'Should return array'
-    assert np.absolute(vac - _vac[0]) < 1e-10, 'Bad value'
-
-    air = [1950.]
-    vac = standard.airtovac(air)
-    assert isinstance(vac, np.ndarray), 'Should return array'
-    assert np.absolute(vac[0] - air[0]) < 1e-10, 'Should not alter wave < 2000'
-
 
 def test_archive_entry():
     archives = {
