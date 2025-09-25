@@ -1732,7 +1732,6 @@ class Spectrograph:
                 else:
                     is_std = np.append(is_std, 
                         standard.get_archive_standard(ra, dec, tol=10., check=True)
-#                       flux_calib.find_standard_file(ra, dec, toler=10.*units.arcmin, check=True)
                     )
 
             foundstd = indx & is_std

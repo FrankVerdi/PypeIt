@@ -23,6 +23,7 @@ from pypeit.core import flux_calib
 from pypeit.core.wavecal import wvutils
 from pypeit.core import coadd
 from pypeit.core import fitting
+from pypeit.core import standard
 from pypeit import specobjs
 from pypeit import utils
 from pypeit import onespec

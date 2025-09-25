@@ -407,7 +407,6 @@ class KECKHIRESSpectrograph(spectrograph.Spectrograph):
             if 'ra' in fitstbl.keys() and 'dec' in fitstbl.keys():
                 std = np.array([
                     standard.get_archive_standard(ra, dec, tol=10., check=True)
-#                    flux_calib.find_standard_file(ra, dec, toler=10. * units.arcmin, check=True)
                     if ra is not None and dec is not None and not np.isnan(ra) and not np.isnan(dec)
                     else False for ra, dec in zip(fitstbl['ra'], fitstbl['dec'])])
             return good_exp & (fitstbl['idname'] == 'Object') & std

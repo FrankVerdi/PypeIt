@@ -188,7 +188,6 @@ class SOARGoodmanSpectrograph(spectrograph.Spectrograph):
             if 'ra' in fitstbl.keys() and 'dec' in fitstbl.keys():
                 std = np.array([
                     standard.get_archive_standard(ra, dec, tol=10., check=True)
-#                    flux_calib.find_standard_file(ra, dec, toler=10. * units.arcmin, check=True)
                     for ra, dec in zip(fitstbl['ra'], fitstbl['dec'])
                 ])
             base = good_exp & (fitstbl['idname'] == 'SPECTRUM') & self.lamps(fitstbl, 'off')
