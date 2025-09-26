@@ -289,8 +289,12 @@ class LBTLUCI1Spectrograph(LBTLUCISpectrograph):
         """
 
         # Get detector parameters from hdu header if available
-
-        if hdu is not None:
+        if hdu is None:
+            # needed for automated construction of the detector table provided
+            # in the docs
+            platescale = None
+            ronoise = None
+        else:
             readmode = self.get_meta_value(self.get_headarr(hdu), 'readmode')
 
             if readmode == 'LIR':
@@ -299,7 +303,6 @@ class LBTLUCI1Spectrograph(LBTLUCISpectrograph):
                 ronoise = np.atleast_1d(5.1)
             else:
                 msgs.error("Read mode not recognized (options: LIR, MER)")
-                raise ValueError()
 
             camera = self.get_meta_value(self.get_headarr(hdu), 'camera')
             if camera == 'N1.8 Camera':
@@ -525,8 +528,13 @@ class LBTLUCI2Spectrograph(LBTLUCISpectrograph):
             :class:`~pypeit.images.detector_container.DetectorContainer`:
             Object with the detector metadata.
         """
-
-        if hdu is not None:
+        # Get detector parameters from hdu header if available
+        if hdu is None:
+            # needed for automated construction of the detector table provided
+            # in the docs
+            platescale = None
+            ronoise = None
+        else:
             readmode = self.get_meta_value(self.get_headarr(hdu), 'readmode')
 
             if readmode == 'LIR':
