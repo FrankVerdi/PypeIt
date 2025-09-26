@@ -130,9 +130,19 @@ def nearest_archive_entry(archive, ra, dec, unit=None):
 
 
 class ArchivedFluxStandard(spectrum.Spectrum):
+    """
+    Abstract class used to provide common methods for all archive standards.
+    """
     
     archive = None
+    """
+    Archive identifier
+    """
+
     path = None
+    """
+    Root with data files
+    """
 
     @classmethod
     def nearest_standard(cls, ra, dec, unit=None):
@@ -206,7 +216,7 @@ class ArchivedFluxStandard(spectrum.Spectrum):
             Units for the on-sky coordinates.  See ``ra`` and ``dec`` for the
             default behavior.
         """
-        sep, row = nearest_archive_entry(cls.archive, ra, dec, unit=None)
+        sep, row = nearest_archive_entry(cls.archive, ra, dec, unit=unit)
         if sep > tol * units.arcmin:
             msgs.error(f'Closest object ({row["Name"]}) is separated by {sep.to("arcmin").value} '
                        f'arcmin, which is beyond the required tolerance ({tol} arcmin).')
@@ -268,11 +278,14 @@ class ESOFilFluxStandard(ArchivedFluxStandard):
 
     def __init__(self, file, meta=None):
         self.file = self.path.get_file_path(file)
+        # NOTE: When the file is in the cache, the name of the file becomes
+        # 'contents', so this check for the file name fails.  General users
+        # won't be adding files to the directory, so I think we can skip this
+        # step.
 #        if not self.file.name.startswith('f'):
-#            msgs.error(f'{self.file} {self.file.name} The ESO reference standard filename must start with the string '
+#            msgs.error(f'The ESO reference standard filename must start with the string '
 #                        '`f`;  make sure it is the case. Also make sure that the flux '
 #                        'units in the file are in 10**(-16) erg/s/cm2/AA.')
-
         std_spec = table.Table.read(self.file, format='ascii')
         wave = std_spec['col1']
         flux = std_spec['col2'] * 10    # Convert from 1e-16 to 1e-17 erg/s/cm^2/Angstrom
@@ -526,7 +539,6 @@ class BlackbodyStandard(ModelFluxStandard):
         return cls(row['a_x10m23'], row['T_K'], wave=wave, meta=cls._init_meta(row=row))
 
 
-# TODO: Add the Schmidt-Kaler table to the docs.
 class KuruczModelStandard(ModelFluxStandard):
     """
     The Kurucz stellar model for a given apparent magnitude and spectral type.
@@ -860,13 +872,15 @@ def get_model_standard(spectral_type, V_mag):
     spectrum.Spectrum
         The standard spectrum.
     """
-    if spectral_type == 'A0':
-        return VegaStandard(V_mag)
-    if spectral_type == 'PHOENIX':
-        return PhoenixStandard(V_mag)
-    if spectral_type == 'NONE':
-        return PseudoStandard()
-    return KuruczModelStandard(V_mag, spectral_type)
+    match spectral_type:
+        case 'A0':
+            return VegaStandard(V_mag)
+        case 'PHOENIX':
+            return PhoenixStandard(V_mag)
+        case 'NONE':
+            return PseudoStandard()
+        case _:
+            return KuruczModelStandard(V_mag, spectral_type)
 
 
 def get_standard_spectrum(spectral_type=None, V_mag=None, ra=None, dec=None, tol=20., unit=None,
