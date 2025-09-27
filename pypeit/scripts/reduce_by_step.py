@@ -22,8 +22,8 @@ class ReducebyStep(scriptbase.ScriptBase):
         parser.add_argument('frame', type=str, help='Raw science/standard frame to reduce as listed in your PypeIt file, e.g. b28.fits.gz.')
         parser.add_argument('step', type=str, help="Reduction step to perform (process, findobj, extract)")
 
-        parser.add_argument('--det', default=None, type=int,
-                            help='Detector number. Required, but the list of options is provided if None is give')
+        parser.add_argument('--det', default=None, type=str,
+                            help='Detector number or Mosaic tuple. Required, but the list of options is provided if None is give')
         parser.add_argument('--show', default=False, action='store_true',
                             help='Show reduction steps via plots (which will block further '
                                  'execution until clicked on) and outputs to ginga. Requires '
@@ -41,6 +41,7 @@ class ReducebyStep(scriptbase.ScriptBase):
         from pypeit import pypeit
         from pypeit import pypeit_steps
         from pypeit import msgs
+        from pypeit import pypmsgs
         from pypeit import outputfiles
         from pypeit.images import pypeitimage
         from pypeit import specobjs
@@ -60,16 +61,32 @@ class ReducebyStep(scriptbase.ScriptBase):
         # Detector
         # TODO -- worry about mosaics
         detectors = pypeIt.spectrograph.select_detectors()
+        mosaics = pypeIt.spectrograph.allowed_mosaics
         if args.det is None:
+
             print("---------------------------------------------------------------------")
             print("---------------------------------------------------------------------")
             print("---------------------------------------------------------------------")
             print(f"No detector provided (--det). Choose from one of these: {detectors}.") 
+            if len(mosaics) > 0:
+                print("")
+                print(f"This instrument also supports mosaics: {mosaics}")
+                print("To reduce a mosaic, provide the mosaic as the detector, e.g. --det '1,2'")
+                print("")
             print("---------------------------------------------------------------------")
             return
-        elif args.det not in detectors:
+        elif ',' not in args.det: 
+            if int(args.det) not in detectors:
+                msgs.error(f"Detector {args.det} not found. Choose from one of these: {detectors}.")
+            else: 
+                det = int(args.det)
+        elif mosaics is not None and ',' in args.det: 
+            # Convert to tuple
+            det = tuple([int(d) for d in args.det.split(',')])
+            if det not in mosaics:
+                msgs.error(f"Mosaic {args.det} not found. Choose from one of these: {mosaics}.")
+        else:
             msgs.error(f"Detector {args.det} not found. Choose from one of these: {detectors}.")
-        det = args.det
 
         # Find the frame
         row = np.where(pypeIt.fitstbl['filename'] == args.frame)[0]
@@ -111,8 +128,10 @@ class ReducebyStep(scriptbase.ScriptBase):
             sciImg, bkg_redux_sciimg = pypeit_steps.process_one_det(
                 pypeIt.spectrograph, pypeIt.fitstbl, pypeIt.par,
                 frames, det, calib_ID, pypeIt.calibrations_path,
-                bg_frames=bg_frames)
+                bg_frames=bg_frames, sci_outfile=sci_filename,
+                bkg_outfile=bkg_filename)
 
+            '''
             # Generate the folder?
             if not sci_filename.parent.is_dir():
                 sci_filename.parent.mkdir()
@@ -125,35 +144,44 @@ class ReducebyStep(scriptbase.ScriptBase):
             if bkg_redux_sciimg is not None:
                 bkg_redux_sciimg.to_file(bkg_filename, overwrite=True)
                 msgs.info(f'Wrote intermediate background image to {bkg_filename}')
+            '''
 
             # All done
             return
         else: # Load
-            # TODO -- move to process?
             msgs.info(f'Loading images for detector {det}')
             sciImg = pypeitimage.PypeItImage.from_file(sci_filename)
             if bg_frames is not None and len(bg_frames) > 0:
                 bkg_redux_sciimg = pypeitimage.PypeItImage.from_file(bkg_filename)
             else:
                 bkg_redux_sciimg = None
-            #sciImg_dict[det] = sciImg
-            #bkg_redux_sciimg_dict[det] = bkg_redux_sciimg
 
         # Find Objects
         if args.step == 'findobj':
+
+            # Load up the standard star spec1d file if it exists
             if objtype_out == 'science':
                 is_standard = pypeIt.fitstbl.find_frames('standard')
                 frame_indx = np.arange(len(pypeIt.fitstbl))
-                std_outfile = outputfiles.get_std_outfile(pypeIt.fitstbl, pypeIt.par, 
+                try:
+                    std_outfile = outputfiles.get_std_outfile(pypeIt.fitstbl, pypeIt.par, 
                                                           frame_indx[is_standard])
+                except pypmsgs.PypeItError:
+                    msgs.warn('No standard star spec1d file found for this science frame, but one was expected.') 
+                    msgs.warn('Continuing without standard star information.')
+                    std_outfile = None
             else:
                 std_outfile = None                                                    
+
+            # Do it
             initial_sky, sobjs_obj, _ = pypeit_steps.findobj_on_det(
                 sciImg, pypeIt.spectrograph, pypeIt.fitstbl, pypeIt.par,
                 frames, calib_ID, det, pypeIt.calibrations_path,
                 bkg_redux=bkg_redux,
                 find_negative=find_negative,
                 std_outfile=std_outfile, show=args.show)
+
+            # TODO -- write from findobj_on_det?
 
             # Write
             init_pypeit = pypeitimage.PypeItImage(initial_sky)
@@ -177,6 +205,41 @@ class ReducebyStep(scriptbase.ScriptBase):
             
         # Extract?
         if args.step == 'extract':
+            this_calib_silts = None
+
+            # Slitmask?
+            if pypeIt.par['reduce']['slitmask']['assign_obj']:
+                sciImg_dict = {}
+                calib_slits = []
+                # TODO - ask Debora to check this..
+                if isinstance(det, tuple):
+                    for mosaic in mosaics:
+                        # Science images
+                        sci_filename = outputfiles.intermediate_filename('sciImg', basename, 
+                                    pypeIt.spectrograph.get_det_name(mosaic))
+                        if not sci_filename.is_file():
+                            msgs.warn(f"Science image {sci_filename} not found for adjusting for slitmask.  Skipping mosaic {mosaic}.")
+                            continue
+                        sciImg_dict[mosaic] = pypeitimage.PypeItImage.from_file(sci_filename)
+                        # Grab the calibrations
+                        caliBrate = pypeit_steps.load_calibrations_for_frame(
+                            pypeIt.spectrograph, pypeIt.fitstbl, pypeIt.par, frames[0], mosaic, 
+                            calib_ID, pypeIt.calibrations_path)
+                        calib_slits.append(caliBrate.slits)
+                else:
+                    msgs.error("Need to implement this!")
+
+                # Run me
+                calib_slits = exposure.adjust_for_slitmask(
+                    sciImg_dict, pypeIt.spectrograph, pypeIt.fitstbl, pypeIt.par, 
+                    frames[0], pypeIt.fitstbl['binning'][frames[0]],
+                    specobjs_objfind, calib_slits)
+                # Update this_calib_silts
+                idx = mosaics.index(det)
+                this_calib_silts = calib_slits[idx]
+
+            # Proceed with extraction
+
             all_spec2d = spec2dobj.AllSpec2DObj()
             all_spec2d['meta']['bkg_redux'] = bkg_redux
             all_spec2d['meta']['find_negative'] = find_negative
@@ -194,7 +257,8 @@ class ReducebyStep(scriptbase.ScriptBase):
                 calib_ID, pypeIt.calibrations_path, 
                 sciImg, bkg_redux_sciimg, initial_sky, specobjs_on_det,
                 bkg_redux=bkg_redux,
-                find_negative=find_negative)
+                find_negative=find_negative,
+                calib_slits=this_calib_silts)
 
             # Save it
             exposure.save_exposure(pypeIt.spectrograph, pypeIt.fitstbl,

@@ -178,7 +178,8 @@ def calib_one(spectrograph, fitstbl, par, det, calib_ID, calibrations_path:str,
 
 
 def process_one_det(spectrograph, fitstbl, par, frames:list, 
-                    det, calib_ID:str, calibrations_path:str, bg_frames:list=None): 
+                    det, calib_ID:str, calibrations_path:str, bg_frames:list=None,
+                    sci_outfile:str=None, bkg_outfile:str=None): 
     """
     Process a single detector for a given set of frames.
 
@@ -207,6 +208,12 @@ def process_one_det(spectrograph, fitstbl, par, frames:list,
             List of indices corresponding to the background frames in the
             `fitstbl`. If None or empty, no A-B background subtraction is performed.
             Default is None.
+        sci_outfile (:obj:`str`, optional):
+            The science output file, if this is a science reduction.
+            Default is None.
+        bkg_outfile (:obj:`str`, optional):
+            The background output file, if this is a background
+            subtraction reduction. Default is None. 
 
     Returns:
         tuple:
@@ -272,6 +279,19 @@ def process_one_det(spectrograph, fitstbl, par, frames:list,
         # function propagates that to the subtracted image, ignoring any
         # spatial flexure determined for the background image.
         sciImg = bkg_redux_sciimg.sub(bgimg)
+
+    # Write out the science image?
+    if sci_outfile is not None:
+        # Generate the folder?
+        if not sci_outfile.parent.is_dir():
+            sci_outfile.parent.mkdir()
+        sciImg.to_file(sci_outfile, overwrite=True)
+        msgs.info(f'Wrote intermediate science image to {sci_outfile}')
+
+    # Write out the background image?
+    if bkg_outfile is not None and bkg_redux_sciimg is not None:
+        bkg_redux_sciimg.to_file(bkg_outfile, overwrite=True)
+        msgs.info(f'Wrote intermediate background image to {bkg_outfile}')
 
     # Return
     return sciImg, bkg_redux_sciimg

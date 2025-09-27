@@ -53,10 +53,10 @@ def adjust_for_slitmask(sciImg_dict:dict, spectrograph, fitstbl, par,
         information, including object positions and offsets.
     """
     # get object positions from slitmask design and slitmask offsets for all the detectors
-    spat_flexure = np.array([ss.spat_flexure for ss in sciImg_dict])
+    spat_flexure = np.array([sciImg_dict[ss].spat_flexure for ss in sciImg_dict])
     # Grab platescale with binning
     bin_spec, bin_spat = parse.parse_binning(binning)
-    platescale = np.array([ss.detector.platescale*bin_spat for ss in sciImg_dict])
+    platescale = np.array([sciImg_dict[ss].detector.platescale*bin_spat for ss in sciImg_dict])
     # get the dither offset if available and if desired
     dither_off = None
     if par['reduce']['slitmask']['use_dither_offset']:

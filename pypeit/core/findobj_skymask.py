@@ -5,6 +5,7 @@
 """
 from IPython import embed
 
+import os 
 import numpy as np
 import scipy.interpolate
 import scipy.ndimage
@@ -1414,6 +1415,9 @@ def objfind_QA(spat_peaks, snr_peaks, spat_vector, snr_vector, snr_thresh, qa_ti
     if show:
         plt.show()
     if objfindQA_filename is not None:
+        # Genreate the output folders
+        if not os.path.isdir(os.path.dirname(objfindQA_filename)):
+            os.makedirs(os.path.dirname(objfindQA_filename))
         fig.savefig(objfindQA_filename, dpi=400)
     plt.close('all')
 
