@@ -934,10 +934,11 @@ class Calibrations:
             self.flatimages = pixelflatImages
 
             # State
-            self.state.update_calib('flats', self.calib_ID, self.det, 
-                                'types', 'pixelflat')
-            if pix_is_illum:
+            if self.state is not None:
                 self.state.update_calib('flats', self.calib_ID, self.det, 
+                                'types', 'pixelflat')
+                if pix_is_illum:
+                    self.state.update_calib('flats', self.calib_ID, self.det, 
                                 'types', 'illumflat')
 
         # Only build illum_flat if the input files are different from the pixel flat
@@ -984,7 +985,8 @@ class Calibrations:
             illumflatImages = illumFlatField.run(doqa=self.write_qa, show=self.show)
 
             # State
-            self.state.update_calib('flats', self.calib_ID, self.det, 
+            if self.state is not None:
+                self.state.update_calib('flats', self.calib_ID, self.det, 
                                 'types', 'illumflat')
 
         # Merge the illum flat with the pixel flat
@@ -1006,7 +1008,8 @@ class Calibrations:
             # Save slits too, in case they were tweaked
             self.slits.to_file()
             # State
-            self.state.update_calib('flats', self.calib_ID, self.det, 
+            if self.state is not None:
+                self.state.update_calib('flats', self.calib_ID, self.det, 
                                 'output_file', self.flatimages.get_path())
 
         # Apply user-supplied images
