@@ -188,35 +188,33 @@ class PypeIt:
         """
         Process all calibration frames.
 
-        Provides an avenue to reduce a dataset without (or omitting) any
-        science/standard frames.
+        Provides an avenue to process the calibrations for a dataset 
+        without (or omitting) any science/standard frames.
         """
-        # TODO -- THIS NEEDS TO BE REFACTORED TOO
-
         self.tstart = time.perf_counter()
 
         # Frame indices
-        frame_indx = np.arange(len(self.fitstbl))
         for calib_ID in self.fitstbl.calib_groups:
             # Find all the frames in this calibration group
             in_grp = self.fitstbl.find_calib_group(calib_ID)
             if not any(in_grp):
                 continue
-            grp_frames = frame_indx[in_grp]
-
             # Find the detectors to reduce
-            detectors = self.select_detectors(self.spectrograph, self.par['rdx']['detnum'],
-                                              slitspatnum=self.par['rdx']['slitspatnum'])
+            detectors = self.spectrograph.select_detectors(subset=self.par['rdx']['detnum'] if self.par['rdx']['slitspatnum'] is None 
+                                              else self.par['rdx']['slitspatnum'])
             msgs.info(f'Detectors to work on: {detectors}')
 
             # Loop on Detectors
             for self.det in detectors:
                 msgs.info(f'Working on detector {self.det}')
 
-                self.caliBrate = self.calib_one(grp_frames, self.det, calib_ID)
-                if not self.caliBrate.success:
+                #self.caliBrate = self.calib_one(grp_frames, self.det, calib_ID)
+                caliBrate = pypeit_steps.calib_one(self.spectrograph, self.fitstbl, self.par,
+                                       self.det, calib_ID, self.calibrations_path)
+                                       
+                if not caliBrate.success:
                     msgs.warn(f'Calibrations for detector {self.det} were unsuccessful!  The step '
-                              f'that failed was {self.caliBrate.failed_step}.  Continuing to next '
+                              f'that failed was {caliBrate.failed_step}.  Continuing to next '
                               f'detector.')
 
         # Finish
