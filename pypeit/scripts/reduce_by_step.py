@@ -57,6 +57,7 @@ class ReducebyStep(scriptbase.ScriptBase):
         pypeIt.reuse_calibs = True
 
         # Detector
+        # TODO -- worry about mosaics
         detectors = pypeIt.spectrograph.select_detectors()
         if args.det is None:
             print("---------------------------------------------------------------------")
@@ -114,6 +115,8 @@ class ReducebyStep(scriptbase.ScriptBase):
             # Generate the folder?
             if not sci_filename.parent.is_dir():
                 sci_filename.parent.mkdir()
+
+            # TODO -- write from process_one_det
             # Write sciImg
             sciImg.to_file(sci_filename, overwrite=True)
             msgs.info(f'Wrote intermediate science image to {sci_filename}')
@@ -125,6 +128,7 @@ class ReducebyStep(scriptbase.ScriptBase):
             # All done
             return
         else: # Load
+            # TODO -- move to process?
             msgs.info(f'Loading images for detector {det}')
             sciImg = pypeitimage.PypeItImage.from_file(sci_filename)
             if bg_frames is not None and len(bg_frames) > 0:
@@ -166,6 +170,9 @@ class ReducebyStep(scriptbase.ScriptBase):
             initial_sky = tmp.image
             #
             specobjs_objfind = specobjs.SpecObjs.from_fitsfile(spec1d_filename)
+
+        # TODO -- Add objs in here!!
+        # TODO -- Allow for exposure level slurp here (on all dets that exist)
             
         # Extract?
         if args.step == 'extract':
