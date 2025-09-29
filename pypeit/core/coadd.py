@@ -1003,12 +1003,12 @@ def robust_median_ratio(
 
         flux_ref_ma = np.ma.MaskedArray(flux_ref, np.logical_not(calc_mask))
         flux_ref_clipped, lower, upper = sigclip(flux_ref_ma, masked=True, return_bounds=True)
-        # mask_stack = True are good values
+        # mask_ref_clipped = True are good values
         mask_ref_clipped = np.logical_not(flux_ref_clipped.mask)
 
         flux_ma = np.ma.MaskedArray(flux_ref, np.logical_not(calc_mask))
         flux_clipped, lower, upper = sigclip(flux_ma, masked=True, return_bounds=True)
-        # mask_stack = True are good values
+        # mask_clipped = True are good values
         mask_clipped = np.logical_not(flux_clipped.mask)
 
         new_mask = mask_ref_clipped & mask_clipped
@@ -1026,13 +1026,14 @@ def robust_median_ratio(
     else:
         if (np.sum(calc_mask) <= min_good*nspec):
             msgs.warn(
-                f'Found only {np.sum(calc_mask)} good pixels for computing median flux ratio.  No '
-                'median rescaling applied'
+                f'Found only {np.sum(calc_mask)} good pixels for computing median flux ratio.'
+                + msgs.newline() + 'No median rescaling applied'
             )
         if (snr_resc_med <= snr_do_not_rescale):
             msgs.warn(
                 f'Median flux ratio of pixels in reference spectrum {snr_resc_med} <= '
-                f'snr_do_not_rescale = {snr_do_not_rescale}.  No median rescaling applied'
+                f'snr_do_not_rescale = {snr_do_not_rescale}.' + msgs.newline()
+                + 'No median rescaling applied'
             )
         ratio = 1.0
 
