@@ -194,6 +194,8 @@ run_pypeit
 This is the main executable for PypeIt for its core end-to-end data processing.
 See :ref:`run-pypeit` for details.
 
+.. _pypeit-run-to-calibstep:
+
 pypeit_run_to_calibstep
 -----------------------
 
