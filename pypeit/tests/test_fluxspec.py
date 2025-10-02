@@ -230,6 +230,3 @@ def extinction_correction_tester(algorithm):
     # clean up
     os.remove(spec1d_file)
     os.remove(sens_file)
-
-test_extinction_correction_uvis()
-
