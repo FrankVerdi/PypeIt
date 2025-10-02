@@ -26,7 +26,10 @@ Functionality/Performance Improvements and Additions
 Instrument-specific Updates
 ---------------------------
 
-
+- Improved support for LBT/LUCI, including updated detector parameters, support
+  for the N3.75 camera, wavelength solutions for the G200 grating, and a basic
+  non-linearity correction. Edge finding parameters have been better optimized,
+  and spatial flexure correction has now been turned on.
 
 Script Changes
 --------------
