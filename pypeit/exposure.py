@@ -147,7 +147,7 @@ def findobj_on_exposure(sciImg_dict:dict, spectrograph, fitstbl, par,
     It returns the initial sky model for each detector and a collection of
     identified spectral objects.
 
-Calls :func:`~pypeit.pypeit_steps.process_one_det` for each detector.
+    Calls :func:`~pypeit.pypeit_steps.process_one_det` for each detector.
     
     Args:
         sciImg_dict (:obj:`dict`): A dict of science image objects, one for each 
@@ -167,6 +167,7 @@ Calls :func:`~pypeit.pypeit_steps.process_one_det` for each detector.
         bkg_redux (bool, optional): If True, perform A-B background subtraction. Defaults to False.
         find_negative (bool, optional): If True, search for negative objects. Defaults to False.
         show (bool, optional): If True, display intermediate results. Defaults to False.
+
     Returns:
         tuple:
             - initial_sky_dict (dict): Dictionary containing the initial sky model; keys are each detector.
@@ -218,7 +219,6 @@ def extract_exposure(sciImg_dict:dict, bkg_redux_sciimg_dict:dict,
             detector, containing information such as spatial flexure and 
             detector properties.
         bkg_redux_sciimg_dict (dict): Dictionary containing background-reduced science images for each detector.
-        detectors: List of detectors to process.
         spectrograph (:class:`~pypeit.spectrographs.spectrograph.Spectrograph`):
             Spectrograph object
         fitstbl (:class:`~pypeit.metadata.PypeItMetaData`):
@@ -226,6 +226,7 @@ def extract_exposure(sciImg_dict:dict, bkg_redux_sciimg_dict:dict,
         par (:class:`~pypeit.par.pypeitpar.CalibrationsPar`):
             The parameter set for the reduction process, 
         frames (:obj:`list`): A list of frame indices to process.
+        detectors: List of detectors to process.
         calib_ID (:obj:`str`): The calibration group ID.
         calibrations_path (:obj:`str`): The path to the calibration files.
         all_specobjs_objfind: SpecObjs object containing objects found during object finding.
@@ -458,12 +459,13 @@ def save_exposure(spectrograph, fitstbl, par,
             The 2D reduced spectrum objects.
         all_specobjs (:class:`~pypeit.specobjs.SpecObjs`):
             The 1D spectral extraction objects.
-        history (:class:`~pypeit.history.History`), optional:
+        calibrations_path (:obj:`str`): The path to the calibration files.
+        history (:class:`~pypeit.history.History`, optional):
             History entries to be added to fits header
-        in_update_det (:obj:`int`), optional:
+        in_update_det (:obj:`int`, optional):
             Detector number to use when writing the output files.
             If not None, overwrite the value of par['rdx']['detnum']
-        skip_write_2d (:obj:`bool`), optional:
+        skip_write_2d (:obj:`bool`, optional):
             Skip writing the 2D spectrum to disk
     """
     # Check for the Science/ directory

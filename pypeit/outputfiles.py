@@ -58,6 +58,7 @@ def intermediate_filename(itype:str, basename:str, det_name:str,
     Args:
         itype (:obj:`str`):
             Type of intermediate file
+            Standard options are: sciImg, bkgImg, initSky, spec1d
         basename (:obj:`str`):
             Basename of the file
         det_name (:obj:`str`):
