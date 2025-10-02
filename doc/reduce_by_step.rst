@@ -159,16 +159,20 @@ The script creates intermediate files that can be loaded by subsequent steps:
 
 Process Step Outputs
 ~~~~~~~~~~~~~~~~~~~~~
-- ``Science/sciImg_<basename>_<det>.fits``: Processed science image
-- ``Science/bkgImg_<basename>_<det>.fits``: Background image (if applicable)
+- ``Intermediate/sciImg_<basename>_<det>.fits``: Processed science image
+- ``Intermediate/bkgImg_<basename>_<det>.fits``: Background image (if applicable)
 
 FindObj Step Outputs
 ~~~~~~~~~~~~~~~~~~~~~
 - ``Science/initsky_<basename>_<det>.fits``: Initial sky model
-- ``Science/spec1d_<basename>_<det>.fits``: Object catalog with traces
+- ``Science/spec1d_<basename>_<det>.fits``: Object catalog with traces (no extractions)
 
 Extract Step Outputs
 ~~~~~~~~~~~~~~~~~~~~~
+
+This steps produces the final, standard data products for PypeIt.
+As a reminder, these are:
+
 - ``Science/spec2d_<basename>.fits``: 2D spectrum  
 - ``Science/spec1d_<basename>.fits``: Extracted 1D spectra
 
@@ -206,7 +210,8 @@ Understand what each step does by running them individually and examining output
 Integration with Main Pipeline
 ------------------------------
 
-After using ``reduce_by_step`` for testing and parameter optimization, run the full reduction:
+After using ``reduce_by_step`` for testing and parameter optimization, 
+run the full reduction:
 
 .. code-block:: console
 
