@@ -1,4 +1,5 @@
 """ States to monitor the progress of the reduction """
+# TODO -- THIS IS WORK IN PROGRESS AND PROBABLY SHOULD BE IGNORED FOR NOW
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Literal
 

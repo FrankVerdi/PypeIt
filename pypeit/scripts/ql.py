@@ -54,6 +54,7 @@ from pypeit import pypeitsetup
 from pypeit import metadata
 from pypeit import io
 from pypeit import inputfiles 
+from pypeit import outputfiles
 from pypeit import pypeit
 from pypeit import coadd2d
 from pypeit.par.pypeitpar import PypeItPar
@@ -299,9 +300,12 @@ def generate_sci_pypeitfile(redux_path:str,
     is_std = ps_sci.fitstbl.find_frames('standard', index=True)
     if len(is_std) > 0 and not clear:
         for i in is_std:
-            std_spec1d = pypeit.PypeIt.get_spec_file_name(
-                            sci_dir / ps_sci.par['rdx']['scidir'],
-                            ps_sci.fitstbl.construct_basename(i))
+            #std_spec1d = pypeit.PypeIt.get_spec_file_name(
+            #                sci_dir / ps_sci.par['rdx']['scidir'],
+            #                ps_sci.fitstbl.construct_basename(i))
+            std_spec1d = outputfiles.spec_output_file(
+                    ps_sci.fitstbl, None, i,
+                    sci_path=sci_dir / ps_sci.par['rdx']['scidir'])
             if std_spec1d.exists():
                 break
             # File doesn't exist, so reset

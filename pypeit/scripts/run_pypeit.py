@@ -84,7 +84,6 @@ class RunPypeIt(scriptbase.ScriptBase):
         import os
         from IPython import embed
 
-        #from pypeit import pypeit
         from pypeit import pypeit
         from pypeit import msgs
 
