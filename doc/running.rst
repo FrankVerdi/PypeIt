@@ -13,6 +13,14 @@ summarizes its workflow.  Links to more detail on specific algorithms and advice
 on adjustments that can/should be made to better reduce your data are included
 throughout.
 
+The docs below describe the standard, end-to-end reduction with 
+PypeIt.  We point users to the :ref:`_pypeit-run-to-calibstep` 
+and :doc:`reduce_by_step` documentation for a discussion of how to 
+run individual steps of PypeIt (calibrations and primary reductions).
+We caution, however, that the code was primarily developed to perform 
+end-to-end reductions and we anticipate it will perform best when 
+executed in that fashion.
+
 ----
 
 .. _run-pypeit:
