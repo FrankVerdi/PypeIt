@@ -578,7 +578,7 @@ def ech_fill_in_orders(sobjs:specobjs.SpecObjs,
                 use_mad= True, sticky=False,
                 minx = order_vec.min(), maxx=order_vec.max())
             # Fill
-            goodorder = np.in1d(order_vec, thisorder)
+            goodorder = np.isin(order_vec, thisorder)
             badorder = np.invert(goodorder)
             frac_mean_new = np.zeros(norders)
             frac_mean_new[badorder] = pypeitFit.eval(order_vec[badorder])
