@@ -23,7 +23,7 @@ from pypeit import calibrations
 from pypeit import utils
 from pypeit.history import History
 from pypeit.metadata import PypeItMetaData
-from pypeit import state
+#from pypeit import state
 from pypeit import outputfiles
 from pypeit import exposure
 
@@ -79,11 +79,12 @@ class PypeIt:
         self.pypeit_file = pypeit_file
 
         # State
-        self.run_state = state.RunPypeItState(pypeit_file=pypeit_file, 
-                                              current_step='init',
-                                              current_det=-1,
-                                              current_calibID=-1)
-        self.run_state = self.run_state.load()
+        #self.run_state = state.RunPypeItState(pypeit_file=pypeit_file, 
+        #                                      current_step='init',
+        #                                      current_det=-1,
+        #                                      current_calibID=-1)
+        #self.run_state = self.run_state.load()
+        self.run_state = None
         
         self.msgs_reset()
         
@@ -254,7 +255,8 @@ class PypeIt:
             reduce_calibID(self.spectrograph, self.par, self.fitstbl,
                            calib_ID, self.calibrations_path,
                            reduce_standard=True, overwrite=self.overwrite,
-                           show=self.show, run_state=self.run_state,
+                           show=self.show, 
+                           run_state=self.run_state,
                            reuse_calibs=self.reuse_calibs)
 
         # ############################################################################
