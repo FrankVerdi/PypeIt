@@ -1,4 +1,9 @@
-""" Module for constructing output file names and paths for PypeIt reductions."""
+"""
+Module for constructing output file names and paths for PypeIt reductions.
+
+.. include:: ../include/links.rst
+
+"""
 import numpy as np
 from pathlib import Path
 

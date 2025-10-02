@@ -1,6 +1,10 @@
 """ States to monitor the progress of the reduction """
 # TODO -- THIS IS WORK IN PROGRESS AND PROBABLY SHOULD BE IGNORED FOR NOW
-from pydantic import BaseModel, Field
+# TODO: Commenting this out until we add pydantic as a dependency
+#from pydantic import BaseModel, Field
+BaseModel = None
+def Field(*args):
+    pass
 from typing import List, Optional, Dict, Literal
 
 # Hopefully this isn't circular

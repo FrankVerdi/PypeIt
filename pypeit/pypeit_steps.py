@@ -1,3 +1,8 @@
+"""
+Module providing functions that support primary reduction steps.
+
+.. include:: ../include/links.rst
+"""
 import os
 from pathlib import Path
 import numpy as np

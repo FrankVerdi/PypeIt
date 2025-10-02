@@ -1,3 +1,6 @@
+
+.. _step-by-step-reductions:
+
 ***********************
 Step by Step Reductions
 ***********************
@@ -232,6 +235,6 @@ Notes
 See Also
 --------
 
-- :doc:`pypeit_steps` - Individual reduction step functions
-- :doc:`run_pypeit` - Full pipeline reduction
-- :doc:`exposure` - Exposure-level reduction functions
+- :ref:`run-pypeit` - Full pipeline reduction
+- :mod:`~pypeit.pypeit_steps` - Individual reduction step functions
+- :mod:`~pypeit.exposure` - Exposure-level reduction functions
