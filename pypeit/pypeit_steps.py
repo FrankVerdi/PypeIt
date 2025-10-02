@@ -169,8 +169,8 @@ def calib_one(spectrograph, fitstbl, par, det, calib_ID, calibrations_path:str,
         calib_ID, grp_frames[0], det,
         qadir=qa_path,
         reuse_calibs=reuse_calibs, show=show, user_slits=user_slits,
-        chk_version=par['rdx']['chk_version'],
-        state=run_state)
+        chk_version=par['rdx']['chk_version'])
+        #, state=run_state)
 
     # Check
     if stop_at_step is not None and stop_at_step not in caliBrate.steps:
