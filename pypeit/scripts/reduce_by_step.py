@@ -84,24 +84,18 @@ class ReducebyStep(scriptbase.ScriptBase):
                 print("")
             print("---------------------------------------------------------------------")
             return
-        elif ',' not in args.det: 
-            if int(args.det) not in detectors:
-                msgs.error(f"Detector {args.det} not found. Choose from one of these: {detectors}.")
-            else: 
-                det = int(args.det)
-        elif mosaics is not None and ',' in args.det: 
-            # Convert to tuple
-            det = tuple([int(d) for d in args.det.split(',')])
-            if det not in mosaics:
-                msgs.error(f"Mosaic {args.det} not found. Choose from one of these: {mosaics}.")
-        else:
-            msgs.error(f"Detector {args.det} not found. Choose from one of these: {detectors}.")
+        else: 
+            det = pypeIt.spectrograph.select_detectors(subset=args.det)
+            if len(det) > 1:
+                msgs.error("The input --det must be a single detector or mosaic.")
+        # detector name
+        det_name = pypeIt.spectrograph.get_det_name(det)
 
         # Find the frame
-        row = np.where(pypeIt.fitstbl['filename'] == args.frame)[0]
-        if len(row) != 1:
+        mt_row = pypeIt.fitstbl['filename'] == args.frame
+        if np.sum(mt_row) != 1:
             msgs.error(f"Frame {args.frame} not found or not unique")
-        frame = int(row)
+        frame = int(np.where(mt_row)[0][0])
         calib_IDs = pypeIt.fitstbl.find_frame_calib_groups(frame)
         if len(calib_IDs) != 1:
             msgs.error(f"Frame {args.frame} is a calibration frame.  This script is for science/standard frames only")
@@ -113,19 +107,12 @@ class ReducebyStep(scriptbase.ScriptBase):
 
         # Find all the frames
         comb_id = pypeIt.fitstbl['comb_id'][frame]
-        
-        frames = np.where(pypeIt.fitstbl['comb_id'] == comb_id)[0]
-        # Find all frames whose comb_id matches the current frames bkg_id.
-        bg_frames = np.where((pypeIt.fitstbl['comb_id'] == pypeIt.fitstbl['bkg_id'][frames][0])
-                                & (pypeIt.fitstbl['comb_id'] >= 0))[0]
+        frames, bg_frames = pypeIt.fitstbl.get_frames_from_combid(comb_id)
 
         # Intermediate filenames
-        sci_filename = outputfiles.intermediate_filename('sciImg', basename, 
-                                    pypeIt.spectrograph.get_det_name(det))
-        bkg_filename = outputfiles.intermediate_filename('bkgImg', basename, 
-                                            pypeIt.spectrograph.get_det_name(det))
-        initsky_filename = outputfiles.intermediate_filename('initSky', basename, 
-                                        pypeIt.spectrograph.get_det_name(det))
+        sci_filename = outputfiles.intermediate_filename('sciImg', basename, det_name)
+        bkg_filename = outputfiles.intermediate_filename('bkgImg', basename, det_name)
+        initsky_filename = outputfiles.intermediate_filename('initSky', basename,  det_name)
         spec1d_filename = outputfiles.intermediate_filename('spec1d', basename, 'all')
 
         # Prep for background subtraction and finding negative traces
@@ -140,30 +127,15 @@ class ReducebyStep(scriptbase.ScriptBase):
                 bg_frames=bg_frames, sci_outfile=sci_filename,
                 bkg_outfile=bkg_filename)
 
-            '''
-            # Generate the folder?
-            if not sci_filename.parent.is_dir():
-                sci_filename.parent.mkdir()
-
-            # TODO -- write from process_one_det
-            # Write sciImg
-            sciImg.to_file(sci_filename, overwrite=True)
-            msgs.info(f'Wrote intermediate science image to {sci_filename}')
-            # bkg_redux_sciimg?
-            if bkg_redux_sciimg is not None:
-                bkg_redux_sciimg.to_file(bkg_filename, overwrite=True)
-                msgs.info(f'Wrote intermediate background image to {bkg_filename}')
-            '''
-
             # All done
             return
-        else: # Load
-            msgs.info(f'Loading images for detector {det}')
-            sciImg = pypeitimage.PypeItImage.from_file(sci_filename)
-            if bg_frames is not None and len(bg_frames) > 0:
-                bkg_redux_sciimg = pypeitimage.PypeItImage.from_file(bkg_filename)
-            else:
-                bkg_redux_sciimg = None
+
+        msgs.info(f'Loading images for detector {det}')
+        sciImg = pypeitimage.PypeItImage.from_file(sci_filename)
+        if bg_frames is not None and len(bg_frames) > 0:
+            bkg_redux_sciimg = pypeitimage.PypeItImage.from_file(bkg_filename)
+        else:
+            bkg_redux_sciimg = None
 
         # Find Objects
         if args.step == 'findobj':
@@ -176,8 +148,8 @@ class ReducebyStep(scriptbase.ScriptBase):
                     std_outfile = outputfiles.get_std_outfile(pypeIt.fitstbl, pypeIt.par, 
                                                           frame_indx[is_standard])
                 except pypmsgs.PypeItError:
-                    msgs.warn('No standard star spec1d file found for this science frame, but one was expected.') 
-                    msgs.warn('Continuing without standard star information.')
+                    msgs.warn('No reduced standard star spec1d file found for this science frame, but one was expected because it is in your PypeIt file.\n'+\
+                        ('Continuing without standard star information.')
                     std_outfile = None
             else:
                 std_outfile = None                                                    
@@ -202,12 +174,13 @@ class ReducebyStep(scriptbase.ScriptBase):
 
             # All done
             return
-        else: # Load
-            msgs.info(f'Loading initial sky for detector {det}')
-            tmp = pypeitimage.PypeItImage.from_file(initsky_filename)
-            initial_sky = tmp.image
-            #
-            specobjs_objfind = specobjs.SpecObjs.from_fitsfile(spec1d_filename)
+
+        # Load
+        msgs.info(f'Loading initial sky for detector {det}')
+        tmp = pypeitimage.PypeItImage.from_file(initsky_filename)
+        initial_sky = tmp.image
+        #
+        specobjs_objfind = specobjs.SpecObjs.from_fitsfile(spec1d_filename)
 
         # TODO -- Add objs in here!! -- what did I mean by this?
             
@@ -273,5 +246,3 @@ class ReducebyStep(scriptbase.ScriptBase):
                                    pypeIt.par, frame, all_spec2d, sobjs_extract,
                                    pypeIt.calibrations_path,
                                    in_update_det=det)
-        return 0
-

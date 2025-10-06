@@ -508,7 +508,7 @@ def save_exposure(spectrograph, fitstbl, par,
                                     history=history)
         # Info
         outfiletxt = outputfiles.spec_output_file(fitstbl, par,
-                                            frame, txt=True)
+                                            frame, ext='.txt')
         # TODO: Note we re-read in the specobjs from disk to deal with situations where
         # only a single detector is run in a second pass but in the same reduction directory.
         # This was to address Issue #1116 in PR #1154. Slightly inefficient, but only other

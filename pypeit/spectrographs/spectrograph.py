@@ -1080,11 +1080,13 @@ class Spectrograph:
         individually.  A subset can be selected using one of the following
         methods:
 
-            - If ``subset`` is a string, it is assumed that you're selecting a
-              set of detector and spatial pixel coordinate combinations needed
-              to reduce a single slit; see ``slitspatnum`` in the
-              :ref:`pypeitpar`.  The string is parsed into the list of relevant
-              detectors.
+            - If ``subset`` is a string, there are 2 options:
+                - you're selecting a set of detector and spatial pixel coordinate combinations needed
+                  to reduce a single slit; see ``slitspatnum`` in the
+                  :ref:`pypeitpar`.  The string is parsed into the list of relevant
+                    detectors.
+                - you are inputing the detectors/mosaics in string format, 
+                    e.g. "3,(1,5)" 
 
             - If ``subset`` is a list, integer, or tuple, it is parsed into a
               set of single detector or detector mosaics to reduce.
@@ -1111,16 +1113,16 @@ class Spectrograph:
             [3]
             >>> spectrograph.select_detectors(subset=(3,4))
             [3, 4]
-            >>> spectrograph.select_detectors(subset=[(1,2,3,4),(5,6,7,8)])
-            [(1, 2, 3, 4), (5, 6, 7, 8)]
+            >>> spectrograph.select_detectors(subset=[(1,5),(2,6)])
+            [(1,5), (2, 6)]
             >>> spectrograph.select_detectors(subset='DET01:10')
             [1]
             >>> spectrograph.select_detectors(subset=['DET01:10','DET05:10'])
             [1, 5]
-            >>> spectrograph.select_detectors(subset=['MSC01','MSC02'])
-            [(1, 2, 3, 4), (5, 6, 7, 8)]
-            >>> spectrograph.select_detectors(subset=['DET01:10','MSC02'])
-            [1, (5, 6, 7, 8)]
+            >>> spectrograph.select_detectors(subset="3,(1,5)")
+            [3, (1, 5)]
+            >>> spectrograph.select_detectors(subset="[3,(1,5)]")
+            [3, (1, 5)]
         """
         if subset is None:
             return np.arange(1, self.ndet+1).tolist()
@@ -1154,7 +1156,8 @@ class Spectrograph:
 
         allowed = np.arange(1, self.ndet+1).tolist() + self.allowed_mosaics
         if any([s not in allowed for s in _subset]):
-            msgs.error('Selected detectors or detector mosaics contain invalid values.')
+            msgs.warn('Selected detectors or detector mosaics contain invalid values.')
+            msgs.error(f"The allowed values are det={allowed}")
 
         # Require the list contains unique items
         # DP: I had to modify this, because list(set(_subset)) was changing the order of the detectors

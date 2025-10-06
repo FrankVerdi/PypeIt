@@ -57,16 +57,6 @@ def multi_caliBrate(fitstbl):
     multi_caliBrate.success = True
     return multi_caliBrate
 
-
-#def reset_calib(calib):
-#    # Find the first science row
-#    frame = calib.fitstbl.find_frames('science', index=True)[0]
-#    # Set
-#    det = 1
-#    calib.set_config(frame, det)
-#    return calib
-
-
 ###################################################
 # TESTS BEGIN HERE
 

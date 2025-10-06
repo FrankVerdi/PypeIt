@@ -91,7 +91,7 @@ def science_path(par) -> Path:
     return Path(par['rdx']['redux_path']) / par['rdx']['scidir']
 
 def spec_output_file(fitstbl, par, frame:int, twod:bool=False,
-                     txt:bool=False, sci_path:Path=None) -> Path:
+                     ext:str='.fits', sci_path:Path=None) -> Path:
     """
     Return the path to the spectral output data file.
     
@@ -104,8 +104,8 @@ def spec_output_file(fitstbl, par, frame:int, twod:bool=False,
             Frame index from :attr:`fitstbl`.
         twod (:obj:`bool`), optional:
             Name for the 2D output file; 1D file otherwise.
-        txt (:obj:`bool`), optional:
-            Use a text file extension; FITS file otherwise.
+        ext (:obj:`str`, optional):
+            Extension for the output file.  Default is '.fits'.
     
     Returns:
         `Path`_: The path for the output file
@@ -114,6 +114,5 @@ def spec_output_file(fitstbl, par, frame:int, twod:bool=False,
         sci_path = science_path(par) 
     # Bits and pieces
     basename = fitstbl.construct_basename(frame)
-    ext = '.txt' if txt else '.fits'
     # Finish``
-    return science_path(par) / f'spec{"2" if twod else "1"}d_{basename}{ext}'
+    return sci_path / f'spec{"2" if twod else "1"}d_{basename}{ext}'

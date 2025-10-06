@@ -67,6 +67,7 @@ def test_select_detectors_mosaic():
     spec = load_spectrograph('keck_deimos') 
     assert spec.select_detectors(subset='3') == [3]
     assert spec.select_detectors(subset="3,(1,5)") == [3,(1,5)], 'Bad string of mix detector/mosaic selection'
+    assert spec.select_detectors(subset="[3,(1,5)]") == [3,(1,5)], 'Bad string of mix detector/mosaic selection'
 
 def test_list_detectors_deimos():
     deimos = load_spectrograph('keck_deimos')

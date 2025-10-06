@@ -179,6 +179,12 @@ def calib_one(spectrograph, fitstbl, par, det, calib_ID, calibrations_path:str,
     # Run
     caliBrate.run_the_steps(stop_at_step=stop_at_step)
 
+    # Success?
+    if not caliBrate.success:
+        msgs.warn(f'Calibrations for detector {det} were unsuccessful!  The step '
+                              f'that failed was {caliBrate.failed_step}.  Continuing to next '
+                              f'detector.')
+
     return caliBrate
 
 

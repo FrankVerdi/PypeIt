@@ -372,7 +372,6 @@ class Calibrations:
 
         # If a processed calibration frame exists and we want to reuse it, do
         # so:
-        #embed(header='385 of calibrations.py')
         self.msarc = self.process_load_selection(frame, cal_file, force)
         if not self.success or self.msarc is not None:
             return self.msarc
