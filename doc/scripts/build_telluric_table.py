@@ -18,12 +18,21 @@ def tellgrid_table(root, ofile):
                 'aws', '--endpoint', 'https://s3-west.nrp-nautilus.io', 's3', 'ls',
                 f's3://pypeit/telluric/atm_grids/{root}', '--human-readable'
             ], capture_output=True, text=True)
-    except Exception as e:
+    except Exception:
         print(
-            f'Exception raised by subprocess call using aws to list the available files.  {root} '
-            'telluric file table will not be udpated!'
+            f'Exception raised by subprocess call to `aws`, used to list the available {root} '
+            'telluric files.  The associated telluric file table will not be updated!'
         )
-        raise 
+        raise
+
+    # Check for success
+    if result.returncode != 0:
+        raise ValueError(
+            f'Return code from `aws` system call was {result.returncode}, not 0.  The stderr '
+            f'output was {"empty" if len(result.stderr) == 0 else result.stderr}.'
+        )
+
+    # Construct and write the table
     data = [l.split() for l in result.stdout.split('\n')[:-1]]
     data = [['File', 'Size', 'Last Modified (UTC)']] + [
         [d[4], ' '.join(d[2:4]), ' '.join(d[:2])] for d in data
