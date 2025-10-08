@@ -114,13 +114,13 @@ class TellFit(scriptbase.ScriptBase):
                 par['telluric']['telgridfile'] = par['sensfunc']['IR']['telgridfile']
             else:
                 par['telluric']['telgridfile'] = 'TellPCA_3000_26000_R10000.fits'
-                msgs.warn(f"No telluric file given. Using PCA method with {par['telluric']['telgridfile']}.")
+                msgs.warning(f"No telluric file given. Using PCA method with {par['telluric']['telgridfile']}.")
 
         # Checks
         if par['telluric']['telgridfile'] is None:
-            msgs.error('A file with the telluric grid must be provided.')
+            raise PypeItError('A file with the telluric grid must be provided.')
         elif not os.path.isfile(dataPaths.telgrid.get_file_path(par['telluric']['telgridfile'])):
-            msgs.error(f"{par['telluric']['telgridfile']} does not exist.  Either the file was not"
+            raise PypeItError(f"{par['telluric']['telgridfile']} does not exist.  Either the file was not"
                        "downloaded successfully or the file name is incorrect.")
 
         # Write the par to disk
@@ -227,6 +227,6 @@ class TellFit(scriptbase.ScriptBase):
                 chk_version=args.chk_version,
             )
         else:
-            msgs.error("Object model is not supported yet. Must be 'qso', 'star', or 'poly'.")
+            raise PypeItError("Object model is not supported yet. Must be 'qso', 'star', or 'poly'.")
 
 

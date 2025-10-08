@@ -204,7 +204,7 @@ class KeckNIRESSpectrograph(spectrograph.Spectrograph):
             else:
                 return None
         else:
-            msgs.error("Not ready for this compound meta")
+            raise PypeItError("Not ready for this compound meta")
 
     def configuration_keys(self):
         """

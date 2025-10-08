@@ -195,7 +195,7 @@ class MetadataOperation(QObject):
 
         if exc_info[0] is not None:
             traceback_string = "".join(traceback.format_exception(*exc_info))
-            msgs.warn(f"Failed to {self.name.lower()}:\n" + traceback_string)
+            msgs.warning(f"Failed to {self.name.lower()}:\n" + traceback_string)
             display_error(self._main_window, f"Failed to {self.name.lower()} {exc_info[0]}: {exc_info[1]}")
             self._model.reset()
         elif canceled:
@@ -432,7 +432,7 @@ class PypeItMetadataController(QObject):
                 display.connect_to_ginga(raise_err=True, allow_new=True)
             except Exception as e:
                 display_error(self._main_controller.main_window, f"Could not start ginga to view FITS files: {e}")
-                msgs.warn(f"Failed to connect to ginga:\n" + traceback.format_exc())
+                msgs.warning(f"Failed to connect to ginga:\n" + traceback.format_exc())
 
             
             # Display each file in its own ginga tab
@@ -448,13 +448,13 @@ class PypeItMetadataController(QObject):
                     img = self._model.spectrograph.get_rawimage(str(file), n)[1]
                 except Exception as e:
                     display_error(self._main_controller.main_window, f"Failed to read image {file.name}: {e}")
-                    msgs.warn(f"Failed get raw image:\n" + traceback.format_exc())
+                    msgs.warning(f"Failed get raw image:\n" + traceback.format_exc())
 
                 try:
                     display.show_image(img, chname = f"{file.name} {det_name}")
                 except Exception as e:
                     display_error(self._main_controller.main_window, f"Failed to send image {file.name} to ginga: {e}")
-                    msgs.warn(f"Failed send image to ginga:\n" + traceback.format_exc())
+                    msgs.warning(f"Failed send image to ginga:\n" + traceback.format_exc())
 
     def view_header(self):
         """ Display the header of one or more selected files in the metadata.
@@ -474,7 +474,7 @@ class PypeItMetadataController(QObject):
                             hdu.header.totextfile(header_string_buffer)
                 except Exception as e:
                     display_error(self._main_controller.main_window, f"Failed to read header from file {file.name} in {file.parent}: {e}")
-                    msgs.warn(f"Failed to read header from {file}:\n" + traceback.format_exc())
+                    msgs.warning(f"Failed to read header from {file}:\n" + traceback.format_exc())
                     return
                 header_string_buffer.seek(0)
                 window = TextViewerWindow(title=f"{file.name} Header", width=80, height=50,start_at_top=True, filename=file.parent / (file.name+".txt"), text_stream=header_string_buffer)
@@ -525,7 +525,7 @@ class PypeItMetadataController(QObject):
                 self._model.pasteFrom(clipboard)
             except Exception as e:
                 traceback_string = "".join(traceback.format_exc())
-                msgs.warn(f"Failed to paste metadata rows:\n" + traceback_string)
+                msgs.warning(f"Failed to paste metadata rows:\n" + traceback_string)
                 display_error(self._main_controller.main_window, f"Could not paste rows to this PypeIt file: {e}")
 
 
@@ -745,7 +745,7 @@ class SetupGUIController(QObject):
             # Shouldn't really happen, it would mean the save tab button was enabled
             # when it shouldn't be. We'll handle this case and log it to prevent a crash
             # just in case though.
-            msgs.warn(f"Attempt to save a tab that is *not* a PypeItFileView!")
+            msgs.warning(f"Attempt to save a tab that is *not* a PypeItFileView!")
 
     
     def _save_file(self, file_model : PypeItFileModel, prompt_for_all : bool=False) -> DialogResponses:

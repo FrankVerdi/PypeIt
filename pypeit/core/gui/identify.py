@@ -258,14 +258,14 @@ class Identify:
         if wv_calib_all is not None:
             wv_calib = wv_calib_all.wv_fits[slit]
             if wv_calib.spat_id != slits.spat_id[slit]:
-                msgs.warn("Wavelength calibration slits did not match!")
+                msgs.warning("Wavelength calibration slits did not match!")
                 msgs.info("Best-fitting wavelength solution will not be loaded.")
                 wv_calib = None
             msgs.info(f"Loading lamps from wavelength solution: {wv_calib_all.lamps}")
             lamps = wv_calib_all.lamps.split(",")
         # Must specify `wv_calib = None` otherwise
         else:
-            msgs.warn("No wavelength calibration supplied!")
+            msgs.warning("No wavelength calibration supplied!")
             msgs.info("No wavelength solution will be loaded.")
             wv_calib = None
 
@@ -726,12 +726,12 @@ class Identify:
         """
         mtch = re.search(r"(\d+):(\d+)", order_str)
         if mtch is None:
-            msgs.warn(f"Input string {order_str} is not in the correct format, e.g. (45:122)")
+            msgs.warning(f"Input string {order_str} is not in the correct format, e.g. (45:122)")
             return None
         start_order = int(mtch.groups()[0])
         end_order = int(mtch.groups()[1])
         if start_order > end_order:
-            msgs.warn(f"The start order {start_order} must be less than the end order {end_order}")
+            msgs.warning(f"The start order {start_order} must be less than the end order {end_order}")
             return None
         order_vec = np.arange(start_order, end_order+1)
         return order_vec
@@ -792,7 +792,7 @@ class Identify:
                 self.save_IDs()
         # Solution
         if 'rms' not in final_fit.keys():
-            msgs.warn("No wavelength solution available")
+            msgs.warning("No wavelength solution available")
             return
         elif final_fit['rms'] < rmstol or multi:
             ans = ''
@@ -815,7 +815,7 @@ class Identify:
                             #better try again... Return to the start of the loop
                             continue
                         if len(order_vec) != len(wvcalib.wv_fits):
-                            msgs.warn(f'The number of orders in this list, {order_vec} '+msgs.newline()+
+                            msgs.warning(f'The number of orders in this list, {order_vec} '+msgs.newline()+
                             f'does not match the number of traces: {len(wvcalib.wv_fits)}' + msgs.newline() +
                             'Please try again...')
                             continue
@@ -838,11 +838,11 @@ class Identify:
                     if multi:
                         # check that specdata is defined
                         if specdata_multi is None:
-                            msgs.warn('Skipping arxiv save because arc line spectra are not defined by pypeit/scripts/identify.py')
+                            msgs.warning('Skipping arxiv save because arc line spectra are not defined by pypeit/scripts/identify.py')
                         # check that the number of spectra in specdata is the same as the number of wvcalib solutions
                         elif specdata_multi is not None and np.shape(specdata_multi)[0] != len(wvcalib.wv_fits):
-                            msgs.warn('Skipping arxiv save because there are not enough orders for full template')
-                            msgs.warn('To generate a valid arxiv to save, please rerun with the "--slits all" option.')
+                            msgs.warning('Skipping arxiv save because there are not enough orders for full template')
+                            msgs.warning('To generate a valid arxiv to save, please rerun with the "--slits all" option.')
                         else:
                             norder = np.shape(specdata_multi)[0]
                             wavelengths = np.copy(specdata_multi)
@@ -850,7 +850,7 @@ class Identify:
                                 if fits_dicts is not None:
                                     fitdict = fits_dicts[iord]
                                 else:
-                                    msgs.warn('skipping saving fits because fits_dicts is not defined by pypeit/scripts/identify.py')
+                                    msgs.warning('skipping saving fits because fits_dicts is not defined by pypeit/scripts/identify.py')
                                     fitdict = None
                                 if fitdict is not None and fitdict['full_fit'] is not None:
                                     wavelengths[iord,:] = fitdict['full_fit'].eval(np.arange(specdata_multi[iord,:].size) /
@@ -894,7 +894,7 @@ class Identify:
                     if not force_save:
                         while ow_wvcalib != 'y' and ow_wvcalib != 'n':
                             print('')
-                            msgs.warn('Do you want to overwrite existing Calibrations/WaveCalib*.fits file? ' + msgs.newline() +
+                            msgs.warning('Do you want to overwrite existing Calibrations/WaveCalib*.fits file? ' + msgs.newline() +
                                     'NOTE: To use this WaveCalib file the user will need to delete the other files in Calibrations/ ' + msgs.newline() +
                                     ' and re-run run_pypeit. ')
                             print('')

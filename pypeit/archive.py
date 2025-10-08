@@ -224,7 +224,7 @@ class ArchiveDir():
             return orig_file
 
         if not os.path.exists(orig_file):
-            msgs.error(f'File {orig_file} does not exist')
+            raise PypeItError(f'File {orig_file} does not exist')
 
         full_dest_path = os.path.join(self.archive_root, dest_file)
         os.makedirs(os.path.dirname(full_dest_path), exist_ok=True)
@@ -233,6 +233,6 @@ class ArchiveDir():
         try:
             shutil.copy2(orig_file, full_dest_path)
         except:
-            msgs.error(f'Failed to copy {orig_file} to {full_dest_path}')
+            raise PypeItError(f'Failed to copy {orig_file} to {full_dest_path}')
 
         return full_dest_path

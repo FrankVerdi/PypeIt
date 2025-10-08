@@ -32,7 +32,7 @@ class ShowPixFlat(scriptbase.ScriptBase):
         # check if the file exists
         file_path = dataPaths.pixelflat.get_file_path(args.file, return_none=True)
         if file_path is None:
-            msgs.error(f'Provided pixelflat file, {args.file} not found. It is not a direct path, '
+            raise PypeItError(f'Provided pixelflat file, {args.file} not found. It is not a direct path, '
                        f'a cached file, or a file that can be downloaded from a PypeIt repository.')
 
         # Load the image
@@ -44,11 +44,11 @@ class ShowPixFlat(scriptbase.ScriptBase):
                 in_file = np.isin(args.det, file_dets)
                 # if none of the provided detectors are in the file, raise an error
                 if not np.any(in_file):
-                    msgs.error(f"Provided detector(s) not found in the file. Available detectors are {file_dets}")
+                    raise PypeItError(f"Provided detector(s) not found in the file. Available detectors are {file_dets}")
                 # if some of the provided detectors are not in the file, warn the user
                 elif np.any(np.logical_not(in_file)):
                     det_not_in_file = np.array(args.det)[np.logical_not(in_file)]
-                    msgs.warn(f"Detector(s) {det_not_in_file} not found in the file. Available detectors are {file_dets}")
+                    msgs.warning(f"Detector(s) {det_not_in_file} not found in the file. Available detectors are {file_dets}")
 
             # show the image
             display.connect_to_ginga(raise_err=True, allow_new=True)

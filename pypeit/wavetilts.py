@@ -121,7 +121,7 @@ class WaveTilts(calibframe.CalibFrame):
 
         """
         if not np.array_equal(self.spat_id, slits.spat_id):
-            msgs.error('Your tilt solutions are out of sync with your slits.  Remove calibrations '
+            raise PypeItError('Your tilt solutions are out of sync with your slits.  Remove calibrations '
                        'and restart from scratch.')
 
     def fit2tiltimg(self, slitmask, flexure=None):
@@ -210,7 +210,7 @@ class WaveTilts(calibframe.CalibFrame):
         if cal_file.exists():
             tilt_img_dict = buildimage.TiltImage.from_file(cal_file, chk_version=chk_version)
         else:
-            msgs.error(f'Tilt image {str(cal_file)} NOT FOUND.')
+            raise PypeItError(f'Tilt image {str(cal_file)} NOT FOUND.')
 
         # get slits
         slitmask = None
@@ -226,7 +226,7 @@ class WaveTilts(calibframe.CalibFrame):
             right = arc.resize_slits2arc(tilt_img_dict.image.shape, _slitmask.shape, _right)
         else:
             slits = None
-            msgs.warn(f'Slits file {str(cal_file)} NOT FOUND.')
+            msgs.warning(f'Slits file {str(cal_file)} NOT FOUND.')
 
         # get waveimg
         same_size = (slits.nspec, slits.nspat) == tilt_img_dict.image.shape
@@ -237,7 +237,7 @@ class WaveTilts(calibframe.CalibFrame):
                 tilts = self.fit2tiltimg(slitmask, flexure=self.spat_flexure)
                 waveimg = wv_calib.build_waveimg(tilts, slits, spat_flexure=self.spat_flexure)
             else:
-                msgs.warn('Could not load Wave image to show with tilts image.')
+                msgs.warning('Could not load Wave image to show with tilts image.')
 
         # Show
         # tilt image
@@ -755,7 +755,7 @@ class BuildWaveTilts:
                                       bpm=self.arccen_bpm[:,slit_idx], debug=debug)
 
             if self.lines_spec is None:
-                msgs.warn('Did not recover any lines for slit/order = {:d}'.format(self.slits.slitord_id[slit_idx]) +
+                msgs.warning('Did not recover any lines for slit/order = {:d}'.format(self.slits.slitord_id[slit_idx]) +
                           '. This slit/order will not reduced!')
                 self.slits.mask[slit_idx] = self.slits.bitmask.turn_on(self.slits.mask[slit_idx], 'BADTILTCALIB')
                 continue
@@ -771,7 +771,7 @@ class BuildWaveTilts:
             # IF there are < 2 usable arc lines for tilt tracing, PCA fit does not work and the reduction crushes
             # TODO investigate why some slits have <2 usable arc lines
             if np.sum(self.trace_dict['use_tilt']) < 2:
-                msgs.warn('Less than 2 usable arc lines for slit/order = {:d}'.format(self.slits.slitord_id[slit_idx]) +
+                msgs.warning('Less than 2 usable arc lines for slit/order = {:d}'.format(self.slits.slitord_id[slit_idx]) +
                           '. This slit/order will not reduced!')
                 self.slits.mask[slit_idx] = self.slits.bitmask.turn_on(self.slits.mask[slit_idx], 'BADTILTCALIB')
                 continue
@@ -782,7 +782,7 @@ class BuildWaveTilts:
             use_tilt_spec_cov = (self.trace_dict['tilts_spec'][:, self.trace_dict['use_tilt']].max() -
                                  self.trace_dict['tilts_spec'][:, self.trace_dict['use_tilt']].min()) / self.arccen.shape[0]
             if use_tilt_spec_cov < 0.1:
-                msgs.warn(f'The spectral coverage of the usable arc lines is {use_tilt_spec_cov:.3f} (less than 10%).' +
+                msgs.warning(f'The spectral coverage of the usable arc lines is {use_tilt_spec_cov:.3f} (less than 10%).' +
                           ' This slit/order will not be reduced!')
                 self.slits.mask[slit_idx] = self.slits.bitmask.turn_on(self.slits.mask[slit_idx], 'BADTILTCALIB')
                 continue
@@ -801,7 +801,7 @@ class BuildWaveTilts:
             # TODO: Is 95% the right threshold?
             _gpm = self.all_fit_dict[slit_idx]['pypeitFit'].bool_gpm
             if np.sum(np.logical_not(_gpm)) > 0.95 * _gpm.size:
-                msgs.warn(f'Large number of pixels rejected in the fit. This slit/order will not be reduced!')
+                msgs.warning(f'Large number of pixels rejected in the fit. This slit/order will not be reduced!')
                 self.slits.mask[slit_idx] = self.slits.bitmask.turn_on(self.slits.mask[slit_idx], 'BADTILTCALIB')
                 continue
             self.coeffs[:self.spec_order[slit_idx]+1,:self.spat_order[slit_idx]+1,slit_idx] = coeff_out
@@ -817,7 +817,7 @@ class BuildWaveTilts:
             # Check that the tilts image has values that span a reasonable range
             # TODO: Is this the right threshold?
             if np.nanmax(self.tilts) - np.nanmin(self.tilts) < 0.8:
-                msgs.warn('Tilts image fit not good. This slit/order will not be reduced!')
+                msgs.warning('Tilts image fit not good. This slit/order will not be reduced!')
                 self.slits.mask[slit_idx] = self.slits.bitmask.turn_on(self.slits.mask[slit_idx], 'BADTILTCALIB')
                 continue
             # Save to final image
@@ -881,7 +881,7 @@ class BuildWaveTilts:
         """
 
         if self.all_trace_dict is None:
-            msgs.error('No tilts have been traced and fit yet. Run the run() method first.')
+            raise PypeItError('No tilts have been traced and fit yet. Run the run() method first.')
 
         # slit_ids
         slit_ids = np.array([])
@@ -948,7 +948,7 @@ class BuildWaveTilts:
                 tbl_tilt_traces[tbl_keys[i]] = np.expand_dims(arr, axis=0)
 
         if len(tbl_tilt_traces) == 0:
-            msgs.warn('No traced and fitted tilts have been found.')
+            msgs.warning('No traced and fitted tilts have been found.')
             return None
 
         return tbl_tilt_traces
@@ -1011,7 +1011,7 @@ def show_tilts_mpl(tilt_img, tilt_traces, show_traces=False, left_edges=None,
     """
 
     if tilt_traces is None:
-        return msgs.error('No tilts have been traced or fitted')
+        return raise PypeItError('No tilts have been traced or fitted')
 
     if cut is None:
         cut = utils.growth_lim(tilt_img, 0.98, fac=1)

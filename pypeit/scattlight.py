@@ -102,7 +102,7 @@ class ScatteredLight(calibframe.CalibFrame):
         """
         msgs.info("Generating a scattered light image")
         if self.scattlight_param is None:
-            msgs.warn("No scattered light parameters are available")
+            msgs.warning("No scattered light parameters are available")
             return np.zeros_like(image)
         # Return the model of the scattered light
         return scattlight.scattered_light_model_pad(self.scattlight_param, image)

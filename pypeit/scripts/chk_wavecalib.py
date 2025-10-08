@@ -44,7 +44,7 @@ class ChkWaveCalib(scriptbase.ScriptBase):
             elif 'PYP_CLS' in head0.keys() and head0['PYP_CLS'].strip() == 'AllSpec2DObj':
                 file_type = 'AllSpec2D'
             else:
-                msgs.error("Bad file type input!")
+                raise PypeItError("Bad file type input!")
 
             if file_type == 'WaveCalib':
                 waveCalib = wavecalib.WaveCalib.from_file(in_file, chk_version=chk_version)
@@ -66,5 +66,5 @@ class ChkWaveCalib(scriptbase.ScriptBase):
                 continue
             else:
                 # Should not get here unless it can't read either file type
-                msgs.error("Unrecognized file type. Must be a WaveCalib or spec2d file.")
+                raise PypeItError("Unrecognized file type. Must be a WaveCalib or spec2d file.")
 

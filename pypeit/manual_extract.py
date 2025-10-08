@@ -88,7 +88,7 @@ class ManualExtractionObj(datamodel.DataContainer):
         for m_e in m_es:
             loc = parse.parse_image_location(m_e, spectrograph)
             if len(loc) not in [5,6]:
-                msgs.error('Definition of manual extraction aperture does not have the correct '
+                raise PypeItError('Definition of manual extraction aperture does not have the correct '
                            f'number of parameters: {m_e}.')
 
             # TODO: Why is this spat:spec and not spec:spat like everything else??

@@ -147,7 +147,7 @@ class MDMOSMOSMDM4KSpectrograph(spectrograph.Spectrograph):
             binspec = headarr[0]['CCDYBIN']
             return parse.binning2string(binspec, binspatial)
         else:
-            msgs.error("Not ready for this compound meta")
+            raise PypeItError("Not ready for this compound meta")
 
     def configuration_keys(self):
         """
@@ -231,7 +231,7 @@ class MDMOSMOSMDM4KSpectrograph(spectrograph.Spectrograph):
             return np.zeros(len(fitstbl), dtype=bool)
         if ftype in ['arc','tilt']:
             return good_exp & np.array([ilamp in ['Ar','Xe'] for ilamp in fitstbl['lampstat01']]) & (fitstbl['idname'] == 'COMP')
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
 
@@ -324,7 +324,7 @@ class MDMOSMOSR4KSpectrograph(MDMOSMOSMDM4KSpectrograph):
             return np.zeros(len(fitstbl), dtype=bool)
         if ftype in ['arc','tilt']:
             return good_exp & (fitstbl['idname'] == 'COMP') 
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
     @classmethod

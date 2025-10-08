@@ -45,7 +45,7 @@ def eval_tuple(inp):
     try:
         basic = eval(joined)
     except:
-        msgs.error(f'Cannot evaluate {joined} into a valid tuple.')
+        raise PypeItError(f'Cannot evaluate {joined} into a valid tuple.')
 
     # If any element of the basic evaluation is also a tuple, assume the result
     # of the evaluation is a tuple of tuples.  This is converted to a list.

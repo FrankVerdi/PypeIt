@@ -71,13 +71,13 @@ class CompileWVarxiv(scriptbase.ScriptBase):
 
         # Does a file already exist?
         if out_path.exists() and not args.append:
-            msgs.error(f'File {out_path} already exists. Use --append to overwrite the file and add your new solutions to the existing ones.')
+            raise PypeItError(f'File {out_path} already exists. Use --append to overwrite the file and add your new solutions to the existing ones.')
         # What if user asks to append solutions?
         elif out_path.exists() and args.append:
             old_table = Table.read(out_path)
             old_array_len = len(old_table['wave'][0].data)
             if old_array_len != array_len:
-                msgs.error(f'The old file has an array length of {old_array_len} while the new files have an array length of {array_len}. Cannot merge these files.')
+                raise PypeItError(f'The old file has an array length of {old_array_len} while the new files have an array length of {array_len}. Cannot merge these files.')
             else:
                 reid_table = join(old_table, reid_table)
                 reid_table.write(out_path, format='fits', overwrite=args.append)

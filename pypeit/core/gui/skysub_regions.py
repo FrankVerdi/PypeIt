@@ -586,7 +586,7 @@ class SkySubGUI:
         # Generate the mask
         inmask = skysub.generate_mask(self.pypeline, self._skyreg, self.slits, self.slits_left, self.slits_right)
         if np.all(np.logical_not(inmask)):
-            msgs.warn("Sky regions are empty - A sky regions calibration frame will not be generated")
+            msgs.warning("Sky regions are empty - A sky regions calibration frame will not be generated")
             return None
 
         # Build the Sky Regions calibration frame
@@ -603,7 +603,7 @@ class SkySubGUI:
         outfil = self._outname
         if os.path.exists(self._outname) and not self._overwrite:
             outfil = 'temp.fits'
-            msgs.warn(f"A SkyRegions file already exists and you have not forced an overwrite:\n{self._outname}")
+            msgs.warning(f"A SkyRegions file already exists and you have not forced an overwrite:\n{self._outname}")
             msgs.info(f"Adopting the following output filename: {outfil}")
         return outfil
 

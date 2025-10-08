@@ -497,10 +497,10 @@ def optical_modelThAr(resolution, waveminmax=(3000.,10500.), dlam=40.0,
     thar_spec[thar_spec<0.] = 0.
     # Remove regions of the spectrum outside the wavelength covered by the ThAr model
     if wv_min<np.min(th_wv):
-        msgs.warn("Model of the ThAr spectrum outside the template coverage.")
+        msgs.warning("Model of the ThAr spectrum outside the template coverage.")
         thar_spec[wave<np.min(th_wv)] = 0.
     if wv_max<np.max(th_wv):
-        msgs.warn("Model of the ThAr spectrum outside the template coverage.")
+        msgs.warning("Model of the ThAr spectrum outside the template coverage.")
         thar_spec[wave>np.max(th_wv)] = 0.
 
     if thar_outfile is not None:
@@ -776,7 +776,7 @@ def create_OHlinelist(resolution, waveminmax=(0.8,2.6), dlam=40.0, flgd=True, ni
                                        flgd=flgd, nirsky_outfile=nirsky_outfile, debug=debug)
 
     if fwhm is None:
-        msgs.warn("No min FWHM for the line detection set. Derived from the resolution at the center of the spectrum")
+        msgs.warning("No min FWHM for the line detection set. Derived from the resolution at the center of the spectrum")
         wl_cent = np.average(wavelength)
         wl_fwhm = wl_cent / resolution
         wl_bin = np.abs((wavelength-np.roll(wavelength,1))[np.where(np.abs(wavelength-wl_cent)==np.min(np.abs(wavelength-wl_cent)))])
@@ -784,15 +784,15 @@ def create_OHlinelist(resolution, waveminmax=(0.8,2.6), dlam=40.0, flgd=True, ni
         # the minimum fwhm of the spectrum
         fwhm = 1.1 * wl_fwhm / wl_bin[0]
         if fwhm < 1.:
-             msgs.warn("Lines are unresolved. Setting FWHM=2.pixels")
+             msgs.warning("Lines are unresolved. Setting FWHM=2.pixels")
              fwhm = 2.
 
     if line_name is None:
-        msgs.warn("No line_name as been set. The file will contain XXX as ion")
+        msgs.warning("No line_name as been set. The file will contain XXX as ion")
         line_name = 'XXX'
 
     if file_root_name is None:
-        msgs.warn("No file_root_name as been set. The file will called OH_SKY_lines.dat")
+        msgs.warning("No file_root_name as been set. The file will called OH_SKY_lines.dat")
         file_root_name = 'OH_SKY'
 
     create_linelist(wavelength, spec, fwhm=fwhm, sigdetec=sigdetec, line_name=line_name,
@@ -851,7 +851,7 @@ def create_ThArlinelist(resolution, waveminmax=(3000.,10500.), dlam=40.0, flgd=T
     wavelength, spec = optical_modelThAr(resolution, waveminmax=waveminmax, dlam=dlam,
                                          flgd=flgd, thar_outfile=thar_outfile, debug=debug)
     if fwhm is None:
-        msgs.warn("No min FWHM for the line detection set. Derived from the resolution at the center of the spectrum")
+        msgs.warning("No min FWHM for the line detection set. Derived from the resolution at the center of the spectrum")
         wl_cent = np.average(wavelength)
         wl_fwhm = wl_cent / resolution
         wl_bin = np.abs((wavelength-np.roll(wavelength,1))[np.where(np.abs(wavelength-wl_cent)==np.min(np.abs(wavelength-wl_cent)))])
@@ -859,15 +859,15 @@ def create_ThArlinelist(resolution, waveminmax=(3000.,10500.), dlam=40.0, flgd=T
         # the minimum fwhm of the spectrum
         fwhm = 1.1 * wl_fwhm / wl_bin[0]
         if fwhm < 1.:
-             msgs.warn("Lines are unresolved. Setting FWHM=2.*pixels")
+             msgs.warning("Lines are unresolved. Setting FWHM=2.*pixels")
              fwhm = 2.
 
     if line_name is None:
-        msgs.warn("No line_name as been set. The file will contain XXX as ion")
+        msgs.warning("No line_name as been set. The file will contain XXX as ion")
         line_name = 'XXX'
 
     if file_root_name is None:
-        msgs.warn("No file_root_name as been set. The file will called ThAr_lines.dat")
+        msgs.warning("No file_root_name as been set. The file will called ThAr_lines.dat")
         file_root_name = 'ThAr'
 
     create_linelist(wavelength, spec, fwhm=fwhm, sigdetec=sigdetec, line_name=line_name,

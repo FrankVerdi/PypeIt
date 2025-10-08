@@ -132,7 +132,7 @@ def extract_optimal(imgminsky, ivar, mask, waveimg, skyimg, thismask, oprof,
 
     # Exit gracefully if we have no positive object profiles, since that means something was wrong with object fitting
     if not np.any(oprof > 0.0):
-        msgs.warn('Object profile is zero everywhere. This aperture is junk.')
+        msgs.warning('Object profile is zero everywhere. This aperture is junk.')
         return
 
     mincol = np.min(ispat)
@@ -505,18 +505,18 @@ def extract_hist_spectrum(waveimg, frame, gpm=None, bins=1000):
     """
     # Check the inputs
     if waveimg.shape != frame.shape:
-        msgs.error("Wavelength image is not the same shape as the input frame")
+        raise PypeItError("Wavelength image is not the same shape as the input frame")
     # Check the GPM
     _gpm = gpm if gpm is not None else waveimg > 0
     if waveimg.shape != _gpm.shape:
-        msgs.error("Wavelength image is not the same shape as the GPM")
+        raise PypeItError("Wavelength image is not the same shape as the GPM")
     # Set the bins
     if isinstance(bins, int):
         _bins = np.linspace(np.min(waveimg[_gpm]), np.max(waveimg[_gpm]), bins)
     elif isinstance(bins, np.ndarray):
         _bins = bins
     else:
-        msgs.error("Argument 'bins' should be an integer or a numpy array")
+        raise PypeItError("Argument 'bins' should be an integer or a numpy array")
 
     # Construct a histogram and the normalisation
     hist, edge = np.histogram(waveimg[gpm], bins=_bins, weights=frame[gpm])
@@ -759,7 +759,7 @@ def return_gaussian(sigma_x, norm_obj, fwhm, med_sn2, obj_string,
     inf = np.isfinite(profile_model) == False
     ninf = np.sum(inf)
     if ninf != 0:
-        msgs.warn("Nan pixel values in object profile... setting them to zero")
+        msgs.warning("Nan pixel values in object profile... setting them to zero")
         profile_model[inf] = 0.0
     if show_profile:
         qa_fit_profile(sigma_x, norm_obj, profile_model, title = title_string, l_limit = l_limit, r_limit = r_limit,
@@ -892,7 +892,7 @@ def fit_profile(image, ivar, waveimg, thismask, spat_img, trace_in, wave,
     eligible_pixels = np.sum((wave >= wave_min) & (wave <= wave_max))
     good_pix_frac = 0.05
     if (np.sum(indsp) < good_pix_frac*eligible_pixels) or (eligible_pixels == 0):
-        msgs.warn('There are no pixels eligible to be fit for the object profile.' + msgs.newline() +
+        msgs.warning('There are no pixels eligible to be fit for the object profile.' + msgs.newline() +
                   'There is likely an issue in local_skysub_extract. Returning a Gassuain with fwhm={:5.3f}'.format(thisfwhm))
         profile_model = return_gaussian(sigma_x, None, thisfwhm, 0.0, obj_string, False)
         return profile_model, trace_in, fwhmfit, 0.0
@@ -907,7 +907,7 @@ def fit_profile(image, ivar, waveimg, thismask, spat_img, trace_in, wave,
     try:
         cont_flux, _ = c_answer.value(wave[indsp])
     except:
-        msgs.warn('Problem estimating S/N ratio of spectrum' + msgs.newline() +
+        msgs.warning('Problem estimating S/N ratio of spectrum' + msgs.newline() +
                   'There is likely an issue in local_skysub_extract. Returning a Gassuain with fwhm={:5.3f}'.format(thisfwhm))
         profile_model = return_gaussian(sigma_x, None, thisfwhm, 0.0, obj_string, False)
         return profile_model, trace_in, fwhmfit, 0.0
@@ -955,7 +955,7 @@ def fit_profile(image, ivar, waveimg, thismask, spat_img, trace_in, wave,
                                                 bounds_error=False,fill_value = 'extrapolate')
         sn2_img[totmask] = sn2_interp(waveimg[totmask])
     else:
-        msgs.warn('All pixels are masked')
+        msgs.warning('All pixels are masked')
 
     msgs.info('sqrt(med(S/N)^2) = ' + "{:5.2f}".format(np.sqrt(med_sn2)))
 
@@ -1310,13 +1310,13 @@ def fit_profile(image, ivar, waveimg, thismask, spat_img, trace_in, wave,
 
     nxinf = np.sum(np.isfinite(xnew) == False)
     if (nxinf != 0):
-        msgs.warn("Nan pixel values in trace correction")
-        msgs.warn("Returning original trace....")
+        msgs.warning("Nan pixel values in trace correction")
+        msgs.warning("Returning original trace....")
         xnew = trace_in
     inf = np.isfinite(profile_model) == False
     ninf = np.sum(inf)
     if (ninf != 0):
-        msgs.warn("Nan pixel values in object profile... setting them to zero")
+        msgs.warning("Nan pixel values in object profile... setting them to zero")
         profile_model[inf] = 0.0
     # Normalize profile
     norm = np.outer(np.sum(profile_model, 1), np.ones(nspat))

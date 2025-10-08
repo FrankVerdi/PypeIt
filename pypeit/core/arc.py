@@ -343,7 +343,7 @@ def resize_mask2arc(shape_arc, slitmask_orig):
     (nspec_orig,nspat_orig) = slitmask_orig.shape
     if nspec_orig != nspec:
         if ((nspec_orig > nspec) & (nspec_orig % nspec != 0)) | ((nspec > nspec_orig) & (nspec % nspec_orig != 0)):
-            msgs.error('Problem with images sizes. arcimg size and calibration size need to be integer multiples of each other')
+            raise PypeItError('Problem with images sizes. arcimg size and calibration size need to be integer multiples of each other')
         else:
             msgs.info('Calibration images have different binning than the arcimg. Resizing calibs for arc spectrum extraction.')
         slitmask = utils.rebin_slice(slitmask_orig, (nspec, nspat))
@@ -803,7 +803,7 @@ def iter_continuum(spec, gpm=None, fwhm=4.0, sigthresh = 2.0, sigrej=3.0, niter_
         #frac_mask = np.sum(np.invert(cont_mask))/float(nspec)
         nmask = np.sum(np.invert(peak_mask[gpm]))
         if nmask > max_nmask:
-            msgs.warn('Too many pixels {:d} masked in spectrum continuum definiton: frac_mask = {:5.3f} > {:5.3f} which is '
+            msgs.warning('Too many pixels {:d} masked in spectrum continuum definiton: frac_mask = {:5.3f} > {:5.3f} which is '
                       'max allowed. Only masking the {:d} largest values....'.format(nmask, nmask/nspec_available, max_mask_frac, max_nmask))
             # Old
             #cont_mask = np.ones_like(cont_mask) & gpm
@@ -818,7 +818,7 @@ def iter_continuum(spec, gpm=None, fwhm=4.0, sigthresh = 2.0, sigrej=3.0, niter_
 
         ngood = np.sum(cont_mask)
         if ngood == 0:
-            msgs.warn("All pixels rejected for continuum.  Returning a 0 array")
+            msgs.warning("All pixels rejected for continuum.  Returning a 0 array")
             return np.zeros_like(spec), cont_mask
         samp_width = np.ceil(ngood/cont_samp).astype(int)
 
@@ -1002,7 +1002,7 @@ def detect_lines(censpec, sigdetect=5.0, fwhm=4.0, fit_frac_fwhm=1.25, input_thr
                                                         sigma_lower=3.0, sigma_upper=3.0, cenfunc= np.nanmedian,
                                                         stdfunc = np.nanstd)
         if stddev == 0.0:
-            msgs.warn('stddev = 0.0, so resetting to 0.1')
+            msgs.warning('stddev = 0.0, so resetting to 0.1')
             stddev = 0.1
         thresh = med + sigdetect * stddev
     else:
@@ -1013,7 +1013,7 @@ def detect_lines(censpec, sigdetect=5.0, fwhm=4.0, fit_frac_fwhm=1.25, input_thr
             if input_thresh == 'None':
                 thresh = None
         else:
-            msgs.error('Unrecognized value for thresh')
+            raise PypeItError('Unrecognized value for thresh')
         stddev = 1.0
 
     # Find the peak locations
@@ -1048,7 +1048,7 @@ def detect_lines(censpec, sigdetect=5.0, fwhm=4.0, fit_frac_fwhm=1.25, input_thr
     # requested, then grab and return only these lines
     if nfind is not None:
         if nfind > len(nsig):
-            msgs.warn('Requested {0} peaks but only found {1}.  '.format(nfind, len(tampl)) +
+            msgs.warning('Requested {0} peaks but only found {1}.  '.format(nfind, len(tampl)) +
                       ' Returning all the peaks found.')
         else:
             ikeep = (nsig.argsort()[::-1])[0:nfind]

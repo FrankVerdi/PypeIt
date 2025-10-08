@@ -111,7 +111,7 @@ class Setup(scriptbase.ScriptBase):
                     user_cfgs = [l.rstrip() for l in user_par_fobj.readlines()]
                 ps.append_user_cfg(user_cfgs)
             else:
-                msgs.warn(f"Could not open param_block file {args.param_block_file}. "
+                msgs.warning(f"Could not open param_block file {args.param_block_file}. "
                           "Not adding any additional user parameters to the .pypeit file.")
         # Run the setup
         ps.run(setup_only=True, clean_config=not args.keep_bad_frames)

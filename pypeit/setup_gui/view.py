@@ -1388,7 +1388,7 @@ class TabManagerWidget(QTabWidget):
         try:
             index = self._tabNames.index(tab_name)
         except ValueError :
-            msgs.warn(f"Failed to find tab named {tab_name} in list.")
+            msgs.warning(f"Failed to find tab named {tab_name} in list.")
             return
         tab = self.widget(index)
         if tab.closeable:
@@ -1408,7 +1408,7 @@ class TabManagerWidget(QTabWidget):
         try:
             index = self._tabNames.index(tab_name)
         except ValueError :
-            msgs.warn(f"Failed to find tab named {tab_name} in list.")
+            msgs.warning(f"Failed to find tab named {tab_name} in list.")
             return
 
         tab = self.widget(index)
@@ -1593,7 +1593,7 @@ class SetupGUIMainWindow(QWidget):
         if result:
             msgs.info("Opened PypeIT docs.")
         else:
-            msgs.warn("Failed to open PypeIt docs at 'https://pypeit.readthedocs.io/en/latest/'")
+            msgs.warning("Failed to open PypeIt docs at 'https://pypeit.readthedocs.io/en/latest/'")
 
     def _create_button_box(self):
         """Create the box with action buttons.

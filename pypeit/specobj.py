@@ -272,9 +272,9 @@ class SpecObj(datamodel.DataContainer):
         # Check the type of the flat field if it's not None
         if flat is not None:
             if not isinstance(flat, np.ndarray):
-                msgs.error('Flat must be a numpy array')
+                raise PypeItError('Flat must be a numpy array')
             if flat.shape != counts.shape:
-                msgs.error('Flat and counts must have the same shape')
+                raise PypeItError('Flat and counts must have the same shape')
         # Add in arrays
         for item, attr in zip([wave, counts, ivar, flat], ['_WAVE', '_COUNTS', '_COUNTS_IVAR', '_FLAT']):
             # Check if any of the arrays are None. If so, skip
@@ -291,7 +291,7 @@ class SpecObj(datamodel.DataContainer):
         """
         pypelines = ['MultiSlit', 'SlicerIFU', 'Echelle']
         if self.PYPELINE not in pypelines:
-            msgs.error(f'{self.PYPELINE} is not a known pipeline procedure.  Options are: '
+            raise PypeItError(f'{self.PYPELINE} is not a known pipeline procedure.  Options are: '
                        f"{', '.join(pypelines)}")
 
     def _bundle(self, **kwargs):
@@ -324,7 +324,7 @@ class SpecObj(datamodel.DataContainer):
         set to True.
         """
         if 'force_to_bintbl' in kwargs and not kwargs['force_to_bintbl']:
-            msgs.warn(f'Writing a {self.__class__.__name__} always requires force_to_bintbl=True')
+            msgs.warning(f'Writing a {self.__class__.__name__} always requires force_to_bintbl=True')
             del kwargs['force_to_bintbl']
         return super().to_hdu(force_to_bintbl=True, **kwargs)
 
@@ -337,7 +337,7 @@ class SpecObj(datamodel.DataContainer):
         elif self.PYPELINE == 'SlicerIFU':
             return self.SLITID
         else:
-            msgs.error("Bad PYPELINE")
+            raise PypeItError("Bad PYPELINE")
 
 
     @property
@@ -349,7 +349,7 @@ class SpecObj(datamodel.DataContainer):
         elif self.PYPELINE == 'SlicerIFU':
             return self.SLITID
         else:
-            msgs.error("Bad PYPELINE")
+            raise PypeItError("Bad PYPELINE")
 
     @property
     def mnx_wave(self):
@@ -430,7 +430,7 @@ class SpecObj(datamodel.DataContainer):
         """
         # some checks first
         if self.spectrograph is None and self.PYP_SPEC is None:
-            msgs.error("PYP_SPEC must be set to access the spectrograph")
+            raise PypeItError("PYP_SPEC must be set to access the spectrograph")
         # get it
         if self.spectrograph is None:
             self.spectrograph = load_spectrograph(self.PYP_SPEC)
@@ -493,7 +493,7 @@ class SpecObj(datamodel.DataContainer):
             name += f'-{self.DET}'
             self.NAME = name
         else:
-            msgs.error(f'{self.PYPELINE} is not an understood pipeline.')
+            raise PypeItError(f'{self.PYPELINE} is not an understood pipeline.')
 
     def copy(self):
         """
@@ -547,7 +547,7 @@ class SpecObj(datamodel.DataContainer):
         elif flex_type == 'local':
             self.FLEX_SHIFT_LOCAL = shift
         else:
-            msgs.error("Spectral flexure type must be 'global' or 'local' only")
+            raise PypeItError("Spectral flexure type must be 'global' or 'local' only")
         # Now update the total flexure
         self.FLEX_SHIFT_TOTAL += shift
 
@@ -656,7 +656,7 @@ class SpecObj(datamodel.DataContainer):
         swave = extraction+'_WAVE'
         smask = extraction+'_MASK'
         if self[swave] is None:
-            msgs.error("This object has not been extracted with extract={}.".format(extraction))
+            raise PypeItError("This object has not been extracted with extract={}.".format(extraction))
         # Fluxed?
         if fluxed:
             sflux = extraction+'_FLAM'
@@ -711,8 +711,8 @@ class SpecObj(datamodel.DataContainer):
         passed = True
         for key in required:
             if self[key] is None:
-                msgs.warn("Item {} is missing from SpecObj. Failing vette".format(key))
-                msgs.warn('{}'.format(self))
+                msgs.warning("Item {} is missing from SpecObj. Failing vette".format(key))
+                msgs.warning('{}'.format(self))
                 passed = False
         #
         return passed
@@ -835,7 +835,7 @@ class SpecObj(datamodel.DataContainer):
         # If not set, prefer the optimal extraction over the boxcar one.
         _extract = 'OPT' if extract is None else extract
         if _extract not in ['OPT', 'BOX']:
-            msgs.error(f'Extraction type ({_extract}) not understood; must be OPT or BOX.')
+            raise PypeItError(f'Extraction type ({_extract}) not understood; must be OPT or BOX.')
         if _extract == 'OPT':
             if self.has_opt_ext(fluxed=fluxed):
                 return 'OPT', fluxed
@@ -851,5 +851,5 @@ class SpecObj(datamodel.DataContainer):
         if self.has_box_ext(fluxed=False):
             return 'BOX', False
         # If we make it here, we've got a problem!
-        msgs.error('Unable to find a relevant set of data!')
+        raise PypeItError('Unable to find a relevant set of data!')
 

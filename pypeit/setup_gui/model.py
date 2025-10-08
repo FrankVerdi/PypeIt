@@ -365,7 +365,7 @@ class PypeItMetadataModel(QAbstractTableModel):
                 try:
                     self.metadata[colname][index.row()] = value
                 except ValueError as e:
-                    msgs.warn(f"Failed to set {colname} row {index.row()} to '{value}'. ValueError: {e}")
+                    msgs.warning(f"Failed to set {colname} row {index.row()} to '{value}'. ValueError: {e}")
 
                 self.dataChanged.emit(index,index,[Qt.DisplayRole, Qt.EditRole])
                 return True
@@ -1075,8 +1075,8 @@ class PypeItFileModel(QObject):
             pf.write(self.filename) 
             
         except Exception as e:
-            msgs.warn(f"Failed saving setup {self.name_stem} to {self.save_location}.")
-            msgs.warn(traceback.format_exc())
+            msgs.warning(f"Failed saving setup {self.name_stem} to {self.save_location}.")
+            msgs.warning(traceback.format_exc())
             # Raise an exception that will look nice when displayed to the GUI
             raise RuntimeError(f"Failed saving setup {self.name_stem} to {self.save_location}.\nException: {e}")
         self.state = ModelState.UNCHANGED

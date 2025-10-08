@@ -186,7 +186,7 @@ def construct_illum_profile(norm_spec, spat_coo, slitwidth, spat_gpm=None, spat_
 
     """
     if illum_rej is None and illum_iter > 0:
-        msgs.warn('Cannot use iterative rejection to construct the illumination function if the '
+        msgs.warning('Cannot use iterative rejection to construct the illumination function if the '
                   'rejection is not provided.  Continuing without iteration.')
 
     _spat_gpm = np.ones(norm_spec.shape, dtype=bool) if spat_gpm is None else np.copy(spat_gpm)
@@ -348,9 +348,9 @@ def smooth_scale(arr, wave_ref=None, polydeg=None, sn_smooth_npix=None):
     """
     # Do some checks on the input
     if polydeg is not None and wave_ref is None:
-        msgs.error("Must provide a wavelength array if polydeg is not None")
+        raise PypeItError("Must provide a wavelength array if polydeg is not None")
     if polydeg is None and sn_smooth_npix is None:
-        msgs.error("Must provide either polydeg or sn_smooth_npix")
+        raise PypeItError("Must provide either polydeg or sn_smooth_npix")
     # Smooth the relative sensitivity array
     if polydeg is not None:
         gd = (arr != 0)
@@ -514,7 +514,7 @@ def tweak_slit_edges_gradient(left, right, spat_coo, norm_flat, maxfrac=0.1, deb
     # Check input
     nspec = len(left)
     if len(right) != nspec:
-        msgs.error('Input left and right traces must have the same length!')
+        raise PypeItError('Input left and right traces must have the same length!')
 
     # Median slit width
     slitwidth = np.median(right - left)
@@ -534,7 +534,7 @@ def tweak_slit_edges_gradient(left, right, spat_coo, norm_flat, maxfrac=0.1, deb
 
     # Check if the shift is within the allowed range
     if np.abs(left_shift) > maxfrac:
-        msgs.warn('Left slit edge shift of {0:.1f}% exceeds the maximum allowed of {1:.1f}%'.format(
+        msgs.warning('Left slit edge shift of {0:.1f}% exceeds the maximum allowed of {1:.1f}%'.format(
                   100*left_shift, 100*maxfrac) + msgs.newline() +
                   'The left edge will not be tweaked.')
         left_shift = 0.0
@@ -542,7 +542,7 @@ def tweak_slit_edges_gradient(left, right, spat_coo, norm_flat, maxfrac=0.1, deb
         msgs.info('Tweaking left slit boundary by {0:.1f}%'.format(100 * left_shift) +
                   ' ({0:.2f} pixels)'.format(left_shift * slitwidth))
     if np.abs(right_shift) > maxfrac:
-        msgs.warn('Right slit edge shift of {0:.1f}% exceeds the maximum allowed of {1:.1f}%'.format(
+        msgs.warning('Right slit edge shift of {0:.1f}% exceeds the maximum allowed of {1:.1f}%'.format(
                   100*right_shift, 100*maxfrac) + msgs.newline() +
                   'The right edge will not be tweaked.')
         right_shift = 0.0
@@ -632,7 +632,7 @@ def tweak_slit_edges_threshold(left, right, spat_coo, norm_flat, thresh=0.93, ma
     # Check input
     nspec = len(left)
     if len(right) != nspec:
-        msgs.error('Input left and right traces must have the same length!')
+        raise PypeItError('Input left and right traces must have the same length!')
 
     # Median slit width
     slitwidth = np.median(right - left)
@@ -648,7 +648,7 @@ def tweak_slit_edges_threshold(left, right, spat_coo, norm_flat, thresh=0.93, ma
     # TODO: Set a parameter for this
     ileft = (spat_coo > 0.1) & (spat_coo < 0.4)
     if not np.any(ileft):
-        msgs.error('No coordinates toward the left of the slit center.  Slit boundaries are '
+        raise PypeItError('No coordinates toward the left of the slit center.  Slit boundaries are '
                    'likely in error, and you probably have a bad (very short) slit.  Slit center '
                    'at center row is {0:.1f}.'.format((left[nspec//2] + right[nspec//2])/2))
     left_thresh = thresh * np.amax(norm_flat[ileft])
@@ -672,10 +672,10 @@ def tweak_slit_edges_threshold(left, right, spat_coo, norm_flat, thresh=0.93, ma
                             norm_flat[np.invert(masked_flat.mask)], marker='.', s=10, color='k',
                             lw=0)
                 plt.show()
-            msgs.error('Tweak left edge has failed!  Bad continuous region.')
+            raise PypeItError('Tweak left edge has failed!  Bad continuous region.')
         i = contiguous_region.stop-1
         if i >= 0 and norm_flat[i-1] > norm_flat[i]:
-            msgs.warn('When adjusting left edge, found noisy illumination profile structure.')
+            msgs.warning('When adjusting left edge, found noisy illumination profile structure.')
         if debug:
             plt.scatter(spat_coo[masked_flat.mask], norm_flat[masked_flat.mask], marker='.', s=10,
                         color='C3', lw=0)
@@ -684,7 +684,7 @@ def tweak_slit_edges_threshold(left, right, spat_coo, norm_flat, thresh=0.93, ma
             plt.scatter(spat_coo[i], norm_flat[i], marker='o', facecolor='none', s=50, color='C1')
             plt.show()
         if norm_flat[i+1] < left_thresh:
-            msgs.warn('Left slit boundary tweak limited by maximum allowed shift: {:.1f}%'.format(
+            msgs.warning('Left slit boundary tweak limited by maximum allowed shift: {:.1f}%'.format(
                         100*maxfrac))
             left_shift = maxfrac
         else:
@@ -701,7 +701,7 @@ def tweak_slit_edges_threshold(left, right, spat_coo, norm_flat, thresh=0.93, ma
     # TODO: Set a parameter for this
     iright = (spat_coo > 0.6) & (spat_coo < 0.9)
     if not np.any(iright):
-        msgs.error('No coordinates toward the right of the slit center.  Slit boundaries are '
+        raise PypeItError('No coordinates toward the right of the slit center.  Slit boundaries are '
                    'likely in error, and you probably have a bad (very short) slit.  Slit center '
                    'at center row is {0:.1f}.'.format((left[nspec//2] + right[nspec//2])/2))
     right_thresh = thresh * np.amax(norm_flat[iright])
@@ -726,10 +726,10 @@ def tweak_slit_edges_threshold(left, right, spat_coo, norm_flat, thresh=0.93, ma
                             norm_flat[np.invert(masked_flat.mask)], marker='.', s=10, color='k',
                             lw=0)
                 plt.show()
-            msgs.error('Tweak right edge has failed!  Bad continuous region.')
+            raise PypeItError('Tweak right edge has failed!  Bad continuous region.')
         i = contiguous_region.start
         if i < norm_flat.size-1 and norm_flat[i+1] > norm_flat[i]:
-            msgs.warn('When adjusting right edge, found noisy illumination profile structure.')
+            msgs.warning('When adjusting right edge, found noisy illumination profile structure.')
         if debug:
             plt.scatter(spat_coo[masked_flat.mask], norm_flat[masked_flat.mask], marker='.', s=10,
                         color='C3', lw=0)
@@ -738,7 +738,7 @@ def tweak_slit_edges_threshold(left, right, spat_coo, norm_flat, thresh=0.93, ma
             plt.scatter(spat_coo[i], norm_flat[i], marker='o', facecolor='none', s=50, color='C1')
             plt.show()
         if norm_flat[i-1] < right_thresh:
-            msgs.warn('Right slit boundary tweak limited by maximum allowed shift: {:.1f}%'.format(
+            msgs.warning('Right slit boundary tweak limited by maximum allowed shift: {:.1f}%'.format(
                         100*maxfrac))
             right_shift = maxfrac
         else:
@@ -777,9 +777,9 @@ def flatfield(sciframe, flatframe, varframe=None):
         science frame.
     """
     if flatframe.shape != sciframe.shape:
-        msgs.error('Shape of flat frame does not match science frame.')
+        raise PypeItError('Shape of flat frame does not match science frame.')
     if varframe is not None and varframe.shape != sciframe.shape:
-        msgs.error('Shape of variance frame does not match science frame.')
+        raise PypeItError('Shape of variance frame does not match science frame.')
 
     # New image
     retframe = np.zeros_like(sciframe)

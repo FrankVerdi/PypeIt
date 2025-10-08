@@ -187,12 +187,12 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
             elif "Pinhole" in decker_str:
                 return 'Pinhole'
             else:
-                msgs.error(f"Unrecognized decker {decker_str}")
+                raise PypeItError(f"Unrecognized decker {decker_str}")
 
         if meta_key == 'binning':
             return f"{headarr[0]['RBIN']+1},{headarr[0]['CBIN']+1}"
 
-        msgs.error("Not ready for this compound meta")
+        raise PypeItError("Not ready for this compound meta")
 
     def configuration_keys(self):
         """
@@ -328,7 +328,7 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         if ftype in ['pinhole']:
             return good_exp & (fitstbl['idname'] == 'NarrowFlat') & (fitstbl['decker'] == 'Pinhole')
 
-        msgs.warn(f'Cannot determine if frames are of type {ftype}.')
+        msgs.warning(f'Cannot determine if frames are of type {ftype}.')
         return np.zeros(len(fitstbl), dtype=bool)
 
     def is_science(self, fitstbl):
@@ -426,7 +426,7 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         """
         # Check for file; allow for extra .gz, etc. suffix
         if not os.path.isfile(raw_file):
-            msgs.error(f'{raw_file} not found!')
+            raise PypeItError(f'{raw_file} not found!')
         hdu = io.fits_open(raw_file)
 
         head0 = hdu[0].header

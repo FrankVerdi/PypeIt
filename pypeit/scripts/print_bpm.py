@@ -77,7 +77,7 @@ class PrintBPM(scriptbase.ScriptBase):
                     file_pypeit_version = fits.getval(args.file, 'VERSPYP', 0)
                 except KeyError:
                     file_pypeit_version = '*unknown*'
-                msgs.warn(f'Your installed version of PypeIt ({__version__}) cannot be used to parse '
+                msgs.warning(f'Your installed version of PypeIt ({__version__}) cannot be used to parse '
                           f'{args.file}, which was reduced using version {file_pypeit_version}.  You '
                           'are strongly encouraged to re-reduce your data using this (or, better yet, '
                           'the most recent) version of PypeIt.  Script will try to parse only the '

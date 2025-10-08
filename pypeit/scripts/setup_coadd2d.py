@@ -127,13 +127,13 @@ class SetupCoAdd2D(scriptbase.ScriptBase):
             msgs_string = 'The following science directories do not exist:' + msgs.newline()
             for s in np.array(sci_dirs)[np.logical_not(sci_dirs_exist)]:
                 msgs_string += f'{s}' + msgs.newline()
-            msgs.error(msgs_string)
+            raise PypeItError(msgs_string)
 
         # Find all the spec2d files:
         spec2d_files = np.concatenate([sorted(sci_dir.glob('spec2d*')) for sci_dir in sci_dirs]).tolist()
 
         if len(spec2d_files) == 0:
-            msgs.error(f'No spec2d files.')
+            raise PypeItError(f'No spec2d files.')
 
         if spec_name is None:
             with io.fits_open(spec2d_files[0]) as hdu:
@@ -150,7 +150,7 @@ class SetupCoAdd2D(scriptbase.ScriptBase):
             _objects = [o for o in objects if o in args.obj]
             # Check some were found
             if len(_objects) == 0:
-                msgs.error('Unable to find relevant objects.  Unique objects are '
+                raise PypeItError('Unable to find relevant objects.  Unique objects are '
                            f'{objects.tolist()}; you requested {args.obj}.')
             objects = _objects
 
@@ -159,12 +159,12 @@ class SetupCoAdd2D(scriptbase.ScriptBase):
         for obj in objects:
             object_spec2d_files[obj] = [f for f in spec2d_files if obj.strip() in f.name]
             if len(object_spec2d_files[obj]) == 0:
-                msgs.warn(f'No spec2d files found for target={obj}.')
+                msgs.warning(f'No spec2d files found for target={obj}.')
                 del object_spec2d_files[obj]
 
         # Check spec2d files exist for the selected objects
         if len(object_spec2d_files.keys()) == 0:
-            msgs.error('Unable to match any spec2d files to objects.')
+            raise PypeItError('Unable to match any spec2d files to objects.')
 
         # Add the paths to make sure they match the pypeit file.
         # NOTE: cfg does *not* need to include the spectrograph parameter in

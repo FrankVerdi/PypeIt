@@ -176,7 +176,7 @@ class MMTBlueChannelSpectrograph(spectrograph.Spectrograph):
             else:
                 return 'off'
 
-        msgs.error(f"Not ready for compound meta, {meta_key}, for MMT Blue Channel.")
+        raise PypeItError(f"Not ready for compound meta, {meta_key}, for MMT Blue Channel.")
 
     def configuration_keys(self):
         """
@@ -353,7 +353,7 @@ class MMTBlueChannelSpectrograph(spectrograph.Spectrograph):
             bpm_img[-1, :] = 1
 
         else:
-            msgs.error(f"Invalid detector number, {det}, for MMT Blue Channel (only one detector).")
+            raise PypeItError(f"Invalid detector number, {det}, for MMT Blue Channel (only one detector).")
 
         return bpm_img
 
@@ -459,7 +459,7 @@ class MMTBlueChannelSpectrograph(spectrograph.Spectrograph):
             # i think the bright lamp, BC, is the only one ever used for this. imagetyp should always be set to flat.
             return good_exp & (fitstbl['lampstat01'] == 'off') & (fitstbl['target'] == 'skyflat')
 
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
     def get_rawimage(self, raw_file, det):

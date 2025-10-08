@@ -444,22 +444,22 @@ class CoAdd3D:
         self.correct_dar = self.cubepar['correct_dar']
         # Do some quick checks on the input options
         if skysub_frame is not None and len(skysub_frame) != self.numfiles:
-            msgs.error("The skysub_frame list should be identical length to the spec2dfiles list")
+            raise PypeItError("The skysub_frame list should be identical length to the spec2dfiles list")
         if sensfile is not None and len(sensfile) != self.numfiles:
-            msgs.error("The sensfile list should be identical length to the spec2dfiles list")
+            raise PypeItError("The sensfile list should be identical length to the spec2dfiles list")
         if scale_corr is not None and len(scale_corr) != self.numfiles:
-            msgs.error("The scale_corr list should be identical length to the spec2dfiles list")
+            raise PypeItError("The scale_corr list should be identical length to the spec2dfiles list")
         if grating_corr is not None and len(grating_corr) != self.numfiles:
-            msgs.error("The grating_corr list should be identical length to the spec2dfiles list")
+            raise PypeItError("The grating_corr list should be identical length to the spec2dfiles list")
         if ra_offsets is not None and len(ra_offsets) != self.numfiles:
-            msgs.error("The ra_offsets list should be identical length to the spec2dfiles list")
+            raise PypeItError("The ra_offsets list should be identical length to the spec2dfiles list")
         if dec_offsets is not None and len(dec_offsets) != self.numfiles:
-            msgs.error("The dec_offsets list should be identical length to the spec2dfiles list")
+            raise PypeItError("The dec_offsets list should be identical length to the spec2dfiles list")
         # Make sure both ra_offsets and dec_offsets are either both None or both lists
         if ra_offsets is None and dec_offsets is not None:
-            msgs.error("If you provide dec_offsets, you must also provide ra_offsets")
+            raise PypeItError("If you provide dec_offsets, you must also provide ra_offsets")
         if ra_offsets is not None and dec_offsets is None:
-            msgs.error("If you provide ra_offsets, you must also provide dec_offsets")
+            raise PypeItError("If you provide ra_offsets, you must also provide dec_offsets")
         # Set the frame specific options
         self.sensfile = None
         if sensfile is None:
@@ -478,12 +478,12 @@ class CoAdd3D:
         # If there is only one frame being "combined" AND there's no reference image, then don't compute the translation.
         if self.numfiles == 1 and self.cubepar["reference_image"] is None:
             if self.align:
-                msgs.warn("Parameter 'align' should be False when there is only one frame and no reference image")
+                msgs.warning("Parameter 'align' should be False when there is only one frame and no reference image")
                 msgs.info("Setting 'align' to False")
             self.align = False
         if self.ra_offsets is not None:
             if not self.align:
-                msgs.warn("When 'ra_offset' and 'dec_offset' are set, 'align' must be True.")
+                msgs.warning("When 'ra_offset' and 'dec_offset' are set, 'align' must be True.")
                 msgs.info("Setting 'align' to True")
             self.align = True
         # If no ra_offsets or dec_offsets have been provided, initialise the lists
@@ -538,7 +538,7 @@ class CoAdd3D:
             msgs.info("Adopting the nearest grid point (NGP) algorithm to generate the datacube.")
             self.skip_subpix_weights = True
         else:
-            msgs.error(f"The following datacube method is not allowed: {self.method}")
+            raise PypeItError(f"The following datacube method is not allowed: {self.method}")
 
         # Get the detector number and string representation
         if det is None:
@@ -557,7 +557,7 @@ class CoAdd3D:
         # If a reference image has been set, check that it exists
         if self.cubepar['reference_image'] is not None:
             if not os.path.exists(self.cubepar['reference_image']):
-                msgs.error("Reference image does not exist:" + msgs.newline() + self.cubepar['reference_image'])
+                raise PypeItError("Reference image does not exist:" + msgs.newline() + self.cubepar['reference_image'])
 
         # Load the default scaleimg frame for the scale correction
         self.scalecorr_default = "none"
@@ -579,26 +579,26 @@ class CoAdd3D:
             outfile = datacube.get_output_filename("", self.cubepar['output_filename'], self.combine)
             out_whitelight = datacube.get_output_whitelight_filename(outfile)
             if os.path.exists(outfile) and not self.overwrite:
-                msgs.error("Output filename already exists:"+msgs.newline()+outfile)
+                raise PypeItError("Output filename already exists:"+msgs.newline()+outfile)
             if os.path.exists(out_whitelight) and self.cubepar['save_whitelight'] and not self.overwrite:
-                msgs.error("Output filename already exists:"+msgs.newline()+out_whitelight)
+                raise PypeItError("Output filename already exists:"+msgs.newline()+out_whitelight)
         else:
             # Finally, if there's just one file, check if the output filename is given
             if self.numfiles == 1 and self.cubepar['output_filename'] != "":
                 outfile = datacube.get_output_filename("", self.cubepar['output_filename'], True, -1)
                 out_whitelight = datacube.get_output_whitelight_filename(outfile)
                 if os.path.exists(outfile) and not self.overwrite:
-                    msgs.error("Output filename already exists:" + msgs.newline() + outfile)
+                    raise PypeItError("Output filename already exists:" + msgs.newline() + outfile)
                 if os.path.exists(out_whitelight) and self.cubepar['save_whitelight'] and not self.overwrite:
-                    msgs.error("Output filename already exists:" + msgs.newline() + out_whitelight)
+                    raise PypeItError("Output filename already exists:" + msgs.newline() + out_whitelight)
             else:
                 for ff in range(self.numfiles):
                     outfile = datacube.get_output_filename(self.spec2d[ff], self.cubepar['output_filename'], self.combine, ff+1)
                     out_whitelight = datacube.get_output_whitelight_filename(outfile)
                     if os.path.exists(outfile) and not self.overwrite:
-                        msgs.error("Output filename already exists:" + msgs.newline() + outfile)
+                        raise PypeItError("Output filename already exists:" + msgs.newline() + outfile)
                     if os.path.exists(out_whitelight) and self.cubepar['save_whitelight'] and not self.overwrite:
-                        msgs.error("Output filename already exists:" + msgs.newline() + out_whitelight)
+                        raise PypeItError("Output filename already exists:" + msgs.newline() + out_whitelight)
 
     def set_blaze_spline(self, wave_spl, spec_spl):
         """
@@ -635,8 +635,8 @@ class CoAdd3D:
                                                               self.detname,
                                                               chk_version=self.chk_version)
                 except Exception as e:
-                    msgs.warn(f'Loading spec2d file raised {type(e).__name__}:\n{str(e)}')
-                    msgs.warn("Could not load scaleimg from spec2d file:" + msgs.newline() +
+                    msgs.warning(f'Loading spec2d file raised {type(e).__name__}:\n{str(e)}')
+                    msgs.warning("Could not load scaleimg from spec2d file:" + msgs.newline() +
                               self.cubepar['scale_corr'] + msgs.newline() +
                               "scale correction will not be performed unless you have specified the correct" + msgs.newline() +
                               "scale_corr file in the spec2d block")
@@ -697,8 +697,8 @@ class CoAdd3D:
                     spec2DObj_scl = spec2dobj.Spec2DObj.from_file(scalecorr, self.detname,
                                                                   chk_version=self.chk_version)
                 except Exception as e:
-                    msgs.warn(f'Loading spec2d file raised {type(e).__name__}:\n{str(e)}')
-                    msgs.error("Could not load skysub image from spec2d file:" + msgs.newline() + scalecorr)
+                    msgs.warning(f'Loading spec2d file raised {type(e).__name__}:\n{str(e)}')
+                    raise PypeItError("Could not load skysub image from spec2d file:" + msgs.newline() + scalecorr)
                 else:
                     relScaleImg = spec2DObj_scl.scaleimg
                     this_scalecorr = scalecorr
@@ -731,7 +731,7 @@ class CoAdd3D:
                                                           chk_version=self.chk_version)
                 skysub_exptime = self.spec.get_meta_value([spec2DObj.head0], 'exptime')
             except:
-                msgs.error("Could not load skysub image from spec2d file:" + msgs.newline() + self.cubepar['skysub_frame'])
+                raise PypeItError("Could not load skysub image from spec2d file:" + msgs.newline() + self.cubepar['skysub_frame'])
             else:
                 self.skysub_default = self.cubepar['skysub_frame']
                 self.skyImgDef = spec2DObj.sciimg / skysub_exptime  # Sky counts/second
@@ -802,7 +802,7 @@ class CoAdd3D:
                                                                   chk_version=self.chk_version)
                     skysub_exptime = self.spec.get_meta_value([spec2DObj_sky.head0], 'exptime')
                 except:
-                    msgs.error("Could not load skysub image from spec2d file:" + msgs.newline() + opts_skysub)
+                    raise PypeItError("Could not load skysub image from spec2d file:" + msgs.newline() + opts_skysub)
                 skyImg = spec2DObj_sky.sciimg * exptime / skysub_exptime  # Sky counts
                 skyScl = spec2DObj_sky.scaleimg
                 this_skysub = opts_skysub  # User specified spec2d for sky subtraction
@@ -833,7 +833,7 @@ class CoAdd3D:
         """
         # Check if the Flat file exists
         if not os.path.exists(flatfile):
-            msgs.warn("Grating correction requested, but the following file does not exist:" + msgs.newline() + flatfile)
+            msgs.warning("Grating correction requested, but the following file does not exist:" + msgs.newline() + flatfile)
             return
         if flatfile not in self.flat_splines.keys():
             msgs.info("Calculating relative sensitivity for grating correction")
@@ -867,7 +867,7 @@ class CoAdd3D:
         details of this procedure, see the child routines.
         """
         msgs.bug("This routine should be overridden by child classes.")
-        msgs.error("Cannot proceed without coding the run() routine.")
+        raise PypeItError("Cannot proceed without coding the run() routine.")
 
 
 class SlicerIFUCoAdd3D(CoAdd3D):
@@ -945,7 +945,7 @@ class SlicerIFUCoAdd3D(CoAdd3D):
                     alignments = alignframe.Alignments.from_file(alignfile,
                                                                  chk_version=self.chk_version)
             else:
-                msgs.warn(f'Processed alignment frame not recorded or not found!')
+                msgs.warning(f'Processed alignment frame not recorded or not found!')
                 msgs.info("Using slit edges for astrometric transform")
         else:
             msgs.info("Using slit edges for astrometric transform")
@@ -1052,7 +1052,7 @@ class SlicerIFUCoAdd3D(CoAdd3D):
 
             wnonzero = (waveimg != 0.0)
             if not np.any(wnonzero):
-                msgs.error("The wavelength image contains only zeros - You need to check the data reduction.")
+                raise PypeItError("The wavelength image contains only zeros - You need to check the data reduction.")
             wave0 = waveimg[wnonzero].min()
             # Calculate the delta wave in every pixel on the slit
             waveimp = np.roll(waveimg, 1, axis=0)
@@ -1090,10 +1090,10 @@ class SlicerIFUCoAdd3D(CoAdd3D):
             # If the spatial scale has been set by the user, check that it doesn't exceed the pixel or slicer scales
             if self._dspat is not None:
                 if pxscl > self._dspat:
-                    msgs.warn("Spatial scale requested ({0:f} arcsec) is less than the pixel scale ({1:f} arcsec)".format(
+                    msgs.warning("Spatial scale requested ({0:f} arcsec) is less than the pixel scale ({1:f} arcsec)".format(
                         3600.0 * self._dspat, 3600.0 * pxscl))
                 if slscl > self._dspat:
-                    msgs.warn("Spatial scale requested ({0:f} arcsec) is less than the slicer scale ({1:f} arcsec)".format(
+                    msgs.warning("Spatial scale requested ({0:f} arcsec) is less than the slicer scale ({1:f} arcsec)".format(
                         3600.0 * self._dspat, 3600.0 * slscl))
 
             # Construct a good pixel mask
@@ -1297,7 +1297,7 @@ class SlicerIFUCoAdd3D(CoAdd3D):
                                         reference=self.cubepar['reference_image'], collapse=True, equinox=2000.0,
                                         specname=self.specname)
                 if voxedge[2].size != 2:
-                    msgs.error("Spectral range for WCS is incorrect for white light image")
+                    raise PypeItError("Spectral range for WCS is incorrect for white light image")
 
                 wl_imgs = datacube.generate_image_subpixel(image_wcs, voxedge, self.all_sci, self.all_ivar, self.all_wave,
                                                            slitid_img_gpm, self.all_wghts, self.all_wcs,

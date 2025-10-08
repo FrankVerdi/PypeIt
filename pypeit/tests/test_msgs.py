@@ -27,7 +27,7 @@ def test_log_write():
 def test_msgs():
     msgs = pypmsgs.Messages(None, verbosity=1)
     msgs.info("test 123")
-    msgs.warn("test 123")
+    msgs.warning("test 123")
     msgs.bug("test 123")
     msgs.work("test 123")
     msgs.close()

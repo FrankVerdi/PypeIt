@@ -250,9 +250,9 @@ class PypeIt:
         std_outfile = self.par['reduce']['findobj']['std_spec1d']
         if std_outfile is not None:
             if not self.par['reduce']['findobj']['use_std_trace']:
-                msgs.error('If you provide a standard star spectrum for tracing, you must set use_std_trace=True')
+                raise PypeItError('If you provide a standard star spectrum for tracing, you must set use_std_trace=True')
             elif not Path(std_outfile).absolute().exists():
-                msgs.error(f'Provided standard spec1d file does not exist: {std_outfile}')
+                raise PypeItError(f'Provided standard spec1d file does not exist: {std_outfile}')
             return std_outfile
 
         # TODO: Need to decide how to associate standards with
@@ -267,7 +267,7 @@ class PypeIt:
             std_outfile = self.spec_output_file(std_frame) \
                             if isinstance(std_frame, (int,np.integer)) else None
         if std_outfile is not None and not std_outfile.is_file():
-            msgs.error(f'Could not find standard file: {std_outfile}')
+            raise PypeItError(f'Could not find standard file: {std_outfile}')
         return std_outfile
 
     def calib_all(self):
@@ -299,7 +299,7 @@ class PypeIt:
 
                 self.caliBrate = self.calib_one(grp_frames, self.det)
                 if not self.caliBrate.success:
-                    msgs.warn(f'Calibrations for detector {self.det} were unsuccessful!  The step '
+                    msgs.warning(f'Calibrations for detector {self.det} were unsuccessful!  The step '
                               f'that failed was {self.caliBrate.failed_step}.  Continuing to next '
                               f'detector.')
 
@@ -333,7 +333,7 @@ class PypeIt:
         # run if there are no science/standard frames and `run_pypeit` is run
         # without -c flag
         if not np.any(is_science) and not np.any(is_standard):
-            msgs.error('No science/standard frames provided. Add them to your PypeIt file '
+            raise PypeItError('No science/standard frames provided. Add them to your PypeIt file '
                        'if this is a standard run! Otherwise run calib_only reduction using -c flag')
 
         # Frame indices
@@ -404,7 +404,7 @@ class PypeIt:
                 # for now...
 #                # Quicklook mode?
 #                if self.par['rdx']['quicklook'] and j > 0:
-#                    msgs.warn('PypeIt executed in quicklook mode.  Only reducing science frames '
+#                    msgs.warning('PypeIt executed in quicklook mode.  Only reducing science frames '
 #                              'in the first combination group!')
 #                    break
                 #
@@ -436,10 +436,10 @@ class PypeIt:
                         self.save_exposure(frames[0], sci_spec2d, sci_sobjs, self.basename, history,
                                            skip_write_2d=self.par['scienceframe']['process']['skip_write_2d'])
                     else:
-                        msgs.warn('No spec2d and spec1d saved to file because the '
+                        msgs.warning('No spec2d and spec1d saved to file because the '
                                   'calibration/reduction was not successful for all the detectors')
                 else:
-                    msgs.warn(f'Output file: {self.fitstbl.construct_basename(frames[0])} already '
+                    msgs.warning(f'Output file: {self.fitstbl.construct_basename(frames[0])} already '
                               'exists. Set overwrite=True to recreate and overwrite.')
 
             msgs.info(f'Finished calibration group {calib_ID}')
@@ -565,7 +565,7 @@ class PypeIt:
             # run calibration
             self.caliBrate = self.calib_one(frames, self.det)
             if not self.caliBrate.success:
-                msgs.warn(f'Calibrations for detector {self.det} were unsuccessful!  The step '
+                msgs.warning(f'Calibrations for detector {self.det} were unsuccessful!  The step '
                           f'that failed was {self.caliBrate.failed_step}.  Continuing by '
                           f'skipping this detector.')
                 continue
@@ -677,7 +677,7 @@ class PypeIt:
         elif 'standard' in types:
             objtype_out = 'standard'
         else:
-            msgs.error('get_sci_metadata() should only be run on standard or science frames.  '
+            raise PypeItError('get_sci_metadata() should only be run on standard or science frames.  '
                        f'Types of this frame are: {types}')
         calib_key = CalibFrame.construct_calib_key(self.fitstbl['setup'][frame],
                                                    self.fitstbl['calib'][frame],
@@ -715,7 +715,7 @@ class PypeIt:
 
         # Check
         if stop_at_step is not None and stop_at_step not in caliBrate.steps:
-            msgs.error(f"Requested stop_at_step={stop_at_step} is not a valid calibration step.\n Allowed steps are: {caliBrate.steps}")
+            raise PypeItError(f"Requested stop_at_step={stop_at_step} is not a valid calibration step.\n Allowed steps are: {caliBrate.steps}")
             
         # These need to be separate to accomodate COADD2D
         caliBrate.set_config(frames[0], det, self.par['calibrations'])
@@ -921,7 +921,7 @@ class PypeIt:
                                                                 basename=io.remove_suffix(scifile))
             regfile = Path(regfile).absolute()
             if not regfile.exists():
-                msgs.error(f'Unable to find SkyRegions file: {regfile} . Create a SkyRegions '
+                raise PypeItError(f'Unable to find SkyRegions file: {regfile} . Create a SkyRegions '
                            'frame using pypeit_skysub_regions, or change the user_regions to '
                            'the percentage format.  See documentation.')
             msgs.info(f'Loading SkyRegions file: {regfile}')
@@ -940,9 +940,9 @@ class PypeIt:
         # Get the regions
         status, regions = skysub.read_userregions(skyregtxt, self.caliBrate.slits.nslits, maxslitlength)
         if status == 1:
-            msgs.error("Unknown error in sky regions definition. Please check the value:" + msgs.newline() + skyregtxt)
+            raise PypeItError("Unknown error in sky regions definition. Please check the value:" + msgs.newline() + skyregtxt)
         elif status == 2:
-            msgs.error("Sky regions definition must contain a percentage range, and therefore must contain a ':'")
+            raise PypeItError("Sky regions definition must contain a percentage range, and therefore must contain a ':'")
         # Generate and return image
         return skysub.generate_mask(self.spectrograph.pypeline, regions, self.caliBrate.slits,
                                     slits_left, slits_right, spat_flexure=spat_flexure)

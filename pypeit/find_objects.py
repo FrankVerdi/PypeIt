@@ -214,9 +214,9 @@ class FindObjects:
 
         # Deal with dynamically generated calibrations, i.e. the tilts.
         if waveTilts is None and tilts is None:
-            msgs.error("Must provide either waveTilts or tilts to FindObjects")
+            raise PypeItError("Must provide either waveTilts or tilts to FindObjects")
         elif waveTilts is not None and tilts is not None:
-            msgs.error("Cannot provide both waveTilts and tilts to FindObjects")
+            raise PypeItError("Cannot provide both waveTilts and tilts to FindObjects")
         elif waveTilts is not None and tilts is None:
             self.waveTilts = waveTilts
             self.waveTilts.is_synced(self.slits)
@@ -583,7 +583,7 @@ class FindObjects:
             inmask = self.sciImg.select_flag(invert=True) & thismask & skymask_now
             # All masked?
             if not np.any(inmask):
-                msgs.warn("No pixels for fitting sky.  If you are using mask_by_boxcar=True, your radius may be too large.")
+                msgs.warning("No pixels for fitting sky.  If you are using mask_by_boxcar=True, your radius may be too large.")
                 self.reduce_bpm[slit_idx] = True
                 continue
 
@@ -602,7 +602,7 @@ class FindObjects:
 
             # Mask if something went wrong
             if np.sum(global_sky[thismask]) == 0.:
-                msgs.warn("Bad fit to sky.  Rejecting slit: {:d}".format(slit_spat))
+                msgs.warning("Bad fit to sky.  Rejecting slit: {:d}".format(slit_spat))
                 self.reduce_bpm[slit_idx] = True
 
         if update_crmask and self.par['scienceframe']['process']['mask_cr']:
@@ -669,7 +669,7 @@ class FindObjects:
             ch_name = chname if chname is not None else 'image'
             viewer, ch = display.show_image(image, chname=ch_name, clear=clear, wcs_match=True)
         else:
-            msgs.warn("Not an option for show")
+            msgs.warning("Not an option for show")
 
         if sobjs is not None:
             for spec in sobjs:
@@ -853,7 +853,7 @@ class EchelleFindObjects(FindObjects):
         self.order_vec = spectrograph.orders if 'coadd2d' in self.objtype and spectrograph.orders is not None \
                             else self.slits.ech_order
         if self.order_vec is None:
-            msgs.error('Unable to set Echelle orders, likely because they were incorrectly '
+            raise PypeItError('Unable to set Echelle orders, likely because they were incorrectly '
                        'assigned in the relevant SlitTraceSet.')
 
     def get_platescale(self, slitord_id=None):
@@ -869,7 +869,7 @@ class EchelleFindObjects(FindObjects):
 
         """
         if slitord_id is None:
-            msgs.error('slitord_id is missing. Plate scale for current echelle order cannot be determined.')
+            raise PypeItError('slitord_id is missing. Plate scale for current echelle order cannot be determined.')
         return self.spectrograph.order_platescale(slitord_id, binning=self.binning)[0]
 
 
@@ -1016,7 +1016,7 @@ class SlicerIFUFindObjects(MultiSlitFindObjects):
             return global_sky_sep
 
         if self.wv_calib is None:
-            msgs.error("A wavelength calibration is needed (wv_calib) if a joint sky fit is requested.")
+            raise PypeItError("A wavelength calibration is needed (wv_calib) if a joint sky fit is requested.")
         msgs.info("Generating wavelength image")
 
         # Generate the waveimg which is needed if flexure is being computed
@@ -1204,7 +1204,7 @@ class SlicerIFUFindObjects(MultiSlitFindObjects):
                                             maxwave=self.par['flexure']['maxwave'])
         this_slitshift = np.zeros(self.slits.nslits)
         if flex_dict_ref is not None:
-            msgs.warn("Only a relative spectral flexure correction will be performed")
+            msgs.warning("Only a relative spectral flexure correction will be performed")
             this_slitshift = np.ones(self.slits.nslits) * flex_dict_ref['shift']
         # Now loop through all slits to calculate the additional shift relative to the reference slit
         flex_list = []

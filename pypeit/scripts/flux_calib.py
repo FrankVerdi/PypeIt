@@ -106,7 +106,7 @@ class FluxCalib(scriptbase.ScriptBase):
             sf_archive = SensFileArchive.get_instance(spectrograph.name)
             sensfiles = nspec*[sf_archive.get_archived_sensfile(fluxFile.filenames[0])]
         else:
-            msgs.error('Invalid format for .flux file.' + msgs.newline() +
+            raise PypeItError('Invalid format for .flux file.' + msgs.newline() +
                        'You must specify a single sensfile on the first line of the flux block,' + msgs.newline() +
                        'or specify a  sensfile for every spec1dfile in the flux block,' + msgs.newline() +
                        'or specify "use_archived_sens = True" to use an archived sensfile.' + msgs.newline() +

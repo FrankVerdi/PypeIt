@@ -143,7 +143,7 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
             binspec = headarr[0]['BIN-FCT2'] # Y
             return parse.binning2string(binspec, binspatial)
         else:
-            msgs.error("Not ready for this compound meta")
+            raise PypeItError("Not ready for this compound meta")
 
     def check_frame_type(self, ftype, fitstbl, exprng=None):
         """
@@ -176,7 +176,7 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
         if ftype in ['arc', 'tilt']:
             return good_exp & (fitstbl['idname'] == 'COMPARISON')
 
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
 
@@ -299,7 +299,7 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
         elif chip == '2':
             return detector_container.DetectorContainer(**detector_dict2)
         else:
-            msgs.error(f'Unknown chip: {chip}!')
+            raise PypeItError(f'Unknown chip: {chip}!')
 
     def config_specific_par(self, scifile, inp_par=None):
         """
@@ -404,7 +404,7 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
         # So, removing them should fix the problem.
         # ----------------------------
         # else:
-        #     msgs.error(f'Not ready for this grism {self.get_meta_value(scifile, "dispname")}')
+        #     raise PypeItError(f'Not ready for this grism {self.get_meta_value(scifile, "dispname")}')
 
         return par
 
@@ -562,7 +562,7 @@ class SubaruFOCASSpectrograph(spectrograph.Spectrograph):
         # collect correct data & overscan for binning in spatial (X) axis
         oscan_arr = overscan[bin_x][(det - 1)*4:][:4]
         if len(oscan_arr) != 4:
-            msgs.error(f'FOCAS detector {det} has an unexpected number of overscan regions: {len(oscan_arr)}. '
+            raise PypeItError(f'FOCAS detector {det} has an unexpected number of overscan regions: {len(oscan_arr)}. '
                        f'Expected 4 (2 for each chip). Please check the overscan definitions in the code.')
 
         # fill in rawdatasec_img and oscansec_img arrays according to

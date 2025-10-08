@@ -78,9 +78,9 @@ class Mosaic(datamodel.DataContainer):
             self.binning = self.detectors[0].binning
             for i in range(1,self.ndet):
                 if self.detectors[i].platescale != self.platescale:
-                    msgs.error('Platescale difference between detectors in mosaic.')
+                    raise PypeItError('Platescale difference between detectors in mosaic.')
                 if self.detectors[i].binning != self.binning:
-                    msgs.error('Binning difference between detectors in mosaic.')
+                    raise PypeItError('Binning difference between detectors in mosaic.')
 
     def _bundle(self):
         """
@@ -100,7 +100,7 @@ class Mosaic(datamodel.DataContainer):
             tbl = table.vstack([d._bundle()[0]['DETECTOR'] for d in self.detectors],
                                 join_type='exact')
         except:
-            msgs.error('CODING ERROR: Could not stack detector parameter tables when writing '
+            raise PypeItError('CODING ERROR: Could not stack detector parameter tables when writing '
                        'mosaic metadata.')
         if self.shift is not None:
             tbl['shift'] = self.shift
@@ -146,7 +146,7 @@ class Mosaic(datamodel.DataContainer):
 
         # This should only ever read one hdu!
         if len(parsed_hdus) > 1:
-            msgs.error('CODING ERROR: Parsing saved Mosaic instances should only parse 1 HDU.')
+            raise PypeItError('CODING ERROR: Parsing saved Mosaic instances should only parse 1 HDU.')
 
         # These are the same as the attributes for the detectors, so we need to
         # get rid of them.  We'll get them back via the _validate function.
@@ -167,7 +167,7 @@ class Mosaic(datamodel.DataContainer):
             # version and type checking.
             _d, vp, tp, ph = DetectorContainer._parse(_hdu)
             if not vp:
-                msgs.warn('Detector datamodel version is incorrect.  May cause a fault.')
+                msgs.warning('Detector datamodel version is incorrect.  May cause a fault.')
             version_passed &= vp
             d['detectors'] += [DetectorContainer.from_dict(d=_d) if tp else None]
             type_passed &= tp

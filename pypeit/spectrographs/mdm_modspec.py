@@ -73,7 +73,7 @@ class MDMModspecEchelleSpectrograph(spectrograph.Spectrograph):
             binning = self.compound_meta(self.get_headarr(hdu), 'binning')
 
         if binning != '1,1':
-            msgs.error("Not ready for any binning except 1x1;  contact the developers")
+            raise PypeItError("Not ready for any binning except 1x1;  contact the developers")
 
         # Detector 1 continued
         detector_dict = dict(
@@ -219,7 +219,7 @@ class MDMModspecEchelleSpectrograph(spectrograph.Spectrograph):
         if meta_key == 'cenwave':
             return 5100.0
         else:
-            msgs.error("Not ready for this compound meta")
+            raise PypeItError("Not ready for this compound meta")
 
     def configuration_keys(self):
         """
@@ -285,7 +285,7 @@ class MDMModspecEchelleSpectrograph(spectrograph.Spectrograph):
         if ftype in ['illumflat', 'trace']:     # Twilight Flats
             return good_exp & (fitstbl['idname'] == 'Flat') & (fitstbl['mirror'] == 'OUT')
         
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
 
         return np.zeros(len(fitstbl), dtype=bool)
     

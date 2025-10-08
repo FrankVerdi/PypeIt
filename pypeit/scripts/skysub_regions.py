@@ -71,7 +71,7 @@ class SkySubRegions(scriptbase.ScriptBase):
         key = EdgeTraceSet.calib_type.upper()
         if key not in spec2DObj.calibs:
             # TODO: Until I can figure out a better approach...
-            msgs.error(f'EdgeTrace calibration frame not recorded in {args.file}!')
+            raise PypeItError(f'EdgeTrace calibration frame not recorded in {args.file}!')
         calib_key, _ = EdgeTraceSet.parse_key_dir(spec2DObj.calibs[key], from_filename=True)
 
         # Use the appropriate class to get the "detector" number

@@ -73,7 +73,7 @@ def show_trace(sobjs, det, viewer, ch):
         display.show_trace(viewer, ch, np.swapaxes(trace_list, 1,0), np.array(trc_name_list),
                            maskdef_extr=np.array(maskdef_extr_list), manual_extr=np.array(manual_extr_list))
     else:
-        msgs.warn('spec1d file found, but no objects were extracted for this detector.')
+        msgs.warning('spec1d file found, but no objects were extracted for this detector.')
 
 
 class Show2DSpec(scriptbase.ScriptBase):
@@ -172,7 +172,6 @@ class Show2DSpec(scriptbase.ScriptBase):
             except KeyError:
                 file_pypeit_version = '*unknown*'
             if chk_version:
-                msgs_func = msgs.error
                 addendum = 'To allow the script to attempt to read the data anyway, use the ' \
                            '--try_old command-line option.  This will first try to simply ' \
                            'ignore the version number.  If the datamodels are incompatible ' \
@@ -182,14 +181,19 @@ class Show2DSpec(scriptbase.ScriptBase):
                            'script. In either case, BEWARE that the displayed data may be in ' \
                            'error!'
             else:
-                msgs_func = msgs.warn
                 addendum = 'The datamodels are sufficiently different that the script will now ' \
                            'try to parse only the components necessary for use by this ' \
                            'script.  BEWARE that the displayed data may be in error!'
-            msgs_func(f'Your installed version of PypeIt ({__version__}) cannot be used to parse '
-                      f'{args.file}, which was reduced using version {file_pypeit_version}.  You '
-                      'are strongly encouraged to re-reduce your data using this (or, better yet, '
-                      'the most recent) version of PypeIt.  ' + addendum)
+            message = (
+                f'Your installed version of PypeIt ({__version__}) cannot be used to parse '
+                f'{args.file}, which was reduced using version {file_pypeit_version}.  You '
+                'are strongly encouraged to re-reduce your data using this (or, better yet, '
+                'the most recent) version of PypeIt.  ' + addendum
+            )
+            if check_version:
+                raise PypeItError(message)
+            else:
+                msgs.warning(message)
             spec2DObj = None
 
         if spec2DObj is None:
@@ -198,11 +202,11 @@ class Show2DSpec(scriptbase.ScriptBase):
                 names = [h.name for h in hdu]
                 has_det = any([detname in n for n in names])
                 if not has_det:
-                    msgs.error(f'Provided file has no extensions including {detname}.')
+                    raise PypeItError(f'Provided file has no extensions including {detname}.')
                 for ext in ['SCIIMG', 'SKYMODEL', 'OBJMODEL', 'IVARMODEL']:
                     _ext = f'{detname}-{ext}'
                     if _ext not in names:
-                        msgs.error(f'{args.file} missing extension {_ext}.')
+                        raise PypeItError(f'{args.file} missing extension {_ext}.')
 
                 sciimg = hdu[f'{detname}-SCIIMG'].data
                 skymodel = hdu[f'{detname}-SKYMODEL'].data
@@ -218,7 +222,7 @@ class Show2DSpec(scriptbase.ScriptBase):
 
                 _ext = f'{detname}-SLITS'
                 if _ext not in names:
-                    msgs.warn(f'{args.file} missing extension {_ext}; cannot show slit edges.')
+                    msgs.warning(f'{args.file} missing extension {_ext}; cannot show slit edges.')
                 else:
                     slit_columns = hdu[_ext].columns.names
                     slit_spat_id = hdu[_ext].data['spat_id'] if 'spat_id' in slit_columns else None
@@ -262,7 +266,7 @@ class Show2DSpec(scriptbase.ScriptBase):
 
             img_gpm = spec2DObj.select_flag(invert=True)
             if not np.any(img_gpm):
-                msgs.warn('The full science image is masked!')
+                msgs.warning('The full science image is masked!')
 
             model_gpm = img_gpm.copy()
             if args.ignore_extract_mask:
@@ -284,7 +288,7 @@ class Show2DSpec(scriptbase.ScriptBase):
                 sobjs = specobjs.SpecObjs.from_fitsfile(spec1d_file, chk_version=False)
             else:
                 sobjs = None
-                msgs.warn('Could not find spec1d file: {:s}'.format(spec1d_file) + msgs.newline() +
+                msgs.warning('Could not find spec1d file: {:s}'.format(spec1d_file) + msgs.newline() +
                           '                          No objects were extracted.')
                 
         # TODO: This may be too restrictive, i.e. ignore BADFLTCALIB??

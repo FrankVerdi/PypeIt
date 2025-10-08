@@ -81,7 +81,7 @@ class VLTXShooterSpectrograph(spectrograph.Spectrograph):
             else:
                 binspec = 1
             return parse.binning2string(binspec, binspatial)
-        msgs.error("Not ready for this compound meta")
+        raise PypeItError("Not ready for this compound meta")
 
     def config_independent_frames(self):
         """
@@ -193,7 +193,7 @@ class VLTXShooterSpectrograph(spectrograph.Spectrograph):
         if ftype in ['arc', 'tilt']:
             return good_exp & (fitstbl['target'] == 'LAMP,WAVE')
 
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
 
@@ -426,7 +426,7 @@ class VLTXShooterNIRSpectrograph(VLTXShooterSpectrograph):
         if ftype in ['arc', 'tilt']:
             return good_exp & ((fitstbl['target'] == 'LAMP,WAVE') | (fitstbl['target'] == 'SCIENCE'))
 
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
     def bpm(self, filename, det, shape=None, msbias=None):

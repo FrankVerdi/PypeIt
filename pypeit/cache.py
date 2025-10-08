@@ -179,7 +179,7 @@ def git_most_recent_tag():
     tags = [packaging.version.parse(ref.split('/')[-1]) \
                 for ref in repo.references if 'refs/tags' in ref]
     if len(tags) == 0:
-        msgs.warn('Unable to find any tags in pypeit repository.')
+        msgs.warning('Unable to find any tags in pypeit repository.')
         return __version__, None
     latest_version = str(sorted(tags)[-1])
     timestamp = repo.resolve_refish(f'refs/tags/{latest_version}')[0].author.time
@@ -239,7 +239,7 @@ def fetch_remote_file(
     if remote_host == "s3_cloud" and not install_script:
         # Display a warning that this may take a while, and the user may wish to
         # download use an install script
-        msgs.warn(f'Note: If this file takes a while to download, you may wish to used one of '
+        msgs.warning(f'Note: If this file takes a while to download, you may wish to used one of '
                   'the install scripts (e.g., pypeit_install_telluric) to install the file '
                   'independent of this processing script.')
 
@@ -297,10 +297,10 @@ def fetch_remote_file(
             )
 
         # Raise the appropriate error message
-        msgs.error(err_msg)
+        raise PypeItError(err_msg)
 
     except TimeoutError as error:
-        msgs.error(f"Timeout Error encountered: {error}")
+        raise PypeItError(f"Timeout Error encountered: {error}")
 
     # If no error, return the pathlib object
     return pathlib.Path(cache_fn).resolve()
@@ -388,7 +388,7 @@ def remove_from_cache(cache_url=None, pattern=None, allow_multiple=False):
     if cache_url is None:
         _url = search_cache(pattern, path_only=False)
         if len(_url) == 0:
-            msgs.warn(f'Cache does not include a file matching the pattern {pattern}.')
+            msgs.warning(f'Cache does not include a file matching the pattern {pattern}.')
             return
         _url = list(_url.keys())
     elif not isinstance(cache_url, list):
@@ -397,7 +397,7 @@ def remove_from_cache(cache_url=None, pattern=None, allow_multiple=False):
         _url = cache_url
 
     if len(_url) > 1 and not allow_multiple:
-        msgs.warn('Function found or was provided with multiple entries to be removed.  Either '
+        msgs.warning('Function found or was provided with multiple entries to be removed.  Either '
                   'set allow_multiple=True, or try again with a single url or more specific '
                   'pattern.  URLs passed/found are:\n' + '\n'.join(_url))
         return
@@ -452,7 +452,7 @@ def parse_cache_url(url):
         return 's3_cloud', None, None, str(sub_path.parent), sub_path.name
 
     # Unknown host
-    msgs.warn(f'URL not recognized as a pypeit cache url:\n\t{url}')
+    msgs.warning(f'URL not recognized as a pypeit cache url:\n\t{url}')
     return None, None, None, None, None
 
 
@@ -520,7 +520,7 @@ def _build_remote_url(f_name: str, f_type: str, remote_host: str=None):
         return reduce(lambda a, b: urljoin(a, b), parts_perm), \
                 [reduce(lambda a, b: urljoin(a, b), parts_fake)]
 
-    msgs.error(f"Remote host type {remote_host} is not supported for package data caching.")
+    raise PypeItError(f"Remote host type {remote_host} is not supported for package data caching.")
 
 
 def _get_s3_hostname() -> str:

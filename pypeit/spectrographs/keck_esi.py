@@ -216,7 +216,7 @@ class KeckESISpectrograph(spectrograph.Spectrograph):
                         return mjd_time.mjd
                 except Exception as e:
                     # A problem parsing the MJD, we'll try DATE-OBS and UT
-                    msgs.warn("Problem parsing MJD-OBS, trying DATE-OBS and UT instead.")
+                    msgs.warning("Problem parsing MJD-OBS, trying DATE-OBS and UT instead.")
                     pass             
             return Time('{}T{}'.format(headarr[0]['DATE-OBS'], headarr[0]['UT'])).mjd
         elif meta_key == 'dispname':
@@ -226,7 +226,7 @@ class KeckESISpectrograph(spectrograph.Spectrograph):
                 dname = 'UNKNWN'
             return dname
         else:
-            msgs.error("Not ready for this compound meta")
+            raise PypeItError("Not ready for this compound meta")
 
     def configuration_keys(self):
         """
@@ -281,7 +281,7 @@ class KeckESISpectrograph(spectrograph.Spectrograph):
             return good_exp & (fitstbl['idname'] == 'Object') 
         if ftype == 'standard':
             return good_exp & (fitstbl['idname'] == 'Object') 
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
     def bpm(self, filename, det, shape=None, msbias=None):
@@ -463,7 +463,7 @@ class KeckESISpectrograph(spectrograph.Spectrograph):
         """
         # Check for file; allow for extra .gz, etc. suffix
         if not os.path.isfile(raw_file):
-            msgs.error(f'{raw_file} not found!')
+            raise PypeItError(f'{raw_file} not found!')
         hdu = io.fits_open(raw_file)
         head0 = hdu[0].header
 

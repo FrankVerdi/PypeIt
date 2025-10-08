@@ -265,7 +265,7 @@ class SensFunc(datamodel.DataContainer):
             self.norderdet = utils.spec_atleast_2d(wave_twk, counts_twk, counts_ivar_twk, counts_mask_twk,
                                                    log10_blaze_function=log10_blaze_function_twk)
         if self.nspec_in == 0:
-            msgs.error('1D spectra have 0 length!')
+            raise PypeItError('1D spectra have 0 length!')
 
         # If the user provided RA and DEC use those instead of what is in meta
         star_ra = self.meta_spec['RA'] if self.par['star_ra'] is None else self.par['star_ra']
@@ -283,10 +283,10 @@ class SensFunc(datamodel.DataContainer):
         overlap = (self.wave_cnts[:,0] <= self.std_dict['wave'].value.max()) & \
                   (self.wave_cnts[:,0] >= self.std_dict['wave'].value.min())
         if np.sum(overlap) == 0:
-            msgs.error(f'No wavelength overlap between the archival and observed standard star spectrum. '
+            raise PypeItError(f'No wavelength overlap between the archival and observed standard star spectrum. '
                        'This is not the right standard star for your observations.')
         elif np.sum(overlap)/self.nspec_in < 0.8:
-            msgs.warn(f'Only {np.sum(overlap)/self.nspec_in:.1%} of the observed wavelength range is covered by the '
+            msgs.warning(f'Only {np.sum(overlap)/self.nspec_in:.1%} of the observed wavelength range is covered by the '
                       f'archival standard star. This may not be the right standard star for your observations. ')
 
     def unpack_std(self):
@@ -326,7 +326,7 @@ class SensFunc(datamodel.DataContainer):
                     multi_spec_det=self.par['multi_spec_det'])
 
                 if sobjs_std is None:
-                    msgs.error(f'There is a problem with your standard star spec1d file: {self.spec1df}')
+                    raise PypeItError(f'There is a problem with your standard star spec1d file: {self.spec1df}')
 
                 # Unpack standard
                 wave, counts, counts_ivar, counts_mask, log10_blaze_function, meta_spec, header \
@@ -335,15 +335,15 @@ class SensFunc(datamodel.DataContainer):
             elif hdul[1].header.get('DMODCLS') == 'OneSpec':
                 spec = OneSpec.from_file(self.spec1df, chk_version=self.chk_version)
                 if spec.head0['PYPELINE'] == 'Echelle':
-                    msgs.error('Standard star 1D spectrum from OneSpec class cannot be used for Echelle data.')
+                    raise PypeItError('Standard star 1D spectrum from OneSpec class cannot be used for Echelle data.')
                 if spec.fluxed:
-                    msgs.error('Standard star 1D spectrum from OneSpec class is already fluxed '
+                    raise PypeItError('Standard star 1D spectrum from OneSpec class is already fluxed '
                                'and cannot be used to generate the sensitivity function.')
                 if self.par['use_flat']:
-                    msgs.error('"use_flat" set to True, but standard star 1D spectrum from OneSpec class '
+                    raise PypeItError('"use_flat" set to True, but standard star 1D spectrum from OneSpec class '
                               'does not contain the flat spectrum. The blaze function cannot be estimated.')
                 if spec.ext_mode != self.par['extr']:
-                    msgs.warn(f'Standard star 1D spectrum from OneSpec class was obtained using the {spec.ext_mode} '
+                    msgs.warning(f'Standard star 1D spectrum from OneSpec class was obtained using the {spec.ext_mode} '
                                f'extraction, while the requested extraction is {self.par["extr"]}. '
                                f'The available {spec.ext_mode} extraction will be used instead.')
                     self.extr = spec.ext_mode
@@ -358,7 +358,7 @@ class SensFunc(datamodel.DataContainer):
                 sobj[f'{self.extr}_MASK'] |= counts_mask
                 sobjs_std = specobjs.SpecObjs(specobjs=np.array([sobj]), header=spec.head0)
             else:
-                msgs.error('Unrecognized class for the 1D spectrum file. Cannot read in the standard')
+                raise PypeItError('Unrecognized class for the 1D spectrum file. Cannot read in the standard')
 
         return wave, counts, counts_ivar, counts_mask, log10_blaze_function, meta_spec, header, sobjs_std
 
@@ -396,7 +396,7 @@ class SensFunc(datamodel.DataContainer):
             # TODO: I added this neurotic check, just to make sure...
             if self.wave_splice is None or self.zeropoint_splice is None \
                     or self.throughput_splice is None:
-                msgs.error('CODING ERROR: Assumed if splice_multi_det is True, then the *_splice '
+                raise PypeItError('CODING ERROR: Assumed if splice_multi_det is True, then the *_splice '
                            'arrays have all been defined.  Found a case where this is not true!')
             # Loop through this list of dictionaries
             for _d in d:
@@ -895,7 +895,7 @@ class SensFunc(datamodel.DataContainer):
         if waves.ndim == 2:
             nspec, norder = waves.shape
             if ech_order_vec is not None and ech_order_vec.size != norder:
-                msgs.warn('The number of orders in the wave grid does not match the '
+                msgs.warning('The number of orders in the wave grid does not match the '
                           'number of orders in the unpacked sobjs. Echelle order vector not used.')
                 ech_order_vec = None
             nexp = 1
@@ -908,14 +908,14 @@ class SensFunc(datamodel.DataContainer):
             norder, nexp = 1, 1
             waves_stack = np.reshape(waves, (nspec, 1, 1))
         else:
-            msgs.error('Unrecognized dimensionality for waves')
+            raise PypeItError('Unrecognized dimensionality for waves')
 
         weights_stack = np.ones_like(waves_stack)
 
         if norder != sens.zeropoint.shape[1] and ech_order_vec is None:
-            msgs.error('The number of orders in {:} does not agree with your data. Wrong sensfile?'.format(sensfile))
+            raise PypeItError('The number of orders in {:} does not agree with your data. Wrong sensfile?'.format(sensfile))
         elif norder != sens.zeropoint.shape[1] and ech_order_vec is not None:
-            msgs.warn('The number of orders in {:} does not match the number of orders in the data. '
+            msgs.warning('The number of orders in {:} does not match the number of orders in the data. '
                       'Using only the matching orders.'.format(sensfile))
 
         # array of order to loop through

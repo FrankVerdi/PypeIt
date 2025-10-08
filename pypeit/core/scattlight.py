@@ -230,7 +230,7 @@ def scattered_light(frame, bpm, offslitmask, x0, bounds, detpad=300, debug=False
         msgs.info("Generating best-fitting scattered light model")
         scatt_img = scattered_light_model(res_lsq.x, _frame_pad)[detpad:-detpad, detpad:-detpad]
     else:
-        msgs.warn("Scattered light model fitting failed")
+        msgs.warning("Scattered light model fitting failed")
         scatt_img = np.zeros_like(frame)
 
     if debug:
@@ -282,7 +282,7 @@ def mask_slit_regions(offslitmask, centrace, mask_regions=None):
     """
     # Check if there are regions to be masked
     if mask_regions is None:
-        msgs.warn("There are no inter-slit regions specified that need to be masked")
+        msgs.warning("There are no inter-slit regions specified that need to be masked")
         return offslitmask
     elif isinstance(mask_regions, int):
         # Convert this to a list
@@ -342,7 +342,7 @@ def fine_correction(frame, bpm, offslitmask, method='median', polyord=2, debug=F
         A 2D image (nspec, nspat) of the fine correction to the scattered light determined from the input frame.
     """
     if method not in ['median', 'poly']:
-        msgs.error("Unrecognized method to determine the fine correction to the scattered light: {:s}".format(method))
+        raise PypeItError("Unrecognized method to determine the fine correction to the scattered light: {:s}".format(method))
     msgs.info("Performing a fine correction to the scattered light using the {:s} method".format(method))
     nspec, nspat = frame.shape
     if method == 'median':

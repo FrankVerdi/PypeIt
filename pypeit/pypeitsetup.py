@@ -101,7 +101,7 @@ class PypeItSetup:
 
         # The provided list of files cannot be None
         if file_list is None or len(file_list) == 0:
-            msgs.error('Must provide a list of files to be reduced!')
+            raise PypeItError('Must provide a list of files to be reduced!')
 
         # Save input
         self.file_list = file_list
@@ -116,7 +116,7 @@ class PypeItSetup:
 
         # Cannot proceed without spectrograph name
         if _spectrograph_name is None:
-            msgs.error('Must provide spectrograph name directly or using configuration lines.')
+            raise PypeItError('Must provide spectrograph name directly or using configuration lines.')
        
         # Instantiate the spectrograph
         self.spectrograph = load_spectrograph(_spectrograph_name)
@@ -191,7 +191,7 @@ class PypeItSetup:
         files = spec.find_raw_files(root, extension=extension)
         nfiles = len(files)
         if nfiles == 0:
-            msgs.error(f'Unable to find any raw files for {spec.name} in {root}!')
+            raise PypeItError(f'Unable to find any raw files for {spec.name} in {root}!')
         else:
             msgs.info(f'Found {nfiles} {spec.name} raw files.')
         return cls.from_rawfiles(files, spectrograph)
@@ -252,7 +252,7 @@ class PypeItSetup:
     def nfiles(self):
         """The number of files to reduce."""
         if self.fitstbl is None:
-            msgs.warn('No fits files have been read!')
+            msgs.warning('No fits files have been read!')
         return 0 if self.fitstbl is None else len(self.fitstbl)
 
     def __repr__(self):
@@ -365,7 +365,7 @@ class PypeItSetup:
         if clean_config:
             self.fitstbl.clean_configurations()
             if len(self.fitstbl) == 0:
-                msgs.error('Cleaning the configurations removed all the files!  Rerun '
+                raise PypeItError('Cleaning the configurations removed all the files!  Rerun '
                            'pypeit_setup with the --keep_bad_frames option.')
 
         # Determine the type of each frame.

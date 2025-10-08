@@ -38,7 +38,7 @@ def build_coadd_file_name(spec1dfiles, spectrograph):
         try:
             mjd_list.append(float(fits.getheader(f)['MJD']))
         except Exception as e:
-            msgs.error(f"Failed to read MJD from {f}: {e}")
+            raise PypeItError(f"Failed to read MJD from {f}: {e}")
 
     start_mjd = np.min(mjd_list)
     end_mjd = np.max(mjd_list)
@@ -171,7 +171,7 @@ class CoAdd1DSpec(scriptbase.ScriptBase):
                                                  merge_with=(coadd1dFile.cfg_lines,))
         # Check that sensfunc column is populated if this is echelle
         if spectrograph.pypeline == 'Echelle' and coadd1dFile.sensfiles is None:
-            msgs.error("To coadd echelle spectra, the 'sensfile' column must present in your .coadd1d file")
+            raise PypeItError("To coadd echelle spectra, the 'sensfile' column must present in your .coadd1d file")
 
         # Write the par to disk
         print("Writing the parameters to {}".format(args.par_outfile))

@@ -254,7 +254,7 @@ class ChkNoise1D(scriptbase.ScriptBase):
                         input_mask &= lbda < args.wavemax
 
                     if lbda[input_mask].size < 10:
-                        msgs.warn("The spectrum was cut down to <10 pixels.  Skipping")
+                        msgs.warning("The spectrum was cut down to <10 pixels.  Skipping")
                         continue
 
                     # determine if plotting the shaded area in the plot that shows the

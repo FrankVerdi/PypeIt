@@ -86,7 +86,7 @@ class Identify(scriptbase.ScriptBase):
         if args.lamps is None:
             lamps = par['lamps']
             if lamps is None or lamps == ['use_header']:
-                msgs.error('Cannot determine the lamps; use --lamps argument')
+                raise PypeItError('Cannot determine the lamps; use --lamps argument')
         else:
             lamps = args.lamps.split(",")
         par['lamps'] = lamps

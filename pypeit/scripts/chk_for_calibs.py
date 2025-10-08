@@ -124,7 +124,7 @@ class ChkForCalibs(scriptbase.ScriptBase):
                 msgs.info('Setting configuration-specific parameters using {0}'.format(
                             os.path.split(config_specific_file)[1]))
             else:
-                msgs.warn('No science or standard frame.  Punting..')
+                msgs.warning('No science or standard frame.  Punting..')
                 answers['pass'][i] = False
                 answers['scifiles'][i] = None
                 continue
@@ -142,14 +142,14 @@ class ChkForCalibs(scriptbase.ScriptBase):
                 answers['scifiles'][i] \
                         = ', '.join(ps.fitstbl['filename'][in_cfg & is_science].tolist())
             else:
-                msgs.warn("This setup has no science frames!")
+                msgs.warning("This setup has no science frames!")
                 answers['scifiles'][i] = ''
 
             # Check!
             answers['pass'][i] = calibrations.check_for_calibs(par, ps.fitstbl,
                                                             raise_error=False, cut_cfg=in_cfg)
             if not answers['pass'][i]:
-                msgs.warn("Setup {} did not pass the calibration check!".format(setup))
+                msgs.warning("Setup {} did not pass the calibration check!".format(setup))
 
         print('= RESULTS ============================================')
         # Print

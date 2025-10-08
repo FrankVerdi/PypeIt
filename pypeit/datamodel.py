@@ -676,7 +676,7 @@ class DataContainer:
                         else:
                             break
                     if dc is None:
-                        msgs.error(f'Could not assign dictionary element {key} to datamodel '
+                        raise PypeItError(f'Could not assign dictionary element {key} to datamodel '
                                    f'for {self.__class__.__name__}.', cls='PypeItDataModelError')
                     setattr(self, key, dc)
                     continue
@@ -824,7 +824,7 @@ class DataContainer:
             try:
                 d = Table(d)
             except:
-                msgs.error(f'Cannot force all elements of {self.__class__.__name__} datamodel'
+                raise PypeItError(f'Cannot force all elements of {self.__class__.__name__} datamodel'
                            'into a single-row astropy Table!', cls='PypeItDataModelError')
 
         return [d] if ext is None else [{ext:d}]
@@ -959,7 +959,7 @@ class DataContainer:
         _ext_pseudo = _ext if ext_pseudo is None else np.atleast_1d(ext_pseudo)
 
         if len(_ext_pseudo) != len(_ext):
-            msgs.error(f'Length of provided extension pseudonym list must match number of '
+            raise PypeItError(f'Length of provided extension pseudonym list must match number of '
                        f'extensions selected: {len(_ext)}.', cls='PypeItDataModelError')
 
         str_ext = np.logical_not([isinstance(e, (int, np.integer)) for e in _ext_pseudo])
@@ -971,7 +971,7 @@ class DataContainer:
         # DataContainers that have no data, although such a usage case should be
         # rare.
         if np.all([_hdu[e].data is None for e in _ext]):
-            msgs.warn(f'Extensions to be read by {cls.__name__} have no data!')
+            msgs.warning(f'Extensions to be read by {cls.__name__} have no data!')
             # This is so that the returned booleans for reading the
             # data are not tripped as false!
             found_data = True
@@ -1144,15 +1144,15 @@ class DataContainer:
                 Flag to impose strict version checking.
         """
         if not type_passed:
-            msgs.error(f'The HDU(s) cannot be parsed by a {cls.__name__} object!',
+            raise PypeItError(f'The HDU(s) cannot be parsed by a {cls.__name__} object!',
                        cls='PypeItDataModelError')
         if not version_passed:
             msg = f'Current version of {cls.__name__} object in code ({cls.version}) ' \
                   'does not match version used to write your HDU(s)!'
             if chk_version:
-                msgs.error(msg, cls='PypeItDataModelError')
+                raise PypeItError(msg, cls='PypeItDataModelError')
             else:
-                msgs.warn(msg)
+                msgs.warning(msg)
 
     def __getattr__(self, item):
         """Maps values to attributes.
@@ -1382,7 +1382,7 @@ class DataContainer:
             hdr_keys = np.array([k.upper() for k in self.keys()])
             indx = np.isin(hdr_keys, list(_primary_hdr.keys()))
             if np.sum(indx) > 1:
-                msgs.error('CODING ERROR: Primary header should not contain keywords that are the '
+                raise PypeItError('CODING ERROR: Primary header should not contain keywords that are the '
                            'same as the datamodel for {0}.'.format(self.__class__.__name__),
                            cls='PypeItDataModelError')
 
@@ -1392,7 +1392,7 @@ class DataContainer:
         # with any datamodel keys.
         if _hdr is not None \
                 and np.any(np.isin([k.upper() for k in self.keys()], list(_hdr.keys()))):
-            msgs.error('CODING ERROR: Baseline header should not contain keywords that are the '
+            raise PypeItError('CODING ERROR: Baseline header should not contain keywords that are the '
                        'same as the datamodel for {0}.'.format(self.__class__.__name__),
                        cls='PypeItDataModelError')
 

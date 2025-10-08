@@ -526,16 +526,16 @@ def get_whitelight_pixels(all_wave, all_slitid, min_wl, max_wl):
     if all([isinstance(l, list) for l in list_inputs]):
         numframes = len(all_wave)
         if not all([len(l) == numframes for l in list_inputs]):
-            msgs.error("All input lists must have the same length")
+            raise PypeItError("All input lists must have the same length")
         # Store in the following variables
         _all_wave, _all_slitid = all_wave, all_slitid
     elif all([not isinstance(l, list) for l in list_inputs]):
         _all_wave, _all_slitid = [all_wave], [all_slitid]
         numframes = 1
     else:
-        msgs.error("The input lists must either all be lists (of the same length) or all be numpy arrays")
+        raise PypeItError("The input lists must either all be lists (of the same length) or all be numpy arrays")
     if max_wl < min_wl:
-        msgs.error("The maximum wavelength must be greater than the minimum wavelength")
+        raise PypeItError("The maximum wavelength must be greater than the minimum wavelength")
     # Initialise the output
     out_slitid = [np.zeros(_all_slitid[0].shape, dtype=int) for _ in range(numframes)]
     # Loop over all frames and find the pixels that are within the wavelength range
@@ -545,7 +545,7 @@ def get_whitelight_pixels(all_wave, all_slitid, min_wl, max_wl):
             ww = np.where((_all_wave[ff] > min_wl) & (_all_wave[ff] < max_wl))
             out_slitid[ff][ww] = _all_slitid[ff][ww]
     else:
-        msgs.warn("Datacubes do not completely overlap in wavelength.")
+        msgs.warning("Datacubes do not completely overlap in wavelength.")
         out_slitid = _all_slitid
         min_wl, max_wl = None, None
         for ff in range(numframes):
@@ -588,13 +588,13 @@ def get_whitelight_range(wavemin, wavemax, wl_range):
     wlrng = [wavemin, wavemax]
     if wl_range[0] is not None:
         if wl_range[0] < wavemin:
-            msgs.warn("The user-specified minimum wavelength ({0:.2f}) to use for the white light".format(wl_range[0]) +
+            msgs.warning("The user-specified minimum wavelength ({0:.2f}) to use for the white light".format(wl_range[0]) +
                       msgs.newline() + "images is lower than the recommended value ({0:.2f}),".format(wavemin) +
                       msgs.newline() + "which ensures that all spaxels cover the same wavelength range.")
         wlrng[0] = wl_range[0]
     if wl_range[1] is not None:
         if wl_range[1] > wavemax:
-            msgs.warn("The user-specified maximum wavelength ({0:.2f}) to use for the white light".format(wl_range[1]) +
+            msgs.warning("The user-specified maximum wavelength ({0:.2f}) to use for the white light".format(wl_range[1]) +
                       msgs.newline() + "images is greater than the recommended value ({0:.2f}),".format(wavemax) +
                       msgs.newline() + "which ensures that all spaxels cover the same wavelength range.")
         wlrng[1] = wl_range[1]
@@ -631,10 +631,10 @@ def make_whitelight_fromcube(cube, bpmcube, wave=None, wavemin=None, wavemax=Non
     if wavemin is not None or wavemax is not None:
         # Make some checks on the input
         if wave is None:
-            msgs.error("wave variable must be supplied to create white light image with wavelength cuts")
+            raise PypeItError("wave variable must be supplied to create white light image with wavelength cuts")
         else:
             if wave.size != cube.shape[2]:
-                msgs.error("wave variable should have the same length as the third axis of cube.")
+                raise PypeItError("wave variable should have the same length as the third axis of cube.")
         # assign wavemin & wavemax if one is not provided
         if wavemin is None:
             wavemin = np.min(wave)
@@ -748,19 +748,19 @@ def set_voxel_sampling(spatscale, specscale, dspat=None, dwv=None):
     # Make sure all frames have consistent pixel scales
     ratio = (spatscale[:, 0] - spatscale[0, 0]) / spatscale[0, 0]
     if np.any(np.abs(ratio) > 1E-4):
-        msgs.warn("The pixel scales of all input frames are not the same!")
+        msgs.warning("The pixel scales of all input frames are not the same!")
         spatstr = ", ".join(["{0:.6f}".format(ss) for ss in spatscale[:,0]*3600.0])
         msgs.info("Pixel scales of all input frames:" + msgs.newline() + spatstr + "arcseconds")
     # Make sure all frames have consistent slicer scales
     ratio = (spatscale[:, 1] - spatscale[0, 1]) / spatscale[0, 1]
     if np.any(np.abs(ratio) > 1E-4):
-        msgs.warn("The slicer scales of all input frames are not the same!")
+        msgs.warning("The slicer scales of all input frames are not the same!")
         spatstr = ", ".join(["{0:.6f}".format(ss) for ss in spatscale[:,1]*3600.0])
         msgs.info("Slicer scales of all input frames:" + msgs.newline() + spatstr + "arcseconds")
     # Make sure all frames have consistent wavelength sampling
     ratio = (specscale - specscale[0]) / specscale[0]
     if np.any(np.abs(ratio) > 1E-2):
-        msgs.warn("The wavelength samplings of the input frames are not the same!")
+        msgs.warning("The wavelength samplings of the input frames are not the same!")
         specstr = ", ".join(["{0:.6f}".format(ss) for ss in specscale])
         msgs.info("Wavelength samplings of all input frames:" + msgs.newline() + specstr + "Angstrom")
 
@@ -793,7 +793,7 @@ def check_inputs(list_inputs):
         # Several frames are being combined. Check the lists have the same length
         numframes = len(list_inputs[0])
         if not all([len(l) == numframes for l in list_inputs]):
-            msgs.error("All input lists must have the same length")
+            raise PypeItError("All input lists must have the same length")
         # The inputs are good, return as is
         return tuple(list_inputs)
     elif all([not isinstance(l, list) for l in list_inputs]):
@@ -803,7 +803,7 @@ def check_inputs(list_inputs):
             ret_list += ([l],)
         return ret_list
     else:
-        msgs.error("The input arguments should all be of type 'list', or all not be of type 'list':")
+        raise PypeItError("The input arguments should all be of type 'list', or all not be of type 'list':")
 
 
 def wcs_bounds(raImg, decImg, waveImg, slitid_img_gpm, ra_offsets=None, dec_offsets=None,
@@ -1302,7 +1302,7 @@ def compute_weights(raImg, decImg, waveImg, sciImg, ivarImg, slitidImg,
 
     # If there's only one frame, use uniform weighting
     if numframes == 1:
-        msgs.warn("Only one frame provided.  Using uniform weighting.")
+        msgs.warning("Only one frame provided.  Using uniform weighting.")
         return np.ones_like(sciImg)
 
     # Check the WCS bounds
@@ -1590,7 +1590,7 @@ def generate_cube_subpixel(output_wcs, bins, sciImg, ivarImg, waveImg, slitid_im
     """
     # Check the inputs
     if whitelight_range is not None and outfile is None:
-            msgs.error("Must provide an outfile name if whitelight_range is set")
+            raise PypeItError("Must provide an outfile name if whitelight_range is set")
 
     # Subpixellate
     flxcube, varcube, bpmcube = subpixellate(output_wcs, bins, sciImg, ivarImg, waveImg, slitid_img_gpm, wghtImg,

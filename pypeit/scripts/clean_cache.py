@@ -47,7 +47,7 @@ class CleanCache(scriptbase.ScriptBase):
             return
 
         if args.pattern is None and not args.clear:
-            msgs.error('Arguments provided not sufficient to find files for deletion.')
+            raise PypeItError('Arguments provided not sufficient to find files for deletion.')
 
         if args.clear:
             # Removes the entire cache
@@ -77,7 +77,7 @@ class CleanCache(scriptbase.ScriptBase):
         # For now, we only need the urls.
         contents = list(contents.keys())
         if len(contents) == 0:
-            msgs.warn('No files to remove.')
+            msgs.warning('No files to remove.')
             return
 
         # Report

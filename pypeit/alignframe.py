@@ -77,7 +77,7 @@ class Alignments(calibframe.CalibFrame):
 
         """
         if not np.array_equal(self.spat_id, slits.spat_id):
-            msgs.error('Your alignment solutions are out of sync with your slits.  Remove '
+            raise PypeItError('Your alignment solutions are out of sync with your slits.  Remove '
                        'Calibrations and restart from scratch.')
 
     def show(self, slits=None):
@@ -205,7 +205,7 @@ class TraceAlignment:
                 nperslit=len(self.alignpar['locations']))
             if len(align_traces) != len(self.alignpar['locations']):
                 # Align tracing has failed for this slit
-                msgs.error("Alignment tracing has failed on slit {0:d}/{1:d}".format(slit_idx+1,self.slits.nslits))
+                raise PypeItError("Alignment tracing has failed on slit {0:d}/{1:d}".format(slit_idx+1,self.slits.nslits))
             align_prof['{0:d}'.format(slit_idx)] = align_traces.copy()
 
         # Steps
@@ -242,7 +242,7 @@ class TraceAlignment:
             sls = '{0:d}'.format(slit_idx)
             for bar in range(nbars):
                 if align_prof[sls][bar].SLITID != slit_idx:
-                    msgs.error("Alignment profiling failed to generate traces")
+                    raise PypeItError("Alignment profiling failed to generate traces")
                 align_traces[:, bar, slit_idx] = align_prof[sls][bar].TRACE_SPAT
         return align_traces
 
@@ -350,7 +350,7 @@ class AlignmentSplines:
         if type(locations) is list:
             locations = np.array(locations)
         if locations.size != traces.shape[1]:
-            msgs.error("The size of locations must be the same as traces.shape[1]")
+            raise PypeItError("The size of locations must be the same as traces.shape[1]")
         # Store the relevant input
         self.traces = traces
         self.locations = locations

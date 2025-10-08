@@ -301,7 +301,7 @@ class KeckNIRSPECHighSpectrograph(KeckNIRSPECSpectrograph):
         # wavelength calibration
         supported_filters = ['NIRSPEC-1', 'NIRSPEC-3', 'NIRSPEC-5', 'NIRSPEC-7', 'Kband-new', 'KL']
         if (self.filter1 not in supported_filters) and (self.filter2 not in supported_filters):
-            msgs.warn(f'Filter {self.filter1} or {self.filter2} may not be supported!!')
+            msgs.warning(f'Filter {self.filter1} or {self.filter2} may not be supported!!')
         
         if self.filter1 == 'Kband-new' or self.filter2 == 'NIRSPEC-7':
             par['calibrations']['wavelengths']['n_final'] = 3
@@ -498,7 +498,7 @@ class KeckNIRSPECHighSpectrograph(KeckNIRSPECSpectrograph):
             is_obj = self.lamps(fitstbl, 'off') & (hatch == 'Out') 
             good_exp[is_obj] = fitstbl['exptime'].data[is_obj] > 60.0
             return good_exp & (is_arc | is_obj)
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
     def lamps(self, fitstbl, status):
@@ -717,7 +717,7 @@ class KeckNIRSPECHighSpectrographOld(KeckNIRSPECSpectrographOld):
         # wavelength calibration
         supported_filters = ['NIRSPEC-1', 'NIRSPEC-3', 'NIRSPEC-5', 'NIRSPEC-7', 'KL']
         if (self.filter1 not in supported_filters) and (self.filter2 not in supported_filters):
-            msgs.warn(f'Filter {self.filter1} or {self.filter2} may not be supported!!')
+            msgs.warning(f'Filter {self.filter1} or {self.filter2} may not be supported!!')
         
         if self.filter2 == 'NIRSPEC-7':
             par['calibrations']['wavelengths']['n_final'] = 3
@@ -936,7 +936,7 @@ class KeckNIRSPECHighSpectrographOld(KeckNIRSPECSpectrographOld):
             is_obj = self.lamps(fitstbl, 'off') & (hatch == '0') 
             good_exp[is_obj] = fitstbl['exptime'].data[is_obj] > 60.0
             return good_exp & (is_arc | is_obj)
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
     def lamps(self, fitstbl, status):
@@ -1086,7 +1086,7 @@ class KeckNIRSPECHighSpectrographOld(KeckNIRSPECSpectrographOld):
             #if raw_img[i].ndim != 2:
             #    raw_img[i] = np.squeeze(raw_img[i])
             if raw_img[i].ndim != 2:
-                msgs.error(f"Raw images must be 2D; check extension {detectors[i]['dataext']} "
+                raise PypeItError(f"Raw images must be 2D; check extension {detectors[i]['dataext']} "
                            f"of {raw_file}.")
 
             for section in ['datasec', 'oscansec']:
@@ -1128,7 +1128,7 @@ class KeckNIRSPECHighSpectrographOld(KeckNIRSPECSpectrographOld):
             return detectors[0], raw_img[0], hdu, exptime, rawdatasec_img[0], oscansec_img[0]
 
         if any([img.shape != raw_img[0].shape for img in raw_img[1:]]):
-            msgs.error('All raw images in a mosaic must have the same shape.')
+            raise PypeItError('All raw images in a mosaic must have the same shape.')
         # Return all images for mosaic
         return mosaic, np.array(raw_img), hdu, exptime, np.array(rawdatasec_img), np.array(oscansec_img)
 
@@ -1366,7 +1366,7 @@ class KeckNIRSPECLowSpectrograph(KeckNIRSPECSpectrograph):
             is_obj = self.lamps(fitstbl, 'off') & (hatch == 0) \
                         & (fitstbl['idname'] == 'object')
             return good_exp & (is_arc | is_obj)
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
     def lamps(self, fitstbl, status):

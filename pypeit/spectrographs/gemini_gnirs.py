@@ -144,37 +144,37 @@ class GeminiGNIRSSpectrograph(spectrograph.Spectrograph):
             try:
                 return Time(headarr[0]['DATE-OBS'] + "T" + headarr[0]['TIME-OBS'])
             except KeyError:
-                msgs.warn("Time of observation is not in header")
+                msgs.warning("Time of observation is not in header")
                 return 0.0
         elif meta_key == 'pressure':
             try:
                 return headarr[0]['PRESSUR2']/100.0  # Must be in astropy.units.mbar
             except KeyError:
-                msgs.warn("Pressure is not in header - The default pressure (611 mbar) will be assumed")
+                msgs.warning("Pressure is not in header - The default pressure (611 mbar) will be assumed")
                 return 611.0
         elif meta_key == 'temperature':
             try:
                 return headarr[0]['TAMBIENT']  # Must be in astropy.units.deg_C
             except KeyError:
-                msgs.warn("Temperature is not in header - The default temperature (1.5 deg C) will be assumed")
+                msgs.warning("Temperature is not in header - The default temperature (1.5 deg C) will be assumed")
                 return 1.5  # van Kooten & Izett, arXiv:2208.11794
         elif meta_key == 'humidity':
             try:
                 # Humidity expressed as a percentage, not a fraction
                 return headarr[0]['HUMIDITY']
             except KeyError:
-                msgs.warn("Humidity is not in header - The default relative humidity (20 %) will be assumed")
+                msgs.warning("Humidity is not in header - The default relative humidity (20 %) will be assumed")
                 return 20.0  # van Kooten & Izett, arXiv:2208.11794
         elif meta_key == 'parangle':
             try:
                 # Humidity expressed as a percentage, not a fraction
-                msgs.warn("Parallactic angle is not available for GNIRS - DAR correction may be incorrect")
+                msgs.warning("Parallactic angle is not available for GNIRS - DAR correction may be incorrect")
                 return headarr[0]['PARANGLE']  # Must be expressed in radians
             except KeyError:
-                msgs.warn("Parallactic angle is not in header - The default parallactic angle (0 degrees) will be assumed")
+                msgs.warning("Parallactic angle is not in header - The default parallactic angle (0 degrees) will be assumed")
                 return 0.0
         else:
-            msgs.error("Not ready for this compound meta")
+            raise PypeItError("Not ready for this compound meta")
 
     def configuration_keys(self):
         """
@@ -260,7 +260,7 @@ class GeminiGNIRSSpectrograph(spectrograph.Spectrograph):
             elif '10/mmLBSX' in fitstbl['dispname'][0]:
                 return good_exp & (fitstbl['idname'] == 'ARC')
 
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
     @classmethod
@@ -397,7 +397,7 @@ class GeminiGNIRSSpectrograph(spectrograph.Spectrograph):
             # TODO :: Need to fill this in
             pass
         else:
-            msgs.error(f'Unrecognized GNIRS dispname: {self.dispname}')
+            raise PypeItError(f'Unrecognized GNIRS dispname: {self.dispname}')
 
         return par
 
@@ -505,7 +505,7 @@ class GeminiGNIRSEchelleSpectrograph(GeminiGNIRSSpectrograph):
             # Tilts
             par['calibrations']['tilts']['tracethresh'] = [10, 10, 10, 10]
         else:
-            msgs.error('Unrecognized GNIRS dispname')
+            raise PypeItError('Unrecognized GNIRS dispname')
 
         return par
 
@@ -541,7 +541,7 @@ class GeminiGNIRSEchelleSpectrograph(GeminiGNIRSSpectrograph):
         elif '32/mm' in self.dispname:
             return 6
         else:
-            msgs.error('Unrecognized disperser')
+            raise PypeItError('Unrecognized disperser')
 
     @property
     def order_spat_pos(self):
@@ -558,7 +558,7 @@ class GeminiGNIRSEchelleSpectrograph(GeminiGNIRSSpectrograph):
             ##New data
             return np.array([0.2955097 , 0.37635756, 0.44952223, 0.51935601, 0.59489503, 0.70210309])
         else:
-            msgs.error('Unrecognized disperser')
+            raise PypeItError('Unrecognized disperser')
 
     @property
     def orders(self):
@@ -571,7 +571,7 @@ class GeminiGNIRSEchelleSpectrograph(GeminiGNIRSSpectrograph):
         elif '32/mm' in self.dispname:
             return np.arange(8,2,-1,dtype=int)
         else:
-            msgs.error('Unrecognized disperser')
+            raise PypeItError('Unrecognized disperser')
 
     @property
     def spec_min_max(self):
@@ -591,7 +591,7 @@ class GeminiGNIRSEchelleSpectrograph(GeminiGNIRSSpectrograph):
             spec_min = np.asarray([512, 280, 0, 0, 0, 0])
             return np.vstack((spec_min, spec_max))
         else:
-            msgs.error('Unrecognized disperser')
+            raise PypeItError('Unrecognized disperser')
 
 
 class GNIRSIFUSpectrograph(GeminiGNIRSSpectrograph):
@@ -726,7 +726,7 @@ class GNIRSIFUSpectrograph(GeminiGNIRSSpectrograph):
         slscl = self.get_meta_value([hdr], 'slitwid')
         if spatial_scale is not None:
             if pxscl > spatial_scale / 3600.0:
-                msgs.warn("Spatial scale requested ({0:f}'') is less than the pixel scale ({1:f}'')".format(spatial_scale, pxscl*3600.0))
+                msgs.warning("Spatial scale requested ({0:f}'') is less than the pixel scale ({1:f}'')".format(spatial_scale, pxscl*3600.0))
             # Update the pixel scale
             pxscl = spatial_scale / 3600.0  # 3600 is to convert arcsec to degrees
 
@@ -741,7 +741,7 @@ class GNIRSIFUSpectrograph(GeminiGNIRSSpectrograph):
         coord = SkyCoord(raval, decval, unit=(units.deg, units.deg))
 
         # Get rotator position
-        msgs.warn("CURRENTLY A HACK --- NEED TO FIGURE OUT RPOS and RREF FOR HRIFU FROM HEADER INFO")
+        msgs.warning("CURRENTLY A HACK --- NEED TO FIGURE OUT RPOS and RREF FOR HRIFU FROM HEADER INFO")
         if 'ROTPOSN' in hdr:
             rpos = hdr['ROTPOSN']
         else:
@@ -775,7 +775,7 @@ class GNIRSIFUSpectrograph(GeminiGNIRSSpectrograph):
         crpix2 = slitlength / 2.
         crpix3 = 1.
         # Get the offset
-        msgs.warn("HACK FOR HRIFU --- Need to obtain offset from header?")
+        msgs.warning("HACK FOR HRIFU --- Need to obtain offset from header?")
         off1 = 0.
         off2 = 0.
         off1 /= binspec

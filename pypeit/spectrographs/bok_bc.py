@@ -75,7 +75,7 @@ class BokBCSpectrograph(spectrograph.Spectrograph):
             elif 'CCDSUM' in headarr[0]:  # For really old files
                 binspatial, binspec = headarr[0]['CCDSUM'].split()
             else: 
-                msgs.error("Could not find a header keyword for the binning")
+                raise PypeItError("Could not find a header keyword for the binning")
             return parse.binning2string(binspatial, binspec)
         elif meta_key == 'mjd':
             """
@@ -95,7 +95,7 @@ class BokBCSpectrograph(spectrograph.Spectrograph):
                 return headarr[0]['COMPLAMP']
             else:
                 return 'off'
-        msgs.error("Not ready for this compound meta")
+        raise PypeItError("Not ready for this compound meta")
 
     def configuration_keys(self):
         """
@@ -310,7 +310,7 @@ class BokBCSpectrograph(spectrograph.Spectrograph):
             bpm_img[:, -1] = 1
 
         else:
-            msgs.error(f"Invalid detector number, {det}, for Bok B&C (only one detector).")
+            raise PypeItError(f"Invalid detector number, {det}, for Bok B&C (only one detector).")
 
         return bpm_img
 
@@ -386,7 +386,7 @@ class BokBCSpectrograph(spectrograph.Spectrograph):
             return np.zeros(len(fitstbl), dtype=bool)
         if ftype in ['arc', 'tilt']:
             return good_exp & (fitstbl['lampstat01'] != 'off')
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
 

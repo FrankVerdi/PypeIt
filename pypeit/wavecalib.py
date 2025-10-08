@@ -100,7 +100,7 @@ class WaveCalib(calibframe.CalibFrame):
 
         # Spat_ID are always first
         if self.spat_ids is None:
-            msgs.error('Cannot write WaveCalib without spat_ids!')
+            raise PypeItError('Cannot write WaveCalib without spat_ids!')
         _d.append(dict(spat_ids=self.spat_ids))
         # Echelle orders
         if self.ech_orders is not None:
@@ -256,7 +256,7 @@ class WaveCalib(calibframe.CalibFrame):
 
         """
         if not np.array_equal(self.spat_ids, slits.spat_id):
-            msgs.error('Your wavelength solutions are out of sync with your slits.  Remove '
+            raise PypeItError('Your wavelength solutions are out of sync with your slits.  Remove '
                        'Calibrations and restart from scratch.')
 
     def build_fwhmimg(self, tilts, slits, initial=False, spat_flexure=None):
@@ -278,7 +278,7 @@ class WaveCalib(calibframe.CalibFrame):
         """
         # Check spatial flexure type
         if (spat_flexure is not None) and (not isinstance(spat_flexure, float)):
-            msgs.error("Spatial flexure must be None or float")
+            raise PypeItError("Spatial flexure must be None or float")
         # Generate the slit mask and slit edges - pad slitmask by 1 for edge effects
         slitmask = slits.slit_img(pad=1, initial=initial, flexure=spat_flexure)
         slits_left, slits_right, _ = slits.select_edges(initial=initial, flexure=spat_flexure)
@@ -323,7 +323,7 @@ class WaveCalib(calibframe.CalibFrame):
         """
         # Check spatial flexure type
         if (spat_flexure is not None) and (not isinstance(spat_flexure, float)):
-            msgs.error("Spatial flexure must be None or float")
+            raise PypeItError("Spatial flexure must be None or float")
         # Check spectral flexure type
         if spec_flexure is None: spec_flex = np.zeros(slits.nslits)
         elif isinstance(spec_flexure, float): spec_flex = spec_flexure*np.ones(slits.nslits)
@@ -344,14 +344,14 @@ class WaveCalib(calibframe.CalibFrame):
         if self.par['ech_separate_2d']:
             # Error checking
             if self.det_img is None:
-                msgs.error("This WaveCalib object was not generated with ech_separate_2d=True")
+                raise PypeItError("This WaveCalib object was not generated with ech_separate_2d=True")
 
         # Unpack some 2-d fit parameters if this is echelle
         for islit in np.where(ok_slits)[0]:
             slit_spat = slits.spat_id[islit]
             thismask = (slitmask == slit_spat)
             if not np.any(thismask):
-                msgs.error("Something failed in wavelengths or masking..")
+                raise PypeItError("Something failed in wavelengths or masking..")
             if self.par['echelle'] and self.par['ech_2dfit']:
                 # evaluate solution --
                 if self.par['ech_separate_2d']:
@@ -501,7 +501,7 @@ class BuildWaveCalib:
         # TODO: This should be a stop-gap to avoid instantiation of this with
         # any Nones.
         if None in [msarc, slits, spectrograph, par, lamps]:
-            msgs.error('CODING ERROR: Cannot instantiate BuildWaveCalib with Nones.')
+            raise PypeItError('CODING ERROR: Cannot instantiate BuildWaveCalib with Nones.')
 
         # Required parameters
         self.msarc = msarc
@@ -515,7 +515,7 @@ class BuildWaveCalib:
         # Optional parameters
         self.bpm = self.msarc.select_flag(flag='BPM') if msbpm is None else msbpm.astype(bool)
         if self.bpm.shape != self.msarc.shape:
-            msgs.error('Bad-pixel mask is not the same shape as the arc image.')
+            raise PypeItError('Bad-pixel mask is not the same shape as the arc image.')
         self.qa_path = qa_path
         self.det = det
 
@@ -690,7 +690,7 @@ class BuildWaveCalib:
         elif method == 'full_template':
             # Now preferred
             if self.binspectral is None:
-                msgs.error("You must specify binspectral for the full_template method!")
+                raise PypeItError("You must specify binspectral for the full_template method!")
             final_fit, order_vec = autoid.full_template(arccen, self.lamps, self.par, ok_mask_idx, self.det,
                                              self.binspectral, slit_ids=self.slits.slitord_id,
                                              measured_fwhms=self.measured_fwhms,
@@ -735,7 +735,7 @@ class BuildWaveCalib:
             self.arccen = arccen
 
         else:
-            msgs.error('Unrecognized wavelength calibration method: {:}'.format(method))
+            raise PypeItError('Unrecognized wavelength calibration method: {:}'.format(method))
 
         # Build the DataContainer
         if self.par['redo_slits'] is not None:
@@ -846,7 +846,7 @@ class BuildWaveCalib:
             # Are there few enough?
             max_bad = int(len(order_dets[idet])*bad_orders_maxfrac)
             if np.sum(in_det) > max_bad:
-                msgs.warn(f"Too many bad orders in detector={dets[idet]} to attempt a refit.")
+                msgs.warning(f"Too many bad orders in detector={dets[idet]} to attempt a refit.")
                 continue
             # Loop
             for order in bad_orders[in_det]:
@@ -871,7 +871,7 @@ class BuildWaveCalib:
                 fwhm=fwhm)
 
                 if not patt_dict_slit['acceptable']:
-                    msgs.warn(f"Order {order} is still not acceptable after attempt to reidentify.")
+                    msgs.warning(f"Order {order} is still not acceptable after attempt to reidentify.")
                     continue
 
                 # Fit me -- RMS may be too high again
@@ -909,7 +909,7 @@ class BuildWaveCalib:
                     self.wvc_bpm[iord] = False
                     fixed = True
                 else:
-                    msgs.warn(f'New RMS is too high (>{frac_rms_thresh}xRMS threshold). '
+                    msgs.warning(f'New RMS is too high (>{frac_rms_thresh}xRMS threshold). '
                               f'Not updating wavelength solution.')
         #
         return fixed
@@ -942,7 +942,7 @@ class BuildWaveCalib:
             List of integer lists providing list of the orders.
         """
         if self.spectrograph.pypeline != 'Echelle':
-            msgs.error('Cannot execute echelle_2dfit for a non-echelle spectrograph.')
+            raise PypeItError('Cannot execute echelle_2dfit for a non-echelle spectrograph.')
 
         msgs.info('Fitting 2-d wavelength solution for echelle....')
 
@@ -1003,7 +1003,7 @@ class BuildWaveCalib:
 
             # Fit
             if len(all_order) < 2:
-                msgs.warn(f"Fewer than 2 orders to fit for detector {idet}.  Skipping")
+                msgs.warning(f"Fewer than 2 orders to fit for detector {idet}.  Skipping")
                 save_order_dets.append([])
                 # Add a dummy fit
                 fit2ds.append(fitting.PypeItFit())
@@ -1021,7 +1021,7 @@ class BuildWaveCalib:
             # QA
             if not skip_QA:
                 if wv_calib.calib_key is None:
-                    msgs.warn('WaveCalib object provided does not have a defined calibration '
+                    msgs.warning('WaveCalib object provided does not have a defined calibration '
                               'key.  The QA files will not include this key in the file name, '
                               'meaning that existing QA files may be overwritten.')
                     calib_key = '' 
@@ -1143,7 +1143,7 @@ class BuildWaveCalib:
             bad_rms = rms > wave_rms_thresh
             if np.any(bad_rms):
                 self.wvc_bpm[bad_rms] = True
-                msgs.warn("Masking one or more bad orders (RMS)")
+                msgs.warning("Masking one or more bad orders (RMS)")
             # Fit
             fit2ds, dets, order_dets = self.echelle_2dfit(
                 self.wv_calib, skip_QA = skip_QA, debug=debug)
@@ -1169,7 +1169,7 @@ class BuildWaveCalib:
 
             # Check that we have at least one good 2D fit
             if not np.any([fit2d.success for fit2d in self.wv_calib.wv_fit2d]):
-                msgs.error("No successful 2D Wavelength fits.  Cannot proceed.")
+                raise PypeItError("No successful 2D Wavelength fits.  Cannot proceed.")
 
         # Deal with mask
         self.update_wvmask()

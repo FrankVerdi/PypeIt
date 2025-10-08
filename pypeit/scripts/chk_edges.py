@@ -51,7 +51,7 @@ class ChkEdges(scriptbase.ScriptBase):
             slit_filename = Path(args.slits_file).absolute()
             if not slit_filename.exists():
                 # But doesn't exist
-                msgs.warn(f'{slit_filename} does not exist!')
+                msgs.warning(f'{slit_filename} does not exist!')
                 # Set the file name to None so that the code will try to find
                 # the default file
                 slit_filename = None
@@ -59,7 +59,7 @@ class ChkEdges(scriptbase.ScriptBase):
             slit_filename = slittrace.SlitTraceSet.construct_file_name(
                                 edges.traceimg.calib_key, calib_dir=edges.traceimg.calib_dir)
             if not slit_filename.exists():
-                msgs.warn(f'{slit_filename} does not exist!')
+                msgs.warning(f'{slit_filename} does not exist!')
         # NOTE: At this point, slit_filename *must* be a Path object
 
         slits = slittrace.SlitTraceSet.from_file(slit_filename, chk_version=chk_version) \

@@ -117,7 +117,7 @@ def tilts_find_lines(arc_spec, slit_cen, tracethresh=10.0, sig_neigh=5.0, nfwhm_
     lines_spec = arcdet[aduse]
     nlines = len(lines_spec)
     if nlines == 0:
-        msgs.warn('No arc lines were deemed usable on this slit; line tilts cannot be computed.'
+        msgs.warning('No arc lines were deemed usable on this slit; line tilts cannot be computed.'
                   '  This may be a bad slit, which you can remove.  Otherwise, try lowering '
                   'the tracethresh parameter.')
         return None, None, None
@@ -489,7 +489,7 @@ def trace_tilts_work(arcimg, lines_spec, lines_spat, thismask, slit_cen, inmask=
         # cause a full fault of the code, we need to make sure the user
         # sees these kinds of critical failures instead of them getting
         # buried in all the other messages.
-        msgs.warn('Too many lines rejected in this slit/order.' + msgs.newline()
+        msgs.warning('Too many lines rejected in this slit/order.' + msgs.newline()
                   + 'Would reject {0}/{1} lines (more than 95%).'.format(nlines - nuse, nlines)
                   + msgs.newline() + 'Proceeding without rejection, but reduction likely bogus.')
         use_tilt = np.ones(nlines, dtype=bool)
@@ -629,7 +629,7 @@ def trace_tilts(arcimg, lines_spec, lines_spat, thismask, slit_cen, inmask=None,
     if nuse < 2:
         # DP: Added this because sometime there are < 2 usable arc lines for tilt tracing, PCA fit does not work
         # and the reduction crushes
-        msgs.warn('Less than 2 usable arc lines for tilts. NO PCA modeling!')
+        msgs.warning('Less than 2 usable arc lines for tilts. NO PCA modeling!')
         return trace_dict0
     else:
         bpm = np.ones(trace_dict0['tilts_sub_fit'].shape, dtype=bool)

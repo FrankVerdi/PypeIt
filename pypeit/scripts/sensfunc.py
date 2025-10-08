@@ -104,7 +104,7 @@ class SensFunc(scriptbase.ScriptBase):
 
         # Check parameter inputs
         if args.algorithm is not None and args.sens_file is not None:
-            msgs.error("It is not possible to set --algorithm and simultaneously use a .sens "
+            raise PypeItError("It is not possible to set --algorithm and simultaneously use a .sens "
                        "file via the --sens_file option. If you are using a .sens file set the "
                        "algorithm there via:\n"
                        "\n"
@@ -113,7 +113,7 @@ class SensFunc(scriptbase.ScriptBase):
                        "\n")
 
         if args.use_flat and args.sens_file is not None:
-            msgs.error("It is not possible to set --use_flat and simultaneously use a .sens "
+            raise PypeItError("It is not possible to set --use_flat and simultaneously use a .sens "
                        "file via the --sens_file option. If you are using a .sens file set the "
                        "use_flat flag in your .sens file using the argument:\n"
                        "\n"
@@ -122,7 +122,7 @@ class SensFunc(scriptbase.ScriptBase):
                        "\n")
 
         if args.multi is not None and args.sens_file is not None:
-            msgs.error("It is not possible to set --multi and simultaneously use a .sens file via "
+            raise PypeItError("It is not possible to set --multi and simultaneously use a .sens file via "
                        "the --sens_file option. If you are using a .sens file set the detectors "
                        "there via:\n"
                        "\n"
@@ -131,7 +131,7 @@ class SensFunc(scriptbase.ScriptBase):
                        "\n")
 
         if args.extr is not None and args.sens_file is not None:
-            msgs.error("It is not possible to set --extr and simultaneously use a .sens file via "
+            raise PypeItError("It is not possible to set --extr and simultaneously use a .sens file via "
                        "the --sens_file option. If you are using a .sens file set the extraction "
                        "method there via:\n"
                        "\n"

@@ -84,7 +84,7 @@ class DEIMOSSensFileArchive(SensFileArchive):
         
         grating = header['DISPNAME']
         if grating not in ["600ZD", "830G", "900ZD", "1200B", "1200G"]:
-            msgs.error(f"There are no archived SensFuncFiles for keck_deimos grating {grating}.")
+            raise PypeItError(f"There are no archived SensFuncFiles for keck_deimos grating {grating}.")
 
         to_pkg = 'symlink' if symlink_in_pkgdir else None
         archived_file = dataPaths.sensfunc.get_file_path(f"keck_deimos_{grating}_sensfunc.fits",

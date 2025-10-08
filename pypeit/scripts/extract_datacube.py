@@ -48,7 +48,7 @@ class ExtractDataCube(scriptbase.ScriptBase):
 
         # Check that a file has been provided
         if args.file is None:
-            msgs.error('You must input a spec3d (i.e. PypeIt DataCube) fits file')
+            raise PypeItError('You must input a spec3d (i.e. PypeIt DataCube) fits file')
         extcube = DataCube.from_file(args.file)
         spectrograph = load_spectrograph(extcube.PYP_SPEC)
 

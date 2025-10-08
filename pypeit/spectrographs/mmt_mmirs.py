@@ -76,7 +76,7 @@ class MMTMMIRSSpectrograph(spectrograph.Spectrograph):
             time = headarr[1]['DATE-OBS']
             ttime = Time(time, format='isot')
             return ttime.mjd
-        msgs.error("Not ready for this compound meta")
+        raise PypeItError("Not ready for this compound meta")
 
     def raw_header_cards(self):
         """
@@ -271,7 +271,7 @@ class MMTMMIRSSpectrograph(spectrograph.Spectrograph):
             return good_exp & (fitstbl['idname'] == 'object')
         if ftype == 'dark':
             return good_exp & (fitstbl['idname'] == 'dark')
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
     def bpm(self, filename, det, shape=None, msbias=None):

@@ -39,7 +39,7 @@ class CoAddDataCube(scriptbase.ScriptBase):
 
         # Check that a file has been provided
         if args.file is None:
-            msgs.error('You must input a coadd3d file')
+            raise PypeItError('You must input a coadd3d file')
 
         # Read in the relevant information from the .coadd3d file
         coadd3dfile = inputfiles.Coadd3DFile.from_file(args.file)

@@ -80,7 +80,7 @@ class ParseSlits(scriptbase.ScriptBase):
         elif 'PYP_CLS' in head0.keys() and head0['PYP_CLS'].strip() == 'AllSpec2DObj':
             file_type = 'AllSpec2D'
         else:
-            msgs.error("Bad file type input!")
+            raise PypeItError("Bad file type input!")
 
         if file_type == 'Slits':
             slits = slittrace.SlitTraceSet.from_file(args.input_file, chk_version=chk_version)
@@ -96,5 +96,5 @@ class ParseSlits(scriptbase.ScriptBase):
                 spec2Dobj = allspec2D[det]
                 print_slits(spec2Dobj.slits)
         else:
-            msgs.error("Bad file type input!  Must be a Slits calibration frame or a spec2d file.")
+            raise PypeItError("Bad file type input!  Must be a Slits calibration frame or a spec2d file.")
 

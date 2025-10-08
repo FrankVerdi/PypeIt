@@ -212,7 +212,7 @@ class VLTSINFONISpectrograph(spectrograph.Spectrograph):
                     return None
             return decker
         else:
-            msgs.error("Not ready for this compound meta")
+            raise PypeItError("Not ready for this compound meta")
 
     def configuration_keys(self):
         """
@@ -313,7 +313,7 @@ class VLTSINFONISpectrograph(spectrograph.Spectrograph):
         if ftype in ['sky']:
             return good_exp & (fitstbl['idname'] == 'SINFONI_IFS_SKY')
 
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
 

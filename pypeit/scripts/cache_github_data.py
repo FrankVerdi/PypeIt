@@ -79,7 +79,7 @@ class CacheGithubData(scriptbase.ScriptBase):
 
         # Access the repo; use a token if one is available
         if os.getenv('GITHUB_TOKEN') is None:
-            msgs.warn('GITHUB_TOKEN environmental variable is not defined, meaning script will '
+            msgs.warning('GITHUB_TOKEN environmental variable is not defined, meaning script will '
                       'not authenticate a GitHub user via an OAuth token.  Beware of rate limits!')
             auth = None
         else:

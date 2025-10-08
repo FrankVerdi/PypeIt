@@ -346,7 +346,7 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
             elif PWSTATA7 == 1 or PWSTATA8 == 1:
                 return 'arclamp'
             else:
-                msgs.warn('Header keyword FLATSPEC, PWSTATA7, or PWSTATA8 may not exist')
+                msgs.warning('Header keyword FLATSPEC, PWSTATA7, or PWSTATA8 may not exist')
                 return 'unknown'
         if meta_key == 'lampstat01':
             if headarr[0].get('PWSTATA7') == 1 or headarr[0].get('PWSTATA8') == 1:
@@ -367,7 +367,7 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
             else:
                 return 0.0
         else:
-            msgs.error("Not ready for this compound meta")
+            raise PypeItError("Not ready for this compound meta")
 
     def configuration_keys(self):
         """
@@ -716,7 +716,7 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
             is_arc = fitstbl['idname'] == 'arclamp'
             is_obj = (fitstbl['lampstat01'] == 'off') & (fitstbl['idname'] == 'object') & ('long2pos_specphot' not in fitstbl['decker'])
             return good_exp & (is_arc | is_obj)
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
     # TODO: Is this supposed to be deprecated in favor of get_comb_group?
@@ -924,7 +924,7 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
 
         if (numslits.sum() != self._CSUnumslits()) and ('LONGSLIT' not in self.get_meta_value(filename, 'decker')) \
                 and ('long2pos' not in self.get_meta_value(filename, 'decker')):
-            msgs.error('The number of allocated CSU slits does not match the number of possible slits. '
+            raise PypeItError('The number of allocated CSU slits does not match the number of possible slits. '
                        'Slitmask design matching not possible. Turn parameter `use_maskdesign` off')
 
         targ_dist_center = np.array(ssl['Target_to_center_of_slit_distance'], dtype=float)
@@ -1021,10 +1021,10 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
         if filename is not None:
             self.get_slitmask(filename)
         else:
-            msgs.error('The name of a science file should be provided')
+            raise PypeItError('The name of a science file should be provided')
 
         if self.slitmask is None:
-            msgs.error('Unable to read slitmask design info. Provide a file.')
+            raise PypeItError('Unable to read slitmask design info. Provide a file.')
 
         platescale = self.get_detector_par(det=1)['platescale']
         slit_gap = self._slit_gap(platescale)

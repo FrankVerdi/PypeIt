@@ -74,16 +74,16 @@ class CoAdd2DSpec(scriptbase.ScriptBase):
         # Check some of the parameters
         # TODO Heliocentric for coadd2d needs to be thought through. Currently turning it off.
         if par['calibrations']['wavelengths']['refframe'] != 'observed':
-            msgs.warn('Wavelength reference frame shift (e.g., heliocentric correction) not yet '
+            msgs.warning('Wavelength reference frame shift (e.g., heliocentric correction) not yet '
                       'fully developed.  Ignoring input and setting "refframe = observed".')
             par['calibrations']['wavelengths']['refframe'] = 'observed'
         # TODO Flexure correction for coadd2d needs to be thought through. Currently turning it off.
         if par['flexure']['spec_method'] != 'skip':
-            msgs.warn('Spectroscopic flexure correction not yet fully developed.  Skipping.')
+            msgs.warning('Spectroscopic flexure correction not yet fully developed.  Skipping.')
             par['flexure']['spec_method'] = 'skip'
         # TODO This is currently the default for 2d coadds, but we need a way to toggle it on/off
         if not par['reduce']['findobj']['skip_skysub']:
-            msgs.warn('Must skip sky subtraction when finding objects (i.e., sky should have '
+            msgs.warning('Must skip sky subtraction when finding objects (i.e., sky should have '
                       'been subtracted during primary reduction procedure).  Skipping.')
             par['reduce']['findobj']['skip_skysub'] = True
 
@@ -146,7 +146,7 @@ class CoAdd2DSpec(scriptbase.ScriptBase):
             only_dets, only_spat_ids = parse.parse_slitspatnum(par['coadd2d']['only_slits'])
         if par['coadd2d']['exclude_slits'] is not None:
             if par['coadd2d']['only_slits'] is not None:
-                msgs.warn('Both `only_slits` and `exclude_slits` are provided. They are mutually exclusive. '
+                msgs.warning('Both `only_slits` and `exclude_slits` are provided. They are mutually exclusive. '
                           'Using `only_slits` and ignoring `exclude_slits`')
             else:
                 exclude_dets, exclude_spat_ids = parse.parse_slitspatnum(par['coadd2d']['exclude_slits'])

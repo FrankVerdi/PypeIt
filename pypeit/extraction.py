@@ -207,9 +207,9 @@ class Extract:
         # Deal with dynamically generated calibrations, i.e. the tilts. If the tilts are not input generate
         # them from the  fits in caliBrate, otherwise use the input tilts
         if waveTilts is None and tilts is None:
-            msgs.error("Must provide either waveTilts or tilts to Extract")
+            raise PypeItError("Must provide either waveTilts or tilts to Extract")
         elif waveTilts is not None and tilts is not None:
-            msgs.error("Cannot provide both waveTilts and tilts to Extract")
+            raise PypeItError("Cannot provide both waveTilts and tilts to Extract")
         elif waveTilts is not None and tilts is None:
             self.waveTilts = waveTilts
             self.waveTilts.is_synced(self.slits)
@@ -229,9 +229,9 @@ class Extract:
         # Now generate the wavelength image
         msgs.info("Generating wavelength image")
         if wv_calib is None and waveimg is None:
-            msgs.error("Must provide either wv_calib or waveimg to Extract")
+            raise PypeItError("Must provide either wv_calib or waveimg to Extract")
         if wv_calib is not None and waveimg is not None:
-            msgs.error("Cannot provide both wv_calib and waveimg to Extract")
+            raise PypeItError("Cannot provide both wv_calib and waveimg to Extract")
         if wv_calib is not None and waveimg is None:
             self.wv_calib = wv_calib
             self.waveimg = self.wv_calib.build_waveimg(self.tilts, self.slits, spat_flexure=self.spat_flexure_shift)
@@ -243,7 +243,7 @@ class Extract:
         if wv_calib is not None:
             self.fwhmimg = wv_calib.build_fwhmimg(self.tilts, self.slits, initial=True, spat_flexure=self.spat_flexure_shift)
         else:
-            msgs.warn("Spectral FWHM image could not be generated")
+            msgs.warning("Spectral FWHM image could not be generated")
 
         # get flatfield image for blaze function
         self.flatimg = None
@@ -255,7 +255,7 @@ class Extract:
                 # TODO: Can we just use flat_raw if flatimages.pixelflat_norm is None?
                 self.flatimg, _ = flat.flatfield(flat_raw, flatimages.pixelflat_norm)
         if self.flatimg is None:
-            msgs.warn("No flat image was found. A spectrum of the flatfield will not be extracted!")
+            msgs.warning("No flat image was found. A spectrum of the flatfield will not be extracted!")
 
         # Now apply a global flexure correction to each slit provided it's not a standard star
         if self.par['flexure']['spec_method'] != 'skip' and not self.std_redux:
@@ -401,10 +401,10 @@ class Extract:
             # Find them
             if sobj.OPT_COUNTS is None and sobj.BOX_COUNTS is None:
                 remove_idx.append(idx)
-                msgs.warn(f'Removing object at pixel {sobj.SPAT_PIXPOS} because '
+                msgs.warning(f'Removing object at pixel {sobj.SPAT_PIXPOS} because '
                           f'both optimal and boxcar extraction could not be performed')
             elif sobj.OPT_COUNTS is None:
-                msgs.warn(f'Optimal extraction could not be performed for object at pixel {sobj.SPAT_PIXPOS}')
+                msgs.warning(f'Optimal extraction could not be performed for object at pixel {sobj.SPAT_PIXPOS}')
 
         # Remove them
         if len(remove_idx) > 0:
@@ -518,9 +518,9 @@ class Extract:
 
         # Perform some checks
         if mode == "local" and sobjs is None:
-            msgs.error("No spectral extractions provided for flexure, using slit center instead")
+            raise PypeItError("No spectral extractions provided for flexure, using slit center instead")
         elif mode not in ["local", "global"]:
-            msgs.error("Flexure mode must be 'global' or 'local'.")
+            raise PypeItError("Flexure mode must be 'global' or 'local'.")
 
         # initialize flex_list
         flex_list = None
@@ -657,7 +657,7 @@ class Extract:
             ch_name = chname if chname is not None else 'image'
             viewer, ch = display.show_image(image, chname=ch_name, clear=clear, wcs_match=True)
         else:
-            msgs.warn("Not an option for show")
+            msgs.warning("Not an option for show")
 
         if sobjs is not None:
             for spec in sobjs:
@@ -841,7 +841,7 @@ class EchelleExtract(Extract):
         #self.order_vec = spectrograph.orders if 'coadd2d' in self.objtype \
         #                    else self.slits.ech_order
         #if self.order_vec is None:
-        #    msgs.error('Unable to set Echelle orders, likely because they were incorrectly '
+        #    raise PypeItError('Unable to set Echelle orders, likely because they were incorrectly '
         #               'assigned in the relevant SlitTraceSet.')
 
     # JFH TODO Should we reduce the number of iterations for standards or near-IR redux where the noise model is not

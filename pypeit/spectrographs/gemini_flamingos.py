@@ -206,7 +206,7 @@ class GeminiFLAMINGOS2Spectrograph(GeminiFLAMINGOSSpectrograph):
             return good_exp & (fitstbl['idname'] == 'OBJECT')
         if ftype in ['arc', 'tilt']:
             return good_exp & (fitstbl['idname'] == 'OBJECT')
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
 
@@ -337,6 +337,6 @@ class GeminiFLAMINGOS1Spectrograph(GeminiFLAMINGOSSpectrograph):
             return good_exp & (fitstbl['idname'] == 'Science')
         if ftype in ['arc', 'tilt']:
             return good_exp & (fitstbl['idname'] == 'Arc')
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 

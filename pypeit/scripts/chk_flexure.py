@@ -53,13 +53,13 @@ class ChkFlexure(scriptbase.ScriptBase):
                 allspec2D.flexure_diagnostics(flexure_type=flexure_type)
             elif 'DMODCLS' in head0.keys() and head0['DMODCLS'].strip() == 'SpecObjs':
                 if flexure_type == 'spat':
-                    msgs.error("Spat flexure not available in the spec1d file, try with a "
+                    raise PypeItError("Spat flexure not available in the spec1d file, try with a "
                                "spec2d file")
                 # load the spec1d file
                 sobjs = specobjs.SpecObjs.from_fitsfile(in_file, chk_version=chk_version)
                 sobjs.flexure_diagnostics()
             else:
-                msgs.error("Bad file type input!")
+                raise PypeItError("Bad file type input!")
 
             #  space between files for clarity
             print('')

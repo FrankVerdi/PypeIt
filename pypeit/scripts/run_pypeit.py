@@ -87,7 +87,7 @@ class RunPypeIt(scriptbase.ScriptBase):
         # Load options from command line
         splitnm = os.path.splitext(args.pypeit_file)
         if splitnm[1] != '.pypeit':
-            msgs.error('Input file must have a .pypeit extension!')
+            raise PypeItError('Input file must have a .pypeit extension!')
         logname = splitnm[0] + ".log"
 
         # Instantiate the main pipeline reduction object

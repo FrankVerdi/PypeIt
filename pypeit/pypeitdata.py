@@ -97,7 +97,7 @@ class PypeItDataPath:
 
     def __init__(self, subdirs, remote_host=None):
         if remote_host not in [None, 's3_cloud', 'github']:
-            msgs.error(f'Remote host not recognized: {self.host}')
+            raise PypeItError(f'Remote host not recognized: {self.host}')
         self.host = remote_host
         self.subdirs = subdirs
         self.data = self.check_isdir(cache.__PYPEIT_DATA__)
@@ -158,7 +158,7 @@ class PypeItDataPath:
                                   remote_host=self.host)
         if (self.path / p).is_file():
             return self.path / p
-        msgs.error(f'{str(self.path / p)} is not a valid PypeIt data path or is a file '
+        raise PypeItError(f'{str(self.path / p)} is not a valid PypeIt data path or is a file '
                    'that does not exist.', cls='PypeItPathError')
 
     @staticmethod
@@ -178,7 +178,7 @@ class PypeItDataPath:
                 Raised if the path does not exist or is not a directory.
         """
         if not path.is_dir():
-            msgs.error(f"Unable to find {path}.  Check your installation.", cls='PypeItPathError')
+            raise PypeItError(f"Unable to find {path}.  Check your installation.", cls='PypeItPathError')
         return path
 
     @staticmethod
@@ -305,7 +305,7 @@ class PypeItDataPath:
         _cached_file = cache.fetch_remote_file(data_file, subdir, remote_host=self.host,
                                                force_update=force_update, return_none=return_none)
         if _cached_file is None:
-            msgs.warn(f'File {data_file} not found in the cache.')
+            msgs.warning(f'File {data_file} not found in the cache.')
             return None
 
         # If we've made it this far, the file is being pulled from the cache.

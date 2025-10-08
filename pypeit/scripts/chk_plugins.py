@@ -16,7 +16,7 @@ class ChkPlugins(scriptbase.ScriptBase):
 
         success, report = plugins_available(return_report=True)
         if not success:
-            msgs.error(report)
+            raise PypeItError(report)
         msgs.info('All required plugins found: {0}'.format(', '.join(required_plugins)))
 
 

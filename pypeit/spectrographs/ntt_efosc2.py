@@ -99,7 +99,7 @@ class NTTEFOSC2Spectrograph(spectrograph.Spectrograph):
                                               oscan_x+1*xbin, max_x-1*xbin) # Actually two overscan regions, here I only dealing with the region on x-axis
                 return oscansec
         else:
-            msgs.error("Not ready for this compound meta")
+            raise PypeItError("Not ready for this compound meta")
 
     def config_independent_frames(self):
         """
@@ -351,7 +351,7 @@ class NTTEFOSC2Spectrograph(spectrograph.Spectrograph):
         if ftype in ['arc', 'tilt']:
             return good_exp & ((fitstbl['target'] == 'WAVE'))
 
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
     
     def bpm(self, filename, det, shape=None, msbias=None):

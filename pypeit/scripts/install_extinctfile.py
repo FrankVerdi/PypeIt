@@ -34,7 +34,7 @@ class InstallExtinctfile(scriptbase.ScriptBase):
         # Loop through the files passed
         for f in files:
             if not f.is_file():
-                msgs.warn(f'{f} is not a file.')
+                msgs.warning(f'{f} is not a file.')
                 continue
             # Copy the user-created file to the cache
             msgs.info(f'Installing {f}')

@@ -80,7 +80,7 @@ class SOARGoodmanSpectrograph(spectrograph.Spectrograph):
             ttime = Time(headarr[1]['DATE-OBS'], format='isot')
             return ttime.mjd
         else:
-            msgs.error("Not ready for this compound meta")
+            raise PypeItError("Not ready for this compound meta")
 
     def configuration_keys(self):
         """
@@ -204,7 +204,7 @@ class SOARGoodmanSpectrograph(spectrograph.Spectrograph):
             return np.zeros(len(fitstbl), dtype=bool)
         if ftype in ['arc', 'tilt']:
             return good_exp & self.lamps(fitstbl, 'arc')
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
 
@@ -283,7 +283,7 @@ class SOARGoodmanRedSpectrograph(SOARGoodmanSpectrograph):
             osec = f"[:,1:{int(col0*2)-2}:]"
             detector_dict['oscansec'] = np.atleast_1d(osec)
         else:
-            msgs.error("Ask the developers to add your binning.  Or add it yourself.")
+            raise PypeItError("Ask the developers to add your binning.  Or add it yourself.")
 
         # Return
         return detector_container.DetectorContainer(**detector_dict)

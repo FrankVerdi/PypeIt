@@ -99,7 +99,7 @@ class FluxSetup(scriptbase.ScriptBase):
             else:
                 msgs.info('{:} is not a standard PypeIt output, skipping.'.format(ifile))
         if len(spec2dfiles) > len(spec1dfiles):
-            msgs.warn('The following exposures do not have 1D extractions:')
+            msgs.warning('The following exposures do not have 1D extractions:')
             for ii in range(len(spec2dfiles)):
                 if (spec2dfiles[ii].parent / spec2dfiles[ii].name.replace("spec2d", "spec1d")).exists():
                     msgs.info('\t {:}'.format(spec2dfiles[ii]))

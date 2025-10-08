@@ -96,9 +96,9 @@ def valid_frametype(frametype, quiet=False, raise_error=False):
     if not good_frametype:
         _f = None
         if not quiet and not raise_error:
-            _f = msgs.warn
+            _f = msgs.warning
         elif raise_error:
-            _f = msgs.error
+            _f = raise PypeItError
         if _f is not None:
             _f(f'{frametype} is not a valid PypeIt frame type.')
     return good_frametype
@@ -174,9 +174,9 @@ def check_frame_exptime(exptime, exprng):
 #        # Check here that there are more than 1 files and that the
 #        # number of files is even
 #        if len(files) == 1:
-#            msgs.warn('Cannot perform ABBA reduction on targets with 1 file')
+#            msgs.warning('Cannot perform ABBA reduction on targets with 1 file')
 #        elif len(files) % 2 != 0:
-#            msgs.warn('Expected an even number of files associated with target ' + key)
+#            msgs.warning('Expected an even number of files associated with target ' + key)
 #
 #        # TODO: Check for increasing time? Files are read in numerical
 #        # sequential order -- should be in order of increasing time
@@ -204,18 +204,18 @@ def check_frame_exptime(exptime, exprng):
 #                BB_sep = ABBA_coords[1].separation(ABBA_coords[2]).arcsec
 #                if AA_sep > max_nod_sep or BB_sep > max_nod_sep:
 #                    if AA_sep > max_nod_sep:
-#                        msgs.warn('Separation between 1st and 4th frame in presumed ABBA sequence '
+#                        msgs.warning('Separation between 1st and 4th frame in presumed ABBA sequence '
 #                                  'have a large separation ({0}).'.format(AA_sep))
 #                    if BB_sep > max_nod_sep:
-#                        msgs.warn('Separation between 2nd and 3rd frame in presumed ABBA sequence '
+#                        msgs.warning('Separation between 2nd and 3rd frame in presumed ABBA sequence '
 #                                  'have a large separation ({0}).'.format(BB_sep))
-#                    msgs.warn('Check ABBA identification for target {0} group {1}:'.format(
+#                    msgs.warning('Check ABBA identification for target {0} group {1}:'.format(
 #                                target, group) + msgs.newline() + 'A:' + file_groups[group][0]
 #                              + msgs.newline() + 'B:' + file_groups[group][1]
 #                              + msgs.newline() + 'B:' + file_groups[group][2]
 #                              + msgs.newline() + 'A:' + file_groups[group][3])
 #            else:
-#                msgs.error('BUG: This should never be reached.')
+#                raise PypeItError('BUG: This should never be reached.')
 #
 #            # Flip group from ABBA to BABA, or AB to BA
 #            AB_idx_flip = np.copy(value_groups[group])

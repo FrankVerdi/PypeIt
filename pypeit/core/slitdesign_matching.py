@@ -56,8 +56,8 @@ def best_offset(x_det, x_model, step=1, xlag_range=None):
         # we keep only the x_model values that are in the current detector
         wkeep =(x_model > min_x_det+xlag_range[0]) & (x_model < max_x_det+xlag_range[1])
         if x_model[wkeep].size<2:
-            msgs.warn('Working between {} and {}'.format(min_x_det+xlag_range[0], max_x_det+xlag_range[1]))
-            msgs.warn('Not enough lines to run!!!')
+            msgs.warning('Working between {} and {}'.format(min_x_det+xlag_range[0], max_x_det+xlag_range[1]))
+            msgs.warning('Not enough lines to run!!!')
             sdev = 1e10
             return 0.
         x_model_trim = x_model[wkeep]
@@ -256,9 +256,9 @@ def slit_match(x_det, x_model, step=1, xlag_range=[-50,50], sigrej=3, print_matc
         # Both duplicates and matches with high RMS are considered bad
         dupl = dupl | out
         if edge is not None:
-            msgs.warn('{} duplicate match(es) for {} edges'.format(dupl[dupl == 1].size, edge))
+            msgs.warning('{} duplicate match(es) for {} edges'.format(dupl[dupl == 1].size, edge))
         else:
-            msgs.warn('{} duplicate match(es)'.format(dupl[dupl == 1].size))
+            msgs.warning('{} duplicate match(es)'.format(dupl[dupl == 1].size))
         # I commented the 3 lines below because I don't really need to trim the duplicate matches. I just
         # propagate the flag.
         # good = dupl == 0

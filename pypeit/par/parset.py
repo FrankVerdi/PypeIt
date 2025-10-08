@@ -208,7 +208,7 @@ class ParSet:
         if isinstance(value, list):
             is_parset_or_dict = [ isinstance(v, (ParSet, dict)) for v in value ]
             if numpy.any(is_parset_or_dict) and not numpy.all(is_parset_or_dict):
-                msgs.warn(
+                msgs.warning(
                     "List includes a mix of ParSet and dicts with other types.  "
                     "Displaying and writing the ParSet will not be correct!"
                 )
@@ -655,7 +655,7 @@ class ParSet:
                 section_name argument was provided.
         """
         if cfg_file is not None and os.path.isfile(cfg_file) and not append and not quiet:
-            msgs.warn("Selected configuration file already exists and will be overwritten!")
+            msgs.warning("Selected configuration file already exists and will be overwritten!")
 
         config_output = []
         if numpy.all([ isinstance(d, ParSet) or d is None for d in self.data.values() ]):
@@ -802,7 +802,7 @@ class ParSet:
                 continue
             if isinstance(value, ParSet):
                 if not quiet:
-                    msgs.warn(
+                    msgs.warning(
                         "ParSets within ParSets are not written to headers!  "
                         f"Skipping {key}."
                     )
@@ -1013,7 +1013,7 @@ class ParDatabase(object):
             # inp.dtype is always a list
             if any([t in inp[i].dtype[k] for t in [int , float]]) \
                 and any([t in inp[i].dtype[k] for t in [list, numpy.ndarray]]):
-                msgs.warn(
+                msgs.warning(
                     "Parameter set has elements that can be either individual "
                     f"ints/floats or lists/arrays.  Database column {k} will have type "
                     "'object'."

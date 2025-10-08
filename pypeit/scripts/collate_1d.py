@@ -189,7 +189,7 @@ def exclude_source_objects(source_objects, exclude_map, par):
 
         if sobj.OPT_COUNTS is None and sobj.BOX_COUNTS is None:
             msg = f'Excluding {sobj.NAME} in {spec1d_file} because of missing both OPT_COUNTS and BOX_COUNTS'
-            msgs.warn(msg)
+            msgs.warning(msg)
             excluded_messages.append(msg)
             continue
 
@@ -204,7 +204,7 @@ def exclude_source_objects(source_objects, exclude_map, par):
                     msg = f'Excluding {sobj.NAME} in {spec1d_file} because all of OPT_COUNTS was masked out. Consider changing ex_value to "BOX".'
             
             if msg is not None:
-                msgs.warn(msg)
+                msgs.warning(msg)
                 excluded_messages.append(msg)
                 continue
 
@@ -219,7 +219,7 @@ def exclude_source_objects(source_objects, exclude_map, par):
                     msg = f'Excluding {sobj.NAME} in {spec1d_file} because all of BOX_COUNTS was masked out. Consider changing ex_value to "OPT".'
 
             if msg is not None:
-                msgs.warn(msg)
+                msgs.warning(msg)
                 excluded_messages.append(msg)
                 continue
 
@@ -252,8 +252,8 @@ def read_spec1d_files(par, spec1d_files, failure_msgs):
             good_spec1d_files.append(spec1d_file)
         except Exception as e:
             formatted_exception = traceback.format_exc()
-            msgs.warn(formatted_exception)
-            msgs.warn(f"Failed to read {spec1d_file}, skipping it.")
+            msgs.warning(formatted_exception)
+            msgs.warning(f"Failed to read {spec1d_file}, skipping it.")
             failure_msgs.append(f"Failed to read {spec1d_file}, skipping it.")
             failure_msgs.append(formatted_exception)
 
@@ -279,7 +279,7 @@ def flux(par, spectrograph, spec1d_files, failed_fluxing_msgs):
 
     # Make sure fluxing from archive is supported for this spectrograph
     if spectrograph.name not in SensFileArchive.supported_spectrographs():
-        msgs.error(f"Flux calibrating {spectrograph.name} with an archived sensfunc is not supported.")
+        raise PypeItError(f"Flux calibrating {spectrograph.name} with an archived sensfunc is not supported.")
 
     par['fluxcalib']['extrap_sens'] = True
 
@@ -292,8 +292,8 @@ def flux(par, spectrograph, spec1d_files, failed_fluxing_msgs):
             sens_file = sf_archive.get_archived_sensfile(spec1d_file)
         except Exception:
             formatted_exception = traceback.format_exc()
-            msgs.warn(formatted_exception)
-            msgs.warn(f"Could not find archived sensfunc to flux {spec1d_file}, skipping it.")
+            msgs.warning(formatted_exception)
+            msgs.warning(f"Could not find archived sensfunc to flux {spec1d_file}, skipping it.")
             failed_fluxing_msgs.append(f"Could not find archived sensfunc to flux {spec1d_file}, skipping it.")
             failed_fluxing_msgs.append(formatted_exception)
             continue
@@ -307,8 +307,8 @@ def flux(par, spectrograph, spec1d_files, failed_fluxing_msgs):
 
         except Exception:
             formatted_exception = traceback.format_exc()
-            msgs.warn(formatted_exception)
-            msgs.warn(f"Failed to flux calibrate {spec1d_file}, skipping it.")
+            msgs.warning(formatted_exception)
+            msgs.warning(f"Failed to flux calibrate {spec1d_file}, skipping it.")
             failed_fluxing_msgs.append(f"Failed to flux calibrate {spec1d_file}, skipping it.")
             failed_fluxing_msgs.append(formatted_exception)
             continue
@@ -476,7 +476,7 @@ def find_spec2d_from_spec1d(spec1d_files):
         spec2d_file = os.path.join(path, filename.replace('spec1d', 'spec2d', 1))
 
         if not os.path.exists(spec2d_file):
-            msgs.error(f'Could not find matching spec2d file for {spec1d_file}')
+            raise PypeItError(f'Could not find matching spec2d file for {spec1d_file}')
 
         spec2d_files.append(spec2d_file)
 
@@ -826,8 +826,8 @@ class Collate1D(scriptbase.ScriptBase):
                     successful_source_list.append(source)
                 except Exception:
                     formatted_exception = traceback.format_exc()
-                    msgs.warn(formatted_exception)
-                    msgs.warn(f"Failed to coadd {coaddfile}, skipping")
+                    msgs.warning(formatted_exception)
+                    msgs.warning(f"Failed to coadd {coaddfile}, skipping")
                     failed_source_msgs.append(f"Failed to coadd {coaddfile}:")
                     failed_source_msgs.append(formatted_exception)
 

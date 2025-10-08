@@ -195,7 +195,7 @@ class NOTALFOSCSpectrograph(spectrograph.Spectrograph):
         elif meta_key == 'ra':
             objra = headarr[0]['OBJRA'] # Given in hours, not deg
             return objra*15.
-        msgs.error("Not ready for this compound meta")
+        raise PypeItError("Not ready for this compound meta")
 
     def configuration_keys(self):
         """
@@ -266,7 +266,7 @@ class NOTALFOSCSpectrograph(spectrograph.Spectrograph):
             return np.zeros(len(fitstbl), dtype=bool)
         if ftype in ['arc','tilt']:
             return good_exp & (fitstbl['idname'] == 'WAVE,LAMP')
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
     def config_specific_par(self, scifile, inp_par=None):
@@ -316,7 +316,7 @@ class NOTALFOSCSpectrograph(spectrograph.Spectrograph):
         elif self.get_meta_value(scifile, 'dispname') == 'Grism_#20':
             par['calibrations']['wavelengths']['reid_arxiv'] = 'not_alfosc_grism20.fits'
         else:
-            msgs.warn('not_alfosc.py: YOU NEED TO ADD IN THE WAVELENGTH SOLUTION FOR THIS GRISM')
+            msgs.warning('not_alfosc.py: YOU NEED TO ADD IN THE WAVELENGTH SOLUTION FOR THIS GRISM')
 
         # Return
         return par

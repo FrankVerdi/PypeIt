@@ -67,7 +67,7 @@ class EdgeInspectorGUI:
                                     if self.edges.par['left_right_pca'] \
                                     else self.edges.pca.reference_row
         else:
-            msgs.warn('Edges object does not include a PCA decomposition of the traces.')
+            msgs.warning('Edges object does not include a PCA decomposition of the traces.')
             self.reference_row = self.edges.nspec // 2
         # NOTE: line properties match what is used for the Pointer
         self.ref_row_line = image_ax.axhline(self.reference_row, color='C1', lw=0.5)
@@ -170,7 +170,7 @@ class EdgeInspectorGUI:
         if np.any(_remove) or np.any(_add):
             success = self.edges.sync()
             if not success:
-                msgs.warn('Unable to synchronize left-right traces!')
+                msgs.warning('Unable to synchronize left-right traces!')
 
         # Remove the trace lines from the plot
         # TODO: There may be an easier way to do this, but I couldn't find it.

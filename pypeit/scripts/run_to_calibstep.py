@@ -55,14 +55,14 @@ class RunToCalibStep(scriptbase.ScriptBase):
         # Load options from command line
         _pypeit_file = Path(args.pypeit_file).absolute()
         if _pypeit_file.suffix != '.pypeit':
-            msgs.error(f'Input file {_pypeit_file} must have a .pypeit extension!')
+            raise PypeItError(f'Input file {_pypeit_file} must have a .pypeit extension!')
         logname = _pypeit_file.parent / f'{_pypeit_file.stem}.log'
 
         # Check for the frame or calib_group
         if args.science_frame is None and args.calib_group is None:
-            msgs.error('Must provide either a science frame or a calibration group ID')
+            raise PypeItError('Must provide either a science frame or a calibration group ID')
         elif args.science_frame is not None and args.calib_group is not None:
-            msgs.warn("Both science_frame and calib_group ID provided.  Will use the science_frame")
+            msgs.warning("Both science_frame and calib_group ID provided.  Will use the science_frame")
 
         # Instantiate the main pipeline reduction object
         pypeIt = pypeit.PypeIt(args.pypeit_file, verbosity=args.verbosity,
@@ -80,11 +80,11 @@ class RunToCalibStep(scriptbase.ScriptBase):
         if args.science_frame is not None:
             row = np.where(pypeIt.fitstbl['filename'] == args.science_frame)[0]
             if len(row) != 1:
-                msgs.error(f"Frame {args.frame} not found or not unique")
+                raise PypeItError(f"Frame {args.frame} not found or not unique")
         elif args.calib_group is not None:
             rows = np.where((pypeIt.fitstbl['calib'].data.astype(str) == args.calib_group))[0] 
             if len(rows) == 0:
-                msgs.error(f"Calibration group {args.calib_group} not found")
+                raise PypeItError(f"Calibration group {args.calib_group} not found")
             row = rows[0]
         row = int(row)
 

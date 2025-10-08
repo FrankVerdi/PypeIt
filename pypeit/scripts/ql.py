@@ -95,7 +95,7 @@ def get_files(raw_files, raw_path):
         try:
             files = inputfiles.grab_rawfiles(raw_paths=[raw_path], list_of_files=raw_files)
         except PypeItError as e:
-            msgs.error('Unable to parse provided input files.  Check --raw_files and '
+            raise PypeItError('Unable to parse provided input files.  Check --raw_files and '
                        '--raw_path input.')
     return files
 
@@ -154,17 +154,17 @@ def quicklook_regroup(fitstbl):
             # All frames must be of the same target
             if 'target' in fitstbl.keys() \
                     and not all(fitstbl['target'][is_type] == fitstbl['target'][is_type][0]):
-                msgs.error(f'All {frametype} frames must be of the same target.')
+                raise PypeItError(f'All {frametype} frames must be of the same target.')
 
             # Regroup dithered observations so that all images at a unique
             # offset are combined.
             if 'bkg_id' in fitstbl.keys() and any(fitstbl['bkg_id'].data[is_type] != -1):
                 if 'dithoff' not in fitstbl.keys():
-                    msgs.error('CODING ERROR: Metadata does not include dithoff column!')
+                    raise PypeItError('CODING ERROR: Metadata does not include dithoff column!')
                 # Group the unique dither positions
                 dith, inv = np.unique(fitstbl['dithoff'].data[is_type], return_inverse=True)
                 if len(dith) == 1:
-                    msgs.warn('All exposures have the same offset!')
+                    msgs.warning('All exposures have the same offset!')
                     fitstbl['comb_id'][is_type] = comb_strt
                 else:
                     # This creates comb+bkg pairs that match the absolute value of the offset
@@ -256,7 +256,7 @@ def generate_sci_pypeitfile(redux_path:str,
 
     # Check the directory with the reference calibrations exists
     if not ref_calib_dir.exists():
-        msgs.error(f'Reference calibration directory does not exist: {ref_calib_dir}')
+        raise PypeItError(f'Reference calibration directory does not exist: {ref_calib_dir}')
 
     # Get the setup and calibration group to use for the science frame(s)
     setup, calib = get_setup_calib(ref_calib_dir)
@@ -286,7 +286,7 @@ def generate_sci_pypeitfile(redux_path:str,
     # already exists, check that it points to the right directory.  If not,
     # raise an error.
     if calib_dir.exists() and calib_dir.is_symlink() and calib_dir.readlink() != ref_calib_dir:
-        msgs.error(f'Symlink to calibrations directory ({calib_dir}) already exists and points '
+        raise PypeItError(f'Symlink to calibrations directory ({calib_dir}) already exists and points '
                    f'to {calib_dir.readlink()} instead of {ref_calib_dir}.  Re-run quicklook '
                    f'forcing the existing reductions in {sci_dir} to be removed.')
     # Create the symlink if it doesn't already exist
@@ -309,7 +309,7 @@ def generate_sci_pypeitfile(redux_path:str,
         if std_spec1d is not None:
             # Found an existing reduction, so remove the standard frames.
             # NOTE: Should not need to regroup!
-            msgs.warn(f'Found existing standard star reduction: {std_spec1d}.  This will be used '
+            msgs.warning(f'Found existing standard star reduction: {std_spec1d}.  This will be used '
                       'and the standards will not be re-reduced!  To force them to be '
                       're-reduced, use the --clear_science option.')
             ps_sci.remove_table_rows(is_std)
@@ -345,7 +345,7 @@ def generate_sci_pypeitfile(redux_path:str,
                     CalibFrame.parse_key_dir(str(f), from_filename=True)[0])
             keep[i] = _setup == setup and _calib in ['all', calib]
         if not any(keep):
-            msgs.error('Could not find valid Slits calibration frame!')
+            raise PypeItError('Could not find valid Slits calibration frame!')
         slittrace_files = slittrace_files[keep]
 
         # Iterate through each file to find the one with the relevant mask ID.
@@ -367,7 +367,7 @@ def generate_sci_pypeitfile(redux_path:str,
                 detnum = [ps_sci.spectrograph.allowed_mosaics[det_id[0]]] if mosaic else det_id[0]+1
                 break
         if detname is None:
-            msgs.error(f'Could not find a SlitTrace file with maskID={maskID}')
+            raise PypeItError(f'Could not find a SlitTrace file with maskID={maskID}')
 
         # Add to config
         cfg['rdx']['detnum'] = detnum
@@ -512,7 +512,7 @@ def match_to_calibs(ps:pypeitsetup.PypeItSetup, calib_dir:str, calibrated_setups
             matched_configs[setup] = None
             continue
         elif len(matched_configs[setup]['setup']) > 1:
-            msgs.warn('Existing calibrations have degenerate configurations!  We recommend you '
+            msgs.warning('Existing calibrations have degenerate configurations!  We recommend you '
                       'clean your calibrations parent directory.  For now, using the first match.')
         matched_configs[setup]['setup'] = matched_configs[setup]['setup'][0]
         matched_configs[setup]['calib_dir'] = matched_configs[setup]['calib_dir'][0]
@@ -586,7 +586,7 @@ def get_setup_calib(calib_dir, calib_grp=None):
     # Check there are files in the directory
     calib_files = sorted(_calib_dir.glob('*'))
     if len(calib_files) == 0:
-        msgs.error(f'Calibrations directory is empty: {_calib_dir}')
+        raise PypeItError(f'Calibrations directory is empty: {_calib_dir}')
 
     # For each file, try to parse the setup and calibration ID(s)
     setups = []
@@ -603,7 +603,7 @@ def get_setup_calib(calib_dir, calib_grp=None):
     # Find the unique setups
     setups = np.unique(setups)
     if len(setups) != 1:
-        msgs.error(f'Calibration files for more than one setup found in {_calib_dir}, '
+        raise PypeItError(f'Calibration files for more than one setup found in {_calib_dir}, '
                     'according to their file names.  Calibration directory should only hold data '
                     'for *one* setup.')
     setup = setups[0]
@@ -622,12 +622,12 @@ def get_setup_calib(calib_dir, calib_grp=None):
     if calib_grp is not None:
         if str(calib_grp) in unique_calibs:
             return setup, str(calib_grp)
-        msgs.error(f'Selected calibration group {calib_grp} is not available in {_calib_dir}.  '
+        raise PypeItError(f'Selected calibration group {calib_grp} is not available in {_calib_dir}.  '
                    'Must select a valid group.  Directory currently contains the following '
                    f'calibration groups: {unique_calibs}')
 
     # Cannot determine which calibration group to use.
-    msgs.error(f'Calibrations in {_calib_dir} are part of multiple calibration groups.  Unclear '
+    raise PypeItError(f'Calibrations in {_calib_dir} are part of multiple calibration groups.  Unclear '
                'how to proceed.')
 
 
@@ -764,7 +764,7 @@ class QL(scriptbase.ScriptBase):
         # Parse the raw files
         files = get_files(args.raw_files, args.raw_path)
         if len(files) == 0:
-            msgs.error('No files to read!  Check --raw_files and --raw_path input.')
+            raise PypeItError('No files to read!  Check --raw_files and --raw_path input.')
 
         # TODO: Include an option to save the ingested file list as a PypeIt
         # RawFile that can be edited?
@@ -788,7 +788,7 @@ class QL(scriptbase.ScriptBase):
         unknown_types = [t is None for t in ps.fitstbl['frametype']]
         if any(unknown_types & np.logical_not(sci_idx)):
             # TODO: Remove them and keep going instead?
-            msgs.error('Could not determine frame types for the following files: ' +
+            raise PypeItError('Could not determine frame types for the following files: ' +
                        ', '.join(ps.fitstbl['filename'][unknown_types & np.logical_not(sci_idx)]))
 
         # Include any standards? 
@@ -829,7 +829,7 @@ class QL(scriptbase.ScriptBase):
 
             # Limit to a single setup
             if len(ps_sci.fitstbl.configs.keys()) > 1:
-                msgs.error('Your science/standard files come from more than one setup.  Try '
+                raise PypeItError('Your science/standard files come from more than one setup.  Try '
                            'either ignoring the standard frames (if any are present and '
                            'auto-detected) and/or changing the list of science files.')
 
@@ -848,7 +848,7 @@ class QL(scriptbase.ScriptBase):
             # TODO: This is now the only place bkg_redux is used...
             bkg_redux = 'bkg_id' in ps_sci.fitstbl.keys() and any(ps_sci.fitstbl['bkg_id'] != -1)
             if bkg_redux:
-                msgs.warn('Dither pattern automatically detected for these observations.  Image '
+                msgs.warning('Dither pattern automatically detected for these observations.  Image '
                           'combination and background subtraction sequences automatically set; '
                           'confirm the behavior is what you want by checking the auto-generated '
                           'pypeit file.')
@@ -868,7 +868,7 @@ class QL(scriptbase.ScriptBase):
             # in generate_sci_pypeitfile, but it's useful to keep the warning
             # here.
             if any(ps_sci.fitstbl['calib'] != ps_sci.fitstbl['calib'][0]):
-                msgs.warn('Automated configuration assigned multiple calibration groups to your '
+                msgs.warning('Automated configuration assigned multiple calibration groups to your '
                           'science frames.  Ignoring!  Assigning all frames to the same group.')
                 ps_sci.fitstbl['calib'] = ps_sci.fitstbl['calib'][0]
 
@@ -879,14 +879,14 @@ class QL(scriptbase.ScriptBase):
                 if setup_calib_dir is None:
                     # TODO: Fault here, or keep going to the next step, which is
                     # to try to build the calibrations?
-                    msgs.error('No calibrations exist or could not find appropriate setup match '
+                    raise PypeItError('No calibrations exist or could not find appropriate setup match '
                                f'in provided parent directory: {args.parent_calib_dir}')
                 # NOTE: Code above check that there is only one setup in ps_sci
                 setup_calib_dir = setup_calib_dir[ps_sci.fitstbl['setup'][0]]['calib_dir']
                 msgs.info(f'Attempting to use archived calibrations found in {setup_calib_dir}.')
 
         elif not args.calibs_only:
-            msgs.warn('No science frames found among the files provided.  Will only process '
+            msgs.warning('No science frames found among the files provided.  Will only process '
                       'calibration frames.  If you have provided science frames, you can specify '
                       'which ones they are using the --sci_files option.')
 
@@ -1005,7 +1005,7 @@ class QL(scriptbase.ScriptBase):
             # time.
             coadd_file = sorted(Path(sci_pypeit_file).absolute().parent.glob('*.coadd2d'))
             if len(coadd_file) != 1:
-                msgs.error('There should be only one 2D coadd file.')
+                raise PypeItError('There should be only one 2D coadd file.')
             coadd_file = coadd_file[0]
             
             # Run the coadding
@@ -1064,7 +1064,7 @@ def print_offset_report(fitstbl:Table, platescale:float):
 
     # Proceed
     if len(np.unique(dither_pattern)) > 1:
-        msgs.error('Script only supported for a single type of dither pattern.')
+        raise PypeItError('Script only supported for a single type of dither pattern.')
 
     # Print out a report on the offsets
     msg_string = msgs.newline() + '*******************************************************'

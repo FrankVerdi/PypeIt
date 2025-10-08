@@ -175,14 +175,14 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
                 # binning in the spec2d file
                 binning = headarr[0].get('BINNING')
             if binning is None:
-                msgs.error('Binning not found')
+                raise PypeItError('Binning not found')
             return binning
         elif meta_key == 'mjd':
             obsepoch = headarr[0].get('OBSEPOCH')
             if obsepoch is not None:
                 return time.Time(obsepoch, format='jyear').mjd
             else:
-                msgs.warn('OBSEPOCH header keyword not found. Using today as the date.')
+                msgs.warning('OBSEPOCH header keyword not found. Using today as the date.')
                 return time.Time.now().mjd
 
     def config_independent_frames(self):
@@ -283,7 +283,7 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
         if ftype == 'bias':
             return good_exp & (fitstbl['target'] == 'Bias')#& (fitstbl['idname'] == 'BIAS')
 
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        msgs.warning('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
     @classmethod
@@ -427,7 +427,7 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
         # Number of amplifiers is hard-coded as follows
         numamp = (len(hdu) - 1) // self.ndet
         if numamp != detectors[0].numamplifiers:
-            msgs.error(f'Unexpected number of amplifiers for {self.name} based on number of '
+            raise PypeItError(f'Unexpected number of amplifiers for {self.name} based on number of '
                        f'extensions in {raw_file}.')
 
         # First read over the header info to determine the size of the output array...
@@ -524,7 +524,7 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
         detectors = np.array([self.get_detector_par(det, hdu=hdu) for det in mosaic])
         # Binning *must* be consistent for all detectors
         if any(d.binning != detectors[0].binning for d in detectors[1:]):
-            msgs.error('Binning is somehow inconsistent between detectors in the mosaic!')
+            raise PypeItError('Binning is somehow inconsistent between detectors in the mosaic!')
 
         # Collect the offsets and rotations for *all unbinned* detectors in the
         # full instrument, ordered by the number of the detector.  Detector
@@ -699,7 +699,7 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
             one contains the indices to order the slits from left to right in the PypeIt orientation
         """
         if not isinstance(filename, list):
-            msgs.error('The mask design file input should be a comma separated list of two files')
+            raise PypeItError('The mask design file input should be a comma separated list of two files')
 
         # Parse
         maskfile = filename[0]

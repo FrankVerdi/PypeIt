@@ -73,11 +73,11 @@ class Show1DSpec(scriptbase.ScriptBase):
 #        if args.jdaviz:
 #            from pypeit.specutils import Spectrum1D, SpectrumList
 #            if Spectrum1D is None:
-#                msgs.error('specutils package must be installed.')
+#                raise PypeItError('specutils package must be installed.')
 #            try:
 #                from jdaviz import Specviz
 #            except ModuleNotFoundError:
-#                msgs.error('jdaviz package must be installed.')
+#                raise PypeItError('jdaviz package must be installed.')
 #
 #            # First try reading it as a list
 #            try:
@@ -103,20 +103,20 @@ class Show1DSpec(scriptbase.ScriptBase):
 #                return
 #
 #            # If we get here, the file couldn't be parsed
-#            msgs.error(f'Could not parse input file: {args.file}')
+#            raise PypeItError(f'Could not parse input file: {args.file}')
 
 
         if args.obj is not None:
             exten = np.where(sobjs.NAME == args.obj)[0][0]
             if exten < 0:
-                msgs.error("Bad input object name: {:s}".format(args.obj))
+                raise PypeItError("Bad input object name: {:s}".format(args.obj))
         else:
             exten = args.exten-1 # 1-index in FITS file
 
         # Check Extraction
         if args.extract == 'OPT':
             if sobjs[exten]['OPT_WAVE'] is None: #not in sobjs[exten]._data.keys():
-                    msgs.error("Spectrum not extracted with OPT.  Try --extract BOX")
+                    raise PypeItError("Spectrum not extracted with OPT.  Try --extract BOX")
 
         if args.ginga:
             # show the 1d spectrum in Ginga

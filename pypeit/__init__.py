@@ -16,6 +16,7 @@ from .version import version
 __version__ = version
 
 # Report current coverage
+# TODO: How old is this?  Can we update it automatically?
 __coverage__ = 0.55
 
 import logging

@@ -123,7 +123,7 @@ def create_skymask(sobjs, thismask, slit_left, slit_righ, box_rad_pix=None, trim
     # TODO: There is this hard-coded check here, and then there is a similar
     # check in skysub.global_skysub.  Do we need both?
     if np.sum(skymask_fwhm)/np.sum(thismask) < 0.10:
-        msgs.warn('More than 90% of  usable area on this slit would be masked and not used by '
+        msgs.warning('More than 90% of  usable area on this slit would be masked and not used by '
                   'global sky subtraction. Something is probably wrong with object finding for '
                   'this slit. Not masking object for global sky subtraction.')
         skymask_fwhm = np.copy(thismask)
@@ -405,7 +405,7 @@ def ech_fof_sobjs(sobjs:specobjs.SpecObjs,
     elif nfound==1:
         obj_id_init = np.ones(1,dtype='int')
     else:
-        msgs.error('No objects found in ech_fof_sobjs. Should not have called this routine')
+        raise PypeItError('No objects found in ech_fof_sobjs. Should not have called this routine')
 
     uni_obj_id_init, uni_ind_init = np.unique(obj_id_init, return_index=True)
 
@@ -417,7 +417,7 @@ def ech_fof_sobjs(sobjs:specobjs.SpecObjs,
         for iord in range(norders):
             on_order = (obj_id_init == uni_obj_id_init[iobj]) & (sobjs.ECH_ORDER == order_vec[iord])
             if (np.sum(on_order) > 1):
-                msgs.warn('Found multiple objects in a FOF group on order iord={:d}'.format(order_vec[iord]) + msgs.newline() +
+                msgs.warning('Found multiple objects in a FOF group on order iord={:d}'.format(order_vec[iord]) + msgs.newline() +
                           'Spawning new objects to maintain a single object per order.')
                 off_order = (obj_id_init == uni_obj_id_init[iobj]) & (sobjs.ECH_ORDER != order_vec[iord])
                 ind = np.where(on_order)[0]
@@ -514,7 +514,7 @@ def ech_fill_in_orders(sobjs:specobjs.SpecObjs,
 
     # Check standard star
     if std_trace is not None and len(std_trace) != norders:
-        msgs.warn('Standard star trace does not match the number of orders in the echelle data.'
+        msgs.warning('Standard star trace does not match the number of orders in the echelle data.'
                   ' Will use the slit edges to trace the object in the missing orders.')
 
     # For traces
@@ -657,7 +657,7 @@ def ech_fill_in_orders(sobjs:specobjs.SpecObjs,
                 # Object is already on this order so no need to do anything
                 pass
             elif num_on_order > 1:
-                msgs.error('Problem in echelle object finding. The same objid={:d} appears {:d} times on echelle orderindx ={:d}'
+                raise PypeItError('Problem in echelle object finding. The same objid={:d} appears {:d} times on echelle orderindx ={:d}'
                            ' even after duplicate obj_ids the orders were removed. '
                            'Report this bug to PypeIt developers'.format(uni_obj_id[iobj],num_on_order, iord))    
     # Return
@@ -832,7 +832,7 @@ def ech_cutobj_on_snr(
     nobj_trim = np.sum(keep_obj)
 
     if nobj_trim == 0:
-        msgs.warn('No objects found')
+        msgs.warning('No objects found')
         sobjs_final = specobjs.SpecObjs()
         return sobjs_final
 
@@ -929,7 +929,7 @@ def ech_pca_traces(
 
     # Checks
     if norders != spec_min_max.shape[1]:
-        msgs.error("Number of good orders does not match the number of orders in spec_min_max")
+        raise PypeItError("Number of good orders does not match the number of orders in spec_min_max")
 
     # Loop over the objects one by one and adjust/predict the traces
     pca_fits = np.zeros((nspec, norders, nobj_trim))
@@ -1029,7 +1029,7 @@ def ech_pca_traces(
     # Vette
     for sobj in sobjs_final:
         if not sobj.ready_for_extraction():
-            msgs.error("Bad SpecObj.  Can't proceed")
+            raise PypeItError("Bad SpecObj.  Can't proceed")
 
     return sobjs_final
 
@@ -1259,14 +1259,14 @@ def ech_objfind(image, ivar, slitmask, slit_left, slit_righ, slit_spat_id, order
     # TODO JFH Relaxing this strict requirement on the slitmask image for the time being
     #gdslit_spat = np.unique(slitmask[slitmask >= 0]).astype(int)  # Unique sorts
     #if gdslit_spat.size != norders:
-    #msgs.error('Number of slitidsin slitmask and the number of left/right slits must be the same.')
+    #raise PypeItError('Number of slitidsin slitmask and the number of left/right slits must be the same.')
 
     if slit_righ.shape[1] != norders:
-        msgs.error('Number of left and right slits must be the same.')
+        raise PypeItError('Number of left and right slits must be the same.')
     if order_vec.size != norders:
-        msgs.error('Number of orders in order_vec and left/right slits must be the same.')
+        raise PypeItError('Number of orders in order_vec and left/right slits must be the same.')
     if spec_min_max.shape[1] != norders:
-        msgs.error('Number of orders in spec_min_max and left/right slits must be the same.')
+        raise PypeItError('Number of orders in spec_min_max and left/right slits must be the same.')
 
     if specobj_dict is None:
         specobj_dict = {'SLITID': 999, 
@@ -1817,12 +1817,12 @@ def objs_in_slit(image, ivar, thismask, slit_left, slit_righ,
         npeak_not_near_edge = np.sum(np.logical_not(near_edge_bpm))
 
         if np.any(near_edge_bpm):
-            msgs.warn('Discarding {:d}'.format(np.sum(near_edge_bpm)) +
+            msgs.warning('Discarding {:d}'.format(np.sum(near_edge_bpm)) +
                     ' at spatial pixels spat = {:}'.format(x_peaks_all[near_edge_bpm]) +
                     ' which land within trim_edg = (left, right) = {:}'.format(trim_edg) +
                     ' pixels from the slit boundary for this nsamp = {:5.2f}'.format(nsamp) + ' wide slit')
-            msgs.warn('You must decrease from the current value of trim_edg in order to keep them')
-            msgs.warn('Such edge objects are often spurious')
+            msgs.warning('You must decrease from the current value of trim_edg in order to keep them')
+            msgs.warning('Such edge objects are often spurious')
 
 
         # If the user requested the nperslit most significant peaks have been requested, then only return these
@@ -1838,7 +1838,7 @@ def objs_in_slit(image, ivar, thismask, slit_left, slit_righ,
             nperslit_bpm = np.zeros(npeaks_all, dtype=bool)
 
         if np.any(nperslit_bpm):
-            msgs.warn('Discarding {:d}'.format(np.sum(nperslit_bpm)) +
+            msgs.warning('Discarding {:d}'.format(np.sum(nperslit_bpm)) +
                     ' at spatial pixels spat = {:} and SNR = {:}'.format(
                         x_peaks_all[nperslit_bpm], snr_peaks_all[nperslit_bpm]) +
                     ' which are below SNR_thresh={:5.3f} set because the maximum number of objects '.format(snr_thresh_perslit) +
@@ -1967,7 +1967,7 @@ def objs_in_slit(image, ivar, thismask, slit_left, slit_righ,
         elif std_trace is not None:   # If no objects found, use the standard?
             trace_model = std_trace
         else:  # If no objects or standard use the slit boundary
-            msgs.warn("No source to use as a trace.  Using the slit boundary")
+            msgs.warning("No source to use as a trace.  Using the slit boundary")
             trace_model = slit_left
 
         # Loop over hand_extract apertures and create and assign specobj
@@ -2031,7 +2031,7 @@ def objs_in_slit(image, ivar, thismask, slit_left, slit_righ,
             close = np.abs(sobjs[reg_ind].SPAT_PIXPOS - spat_pixpos[ihand]) <= 0.6*spec_fwhm[ihand]
             if np.any(close):
                 # Print out a warning
-                msgs.warn('Deleting object(s) {}'.format(sobjs[reg_ind[close]].NAME) +
+                msgs.warning('Deleting object(s) {}'.format(sobjs[reg_ind[close]].NAME) +
                           ' because it collides with a user specified hand_extract aperture')
                 keep[reg_ind[close]] = False
 
@@ -2071,7 +2071,7 @@ def objs_in_slit(image, ivar, thismask, slit_left, slit_righ,
         # Vet
         if not sobj.ready_for_extraction():
             # embed(header=utils.embed_header())
-            msgs.error("Bad SpecObj.  Can't proceed")
+            raise PypeItError("Bad SpecObj.  Can't proceed")
 
     # Return
     return sobjs

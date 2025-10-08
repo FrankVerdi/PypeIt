@@ -116,12 +116,12 @@ def renormalize_errors(chi, mask, clip=6.0, max_corr=5.0, title = '', debug=Fals
         chi2_sigrej = np.percentile(chi2[maskchi], 100.0*gauss_prob)
         sigma_corr = np.sqrt(chi2_sigrej)
         if sigma_corr < 1.0:
-            msgs.warn("Error renormalization found correction factor sigma_corr = {:f}".format(sigma_corr) +
+            msgs.warning("Error renormalization found correction factor sigma_corr = {:f}".format(sigma_corr) +
                       " < 1." + msgs.newline() +
                       " Errors are overestimated so not applying correction")
             sigma_corr = 1.0
         if sigma_corr > max_corr:
-            msgs.warn(("Error renormalization found sigma_corr/sigma = {:f} > {:f}." + msgs.newline() +
+            msgs.warning(("Error renormalization found sigma_corr/sigma = {:f} > {:f}." + msgs.newline() +
                       "Errors are severely underestimated." + msgs.newline() +
                       "Setting correction to sigma_corr = {:4.2f}").format(sigma_corr, max_corr, max_corr))
             sigma_corr = max_corr
@@ -130,7 +130,7 @@ def renormalize_errors(chi, mask, clip=6.0, max_corr=5.0, title = '', debug=Fals
             renormalize_errors_qa(chi, maskchi, sigma_corr, title=title)
 
     else:
-        msgs.warn('No good pixels in error_renormalize. There are probably issues with your data')
+        msgs.warning('No good pixels in error_renormalize. There are probably issues with your data')
         sigma_corr = 1.0
 
     return sigma_corr, maskchi
@@ -168,7 +168,7 @@ def poly_model_eval(theta, func, model, wave, wave_min, wave_max):
             # Clip to avoid overflow.
             ymult = np.exp(np.clip(ymult, None, 0.8 * np.log(sys.float_info.max)))
         case _:
-            msgs.error('Unrecognized value of model requested')
+            raise PypeItError('Unrecognized value of model requested')
 
     return ymult
 
@@ -418,7 +418,7 @@ def solve_poly_ratio(wave, flux, ivar, flux_ref, ivar_ref, norder, mask=None, ma
     """
 
     if norder < 1:
-        msgs.error(
+        raise PypeItError(
             'You cannot solve for the polynomial ratio for norder < 1. For rescaling by a '
             'constant use robust_median_ratio.'
         )
@@ -452,7 +452,7 @@ def solve_poly_ratio(wave, flux, ivar, flux_ref, ivar_ref, norder, mask=None, ma
         case 'exp':
             guess = np.append(np.log(ratio), np.zeros(norder))
         case _:
-            msgs.error('Unrecognized model type')
+            raise PypeItError('Unrecognized model type')
 
     arg_dict = dict(flux=flux, ivar=ivar, mask=mask, flux_med=flux_med, ivar_med=ivar_med,
                     flux_ref_med=flux_ref_med, ivar_ref_med=ivar_ref_med, ivar_ref=ivar_ref,
@@ -533,10 +533,10 @@ def interp_oned(wave_new, wave_old, flux_old, ivar_old, gpm_old, log10_blaze_fun
     """
     # Check input
     if wave_new.ndim != 1 or wave_old.ndim != 1:
-        msgs.error('All input vectors must be 1D.')
+        raise PypeItError('All input vectors must be 1D.')
     if flux_old.shape != wave_old.shape or ivar_old.shape != wave_old.shape \
             or gpm_old.shape != wave_old.shape:
-        msgs.error('All vectors to interpolate must have the same size.')
+        raise PypeItError('All vectors to interpolate must have the same size.')
 
     # Do not interpolate if the wavelength is exactly same with wave_new
     if np.array_equal(wave_new, wave_old) and not sensfunc:
@@ -643,11 +643,11 @@ def interp_spec(wave_new, waves, fluxes, ivars, gpms, log10_blaze_function=None,
     """
     # Check input
     if wave_new.ndim > 2:
-        msgs.error('Invalid shape for wave_new; must be 1D or 2D')
+        raise PypeItError('Invalid shape for wave_new; must be 1D or 2D')
     if wave_new.ndim == 2 and fluxes.ndim != 1:
-        msgs.error('If new wavelength grid is 2D, all other input arrays must be 1D.')
+        raise PypeItError('If new wavelength grid is 2D, all other input arrays must be 1D.')
     if fluxes.shape != waves.shape or ivars.shape != waves.shape or gpms.shape != waves.shape:
-        msgs.error('Input spectral arrays must all have the same shape.')
+        raise PypeItError('Input spectral arrays must all have the same shape.')
 
     # First case: interpolate either an (nspec, nexp) array of spectra onto a
     # single wavelength grid
@@ -769,7 +769,7 @@ def calc_snr(fluxes, ivars, gpms):
         sn_sigclip = stats.sigma_clip(sn_val_ma, sigma=3, maxiters=5)
         sn2_iexp = sn_sigclip.mean()**2  # S/N^2 value for each spectrum
         if sn2_iexp is np.ma.masked:
-            msgs.error(f'No unmasked value in iexp={iexp+1}/{nexp}. Check inputs.')
+            raise PypeItError(f'No unmasked value in iexp={iexp+1}/{nexp}. Check inputs.')
         else:
             sn2.append(sn2_iexp)
             rms_sn.append(np.sqrt(sn2_iexp))  # Root Mean S/N**2 value for all spectra
@@ -845,16 +845,16 @@ def sn_weights(fluxes, ivars, gpms, sn_smooth_npix=None, weight_method='auto', v
         `numpy.ndarray`_  with the same shape as those in waves.
     """
     if weight_method not in ['auto', 'constant', 'uniform', 'wave_dependent', 'relative', 'ivar']:
-        msgs.error('Unrecognized option for weight_method=%s').format(weight_method)
+        raise PypeItError('Unrecognized option for weight_method=%s').format(weight_method)
 
     nexp = len(fluxes)
     # Check that all the input lists have the same length
     if len(ivars) != nexp or len(gpms) != nexp:
-        msgs.error("Input lists of spectra must have the same length")
+        raise PypeItError("Input lists of spectra must have the same length")
 
     # Check that sn_smooth_npix if weight_method = constant or uniform
     if sn_smooth_npix is None and weight_method not in ['constant', 'uniform']:
-        msgs.error("sn_smooth_npix cannot be None unless the weight_method='constant' or weight_method='uniform'")
+        raise PypeItError("sn_smooth_npix cannot be None unless the weight_method='constant' or weight_method='uniform'")
 
     rms_sn, sn_val = calc_snr(fluxes, ivars, gpms)
     sn2 = np.square(rms_sn)
@@ -1017,7 +1017,7 @@ def robust_median_ratio(
         flux_dat_median = np.median(flux[new_mask])
 
         if (flux_ref_median < 0.0) or (flux_dat_median < 0.0):
-            msgs.warn('Negative median flux found. Not rescaling')
+            msgs.warning('Negative median flux found. Not rescaling')
             ratio = 1.0
         else:
             if verbose:
@@ -1025,12 +1025,12 @@ def robust_median_ratio(
             ratio = np.fmax(np.fmin(flux_ref_median/flux_dat_median, max_factor), 1.0/max_factor)
     else:
         if (np.sum(calc_mask) <= min_good*nspec):
-            msgs.warn(
+            msgs.warning(
                 f'Found only {np.sum(calc_mask)} good pixels for computing median flux ratio.'
                 + msgs.newline() + 'No median rescaling applied'
             )
         if (snr_resc_med <= snr_do_not_rescale):
-            msgs.warn(
+            msgs.warning(
                 f'Median flux ratio of pixels in reference spectrum {snr_resc_med} <= '
                 f'snr_do_not_rescale = {snr_do_not_rescale}.' + msgs.newline()
                 + 'No median rescaling applied'
@@ -1162,7 +1162,7 @@ def scale_spec(wave, flux, ivar, sn, wave_ref, flux_ref, ivar_ref, mask=None, ma
     elif method_used == 'hand':
         # Input?
         if hand_scale is None:
-            msgs.error("Need to provide hand_scale parameter, single value")
+            raise PypeItError("Need to provide hand_scale parameter, single value")
         flux_scale = flux * hand_scale
         ivar_scale = ivar * 1.0 / hand_scale ** 2
         scale = np.full(flux.size, hand_scale)
@@ -1171,7 +1171,7 @@ def scale_spec(wave, flux, ivar, sn, wave_ref, flux_ref, ivar_ref, mask=None, ma
         ivar_scale = ivar.copy()
         scale = np.ones_like(flux)
     else:
-        msgs.error("Scale method not recognized! Check documentation for available options")
+        raise PypeItError("Scale method not recognized! Check documentation for available options")
     # Finish
     if show:
         scale_spec_qa(wave, flux*mask, ivar*mask, wave_ref, flux_ref*mask_ref, ivar_ref*mask_ref, scale, method_used, mask = mask, mask_ref=mask_ref,
@@ -1872,7 +1872,7 @@ def spec_reject_comb(wave_grid, wave_grid_mid, waves_list, fluxes_list, ivars_li
         iter += 1
 
     if (iter == maxiter_reject) & (maxiter_reject != 0):
-        msgs.warn('Maximum number of iterations maxiter={:}'.format(maxiter_reject) + ' reached in spec_reject_comb')
+        msgs.warning('Maximum number of iterations maxiter={:}'.format(maxiter_reject) + ' reached in spec_reject_comb')
     out_gpms = np.copy(this_gpms)
     out_gpms_list = utils.array_to_explist(out_gpms, nspec_list=nspec_list)
 
@@ -2741,7 +2741,7 @@ def ech_combspec(waves_arr_setup, fluxes_arr_setup, ivars_arr_setup, gpms_arr_se
             # if the wavelength grid is non-monotonic, resample onto a loglam grid
             wave_grid_diff_ord = np.diff(wave_grid_ord)
             if np.any(wave_grid_diff_ord < 0):
-                msgs.warn(f'This order ({iord}) has a non-monotonic wavelength solution. Resampling now: ')
+                msgs.warning(f'This order ({iord}) has a non-monotonic wavelength solution. Resampling now: ')
                 wave_grid_ord = np.linspace(np.min(wave_grid_ord), np.max(wave_grid_ord), len(wave_grid_ord))
                 wave_grid_diff_ord = np.diff(wave_grid_ord)
 
@@ -2879,14 +2879,14 @@ def get_wave_ind(wave_grid, wave_min, wave_max):
     diff[diff > 0] = np.inf
     if not np.any(diff < 0):
         ind_lower = 0
-        msgs.warn('Your wave grid does not extend blue enough. Taking bluest point')
+        msgs.warning('Your wave grid does not extend blue enough. Taking bluest point')
     else:
         ind_lower = np.argmin(np.abs(diff))
     diff = wave_max - wave_grid
     diff[diff > 0] = np.inf
     if not np.any(diff < 0):
         ind_upper = wave_grid.size-1
-        msgs.warn('Your wave grid does not extend red enough. Taking reddest point')
+        msgs.warning('Your wave grid does not extend red enough. Taking reddest point')
     else:
         ind_upper = np.argmin(np.abs(diff))
 

@@ -170,7 +170,7 @@ def find_standard_file(ra, dec, toler=20.*units.arcmin, check=False, to_pkg=None
         stds_path = dataPaths.standards / sset  # This creates a new PypeItDataPath object
         star_file = stds_path.get_file_path(f"{sset}_info.txt")
         if not star_file.is_file():
-            msgs.warn(f"File does not exist!: {star_file}")
+            msgs.warning(f"File does not exist!: {star_file}")
             continue
 
         star_tbl = table.Table.read(star_file, comment='#', format='ascii')
@@ -221,7 +221,7 @@ def find_standard_file(ra, dec, toler=20.*units.arcmin, check=False, to_pkg=None
             elif sset == 'esofil':
                 # NOTE: `cal_file` is a pathlib.Path object
                 if not cal_file.name.startswith('f'):
-                    msgs.error('The ESO reference standard filename must start with the string '
+                    raise PypeItError('The ESO reference standard filename must start with the string '
                                '`f`;  make sure it is the case. Also make sure that the flux '
                                'units in the file are in 10**(-16) erg/s/cm2/AA.')
                 # TODO let's add the star_mag here and get a uniform set of tags in the std_dict
@@ -262,7 +262,7 @@ def find_standard_file(ra, dec, toler=20.*units.arcmin, check=False, to_pkg=None
                 std_dict['wave'] = waves * units.AA
                 std_dict['flux'] = flam * units.erg / units.s / units.cm ** 2 / units.AA
             else:
-                msgs.error(f'Do not know how to parse {sset} file.')
+                raise PypeItError(f'Do not know how to parse {sset} file.')
             msgs.info("Fluxes are flambda, normalized to 1e-17")
             return std_dict
 
@@ -283,7 +283,7 @@ def find_standard_file(ra, dec, toler=20.*units.arcmin, check=False, to_pkg=None
     if check:
         return False
 
-    msgs.error(f"No standard star was found within a tolerance of {toler}{msgs.newline()}"
+    raise PypeItError(f"No standard star was found within a tolerance of {toler}{msgs.newline()}"
                f"Closest standard was {closest['name']} at separation {closest['sep'].to('arcmin')}")
 
     return None
@@ -461,7 +461,7 @@ def get_standard_spectrum(star_type=None, star_mag=None, ra=None, dec=None):
             std_dict['std_ra'] = ra
             std_dict['std_dec'] = dec
     else:
-        msgs.error('Insufficient information provided for fluxing. '
+        raise PypeItError('Insufficient information provided for fluxing. '
                    'Either the coordinates of the standard or a stellar type and magnitude are needed.')
 
     return std_dict
@@ -507,15 +507,15 @@ def load_extinction_data(longitude, latitude, extinctfilepar,
             msgs.info(f"Using {extinct_file} for extinction corrections.")
         else:
             # Crash with a helpful error message
-            msgs.warn(f"No observatory extinction file was found within {toler}{msgs.newline()}"
+            msgs.warning(f"No observatory extinction file was found within {toler}{msgs.newline()}"
                       f"of observation at lon = {longitude:.1f} lat = {latitude:.1f}  You may{msgs.newline()}"
                       f"select an included extinction file (e.g., KPNO) for use by{msgs.newline()}"
                       f"adding the following to the Sensitivity Input File{msgs.newline()}"
                       "(for pypeit_sensfunc):")
             msgs.pypeitpar(['sensfunc', 'UVIS', 'extinct_file = kpnoextinct.dat'])
-            msgs.warn("or the following to the Flux File (for pypeit_flux_calib):")
+            msgs.warning("or the following to the Flux File (for pypeit_flux_calib):")
             msgs.pypeitpar(['fluxcalib', 'extinct_file = kpnoextinct.dat'])
-            msgs.error(f"See instructions at{msgs.newline()}"
+            raise PypeItError(f"See instructions at{msgs.newline()}"
                        f"https://pypeit.readthedocs.io/en/latest/fluxing.html#extinction-correction{msgs.newline()}"
                        f"for using extinction files and how to install a user-supplied{msgs.newline()}"
                        "file, if desired.")
@@ -559,7 +559,7 @@ def extinction_correction(wave, airmass, extinct):
     """
     # Checks
     if airmass < 1.:
-        msgs.error("Bad airmass value in extinction_correction")
+        raise PypeItError("Bad airmass value in extinction_correction")
     # Interpolate
     f_mag_ext = interpolate.interp1d(extinct['wave'], extinct['mag_ext'], bounds_error=False,
                                      fill_value=0.)
@@ -569,13 +569,13 @@ def extinction_correction(wave, airmass, extinct):
     gdv = np.where(mag_ext > 0.)[0]
 
     if len(gdv) == 0:
-        msgs.warn("No valid extinction data available at this wavelength range. Extinction correction not applied")
+        msgs.warning("No valid extinction data available at this wavelength range. Extinction correction not applied")
     elif gdv[0] != 0:  # Low wavelengths
         mag_ext[0:gdv[0]] = mag_ext[gdv[0]]
-        msgs.warn("Extrapolating at low wavelengths using last valid value")
+        msgs.warning("Extrapolating at low wavelengths using last valid value")
     elif gdv[-1] != (mag_ext.size - 1):  # High wavelengths
         mag_ext[gdv[-1] + 1:] = mag_ext[gdv[-1]]
-        msgs.warn("Extrapolating at high wavelengths using last valid value")
+        msgs.warning("Extrapolating at high wavelengths using last valid value")
     else:
         msgs.info("Extinction data covered the whole spectra. Applying correction...")
     # Evaluate
@@ -805,10 +805,10 @@ def get_sensfunc_factor(wave, wave_zp, zeropoint, exptime, tellmodel=None, delta
             _delta_wave = delta_wave
         elif isinstance(delta_wave, np.ndarray):
             if wave.size != delta_wave.size:
-                msgs.error('The wavelength vector and delta_wave vector must be the same size')
+                raise PypeItError('The wavelength vector and delta_wave vector must be the same size')
             _delta_wave = delta_wave
         else:
-            msgs.warn('Invalid type for delta_wave - using a default value')
+            msgs.warning('Invalid type for delta_wave - using a default value')
             _delta_wave = wvutils.get_delta_wave(wave, wave_mask)
     else:
         # If delta_wave is not passed in, then we will use the native wavelength sampling of the spectrum
@@ -824,12 +824,12 @@ def get_sensfunc_factor(wave, wave_zp, zeropoint, exptime, tellmodel=None, delta
         if extrap_sens:
             zeropoint_obs[wave_mask] \
                     = interpolate.interp1d(wave_zp, zeropoint, bounds_error=False)(wave[wave_mask])
-            msgs.warn("Your data extends beyond the bounds of your sensfunc. You should be "
+            msgs.warning("Your data extends beyond the bounds of your sensfunc. You should be "
                       "adjusting the par['sensfunc']['extrap_blu'] and/or "
                       "par['sensfunc']['extrap_red'] to extrapolate further and recreate your "
                       "sensfunc. But we are extrapolating per your direction. Good luck!")
         else:
-            msgs.error("Your data extends beyond the bounds of your sensfunc. " + msgs.newline() +
+            raise PypeItError("Your data extends beyond the bounds of your sensfunc. " + msgs.newline() +
                        "Adjust the par['sensfunc']['extrap_blu'] and/or "
                        "par['sensfunc']['extrap_red'] to extrapolate further and recreate "
                        "your sensfunc.")
@@ -842,16 +842,16 @@ def get_sensfunc_factor(wave, wave_zp, zeropoint, exptime, tellmodel=None, delta
     # Did the user request a telluric correction?
     if tellmodel is not None:
         # This assumes there is a separate telluric key in this dict.
-        #msgs.warn("Telluric corrections via this method are deprecated")
+        #msgs.warning("Telluric corrections via this method are deprecated")
         msgs.info('Applying telluric correction')
         sensfunc_obs = sensfunc_obs * (tellmodel > 1e-10) / (tellmodel + (tellmodel < 1e-10))
 
     if extinct_correct:
         if longitude is None or latitude is None:
-            msgs.error('You must specify longitude and latitude if we are extinction correcting')
+            raise PypeItError('You must specify longitude and latitude if we are extinction correcting')
         # Apply Extinction if optical bands
         msgs.info("Applying extinction correction")
-        msgs.warn("Extinction correction applied only if the spectra covers <10000Ang.")
+        msgs.warning("Extinction correction applied only if the spectra covers <10000Ang.")
         extinct = load_extinction_data(longitude, latitude, extinctfilepar)
         ext_corr = extinction_correction(wave * units.AA, airmass, extinct)
         senstot = sensfunc_obs * ext_corr
@@ -977,7 +977,7 @@ def fit_zeropoint(wave, Nlam_star, Nlam_ivar_star, gpm_star, std_dict,
     # Do we need to extrapolate? TODO Replace with a model or a grey body?
     ## TODO This is an ugly hack. Why are we only triggering this if the extrapolated star is negative.
     if np.min(flux_true) <= 0.:
-        msgs.warn('Your spectrum extends beyond calibrated standard star, extrapolating the spectra with polynomial.')
+        msgs.warning('Your spectrum extends beyond calibrated standard star, extrapolating the spectra with polynomial.')
         pypeitFit = fitting.robust_fit(std_dict['wave'].value, std_dict['flux'].value,8,function='polynomial',
                                                     maxiter=50, lower=3.0, upper=3.0, maxrej=3,
                                                     grow=0, sticky=True, use_mad=True)
@@ -1514,7 +1514,7 @@ def standard_zeropoint(wave, Nlam, Nlam_ivar, Nlam_gpm, flam_true, mask_recomb=N
         Good pixel mask for fitted sensitivity function with same shape as wave (nspec,)
     """
     if np.any(np.logical_not(np.isfinite(Nlam_ivar))):
-        msgs.warn("NaN are present in the inverse variance")
+        msgs.warning("NaN are present in the inverse variance")
     ivar_bpm = np.logical_not(np.isfinite(Nlam_ivar) & (Nlam_ivar > 0))
 
     # check masks
@@ -1566,7 +1566,7 @@ def standard_zeropoint(wave, Nlam, Nlam_ivar, Nlam_gpm, flam_true, mask_recomb=N
         zeropoint_clean[ivar_bpm] = zeropoint_poly[ivar_bpm]
     else:
         ## if half more than half of your spectrum is masked (or polycorrect=False) then do not correct it with polyfit
-        msgs.warn('No polynomial corrections performed on Hydrogen Recombination line regions')
+        msgs.warning('No polynomial corrections performed on Hydrogen Recombination line regions')
 
     # ToDo
     # Compute an effective resolution for the standard. This could be improved
@@ -1578,8 +1578,8 @@ def standard_zeropoint(wave, Nlam, Nlam_ivar, Nlam_gpm, flam_true, mask_recomb=N
     std_pix = np.median(np.abs(wave[zeropoint_data_gpm] - np.roll(wave[zeropoint_data_gpm], 1)))
     std_res = np.median(wave[zeropoint_data_gpm]/resolution) # median resolution in units of Angstrom.
     if (nresln * std_res) < std_pix:
-        msgs.warn("Bspline breakpoints spacing shoud be larger than 1pixel")
-        msgs.warn("Changing input nresln to fix this")
+        msgs.warning("Bspline breakpoints spacing shoud be larger than 1pixel")
+        msgs.warning("Changing input nresln to fix this")
         nresln = std_res / std_pix
 
     # Output some helpful information for double-checking input params are correct
@@ -1640,7 +1640,7 @@ def standard_zeropoint(wave, Nlam, Nlam_ivar, Nlam_gpm, flam_true, mask_recomb=N
     else:
         ## if half more than half of your spectrum is masked (or polycorrect=False) then do not correct it with polyfit
         zeropoint_bspl_clean = zeropoint_bspl.copy()
-        msgs.warn('No polynomial corrections performed on Hydrogen Recombination line regions')
+        msgs.warning('No polynomial corrections performed on Hydrogen Recombination line regions')
 
     # Calculate zeropoint
     zeropoint_fit = zeropoint_poly if polyfunc else zeropoint_bspl_clean
@@ -1677,7 +1677,7 @@ def load_filter_file(filter):
 
     # Check
     if filter not in allowed_options:
-        msgs.error("PypeIt is not ready for filter = {}".format(filter))
+        raise PypeItError("PypeIt is not ready for filter = {}".format(filter))
 
     trans_file = dataPaths.filters.get_file_path('filtercurves.fits')
     trans = io.fits_open(trans_file)
@@ -1752,7 +1752,7 @@ def scale_in_filter(wave, flux, gpm, scale_dict):
         scale = np.power(10.0,(Dm/2.5))
         msgs.info("Scaling spectrum by {}".format(scale))
     else:
-        msgs.error("Bad magnitude type")
+        raise PypeItError("Bad magnitude type")
 
     return scale
 
