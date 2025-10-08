@@ -1011,7 +1011,7 @@ class FlatField:
             if spec_nfit/spec_ntot < 0.5:
                 # TODO: Shouldn't this raise an exception or continue to the next slit instead?
                 msgs.warning('Spectral fit includes only {:.1f}'.format(100*spec_nfit/spec_ntot)
-                          + '% of the pixels on this slit.' + msgs.newline()
+                          + '% of the pixels on this slit.\n'
                           + '          Either the slit has many bad pixels or the number of '
                             'trimmed pixels is too large.')
 
@@ -1099,7 +1099,7 @@ class FlatField:
             if spat_nfit/spat_ntot < 0.5:
                 # TODO: Shouldn't this raise an exception or continue to the next slit instead?
                 msgs.warning('Spatial fit includes only {:.1f}'.format(100*spat_nfit/spat_ntot)
-                          + '% of the pixels on this slit.' + msgs.newline()
+                          + '% of the pixels on this slit.\n'
                           + '          Either the slit has many bad pixels, the model of the '
                           'spectral shape is poor, or the illumination profile is very irregular.')
 
@@ -1317,17 +1317,21 @@ class FlatField:
             # Check for infinities and NaNs in the flat-field model
             winfnan = np.where(np.logical_not(np.isfinite(self.flat_model[onslit_tweak])))
             if winfnan[0].size != 0:
-                msgs.warning('There are {0:d} pixels with non-finite values in the flat-field model '
-                          'for slit {1:d}!'.format(winfnan[0].size, slit_spat) + msgs.newline() +
-                          'These model pixel values will be set to the raw pixel value.')
+                msgs.warning(
+                    f'There are {winfnan[0].size} pixels with non-finite values in the flat-field '
+                    f'model for slit {slit_spat}!\nThese model pixel values will be set to the '
+                    'raw pixel value.'
+                )
                 self.flat_model[np.where(onslit_tweak)[0][winfnan]] = rawflat[np.where(onslit_tweak)[0][winfnan]]
             # Check for unrealistically high or low values of the model
             whilo = np.where((self.flat_model[onslit_tweak] >= nonlinear_counts) |
                              (self.flat_model[onslit_tweak] <= 0.0))
             if whilo[0].size != 0:
-                msgs.warning('There are {0:d} pixels with unrealistically high or low values in the flat-field model '
-                          'for slit {1:d}!'.format(whilo[0].size, slit_spat) + msgs.newline() +
-                          'These model pixel values will be set to the raw pixel value.')
+                msgs.warning(
+                    f'There are {whilo[0].size} pixels with unrealistically high or low values in '
+                    f'the flat-field model for slit {slit_spat}!\nThese model pixel values will '
+                    'be set to the raw pixel value.'
+                )
                 self.flat_model[np.where(onslit_tweak)[0][whilo]] = rawflat[np.where(onslit_tweak)[0][whilo]]
 
             # Construct the pixel flat
@@ -2038,7 +2042,7 @@ def spatillum_finecorr_qa(normed, finecorr, left, right, ypos, cut, outfile=None
         plt.show()
     else:
         plt.savefig(outfile, dpi=400)
-        msgs.info("Saved QA:"+msgs.newline()+outfile)
+        msgs.info("Saved QA:\n"+outfile)
 
     plt.close()
     plt.rcdefaults()
@@ -2106,7 +2110,7 @@ def detector_structure_qa(det_resp, det_resp_model, outfile=None, title="Detecto
         plt.show()
     else:
         plt.savefig(outfile, dpi=400)
-        msgs.info("Saved QA:" + msgs.newline() + outfile)
+        msgs.info("Saved QA:\n" + outfile)
 
     plt.close()
     plt.rcdefaults()
@@ -2255,8 +2259,10 @@ def illum_profile_spectral(rawimg, waveimg, slits, slit_illum_ref_idx=0, smooth_
                 if (ii == 1) and (slits.spat_id[wvsrt[ss]] == slit_illum_ref_idx):
                     # This must be the first element of the loop by construction, but throw an error just in case
                     if ss != 0:
-                        raise PypeItError("CODING ERROR - An error has occurred in the relative spectral illumination." +
-                                   msgs.newline() + "Please contact the developers.")
+                        raise PypeItError(
+                            "CODING ERROR - An error has occurred in the relative spectral "
+                            "illumination.\nPlease contact the developers."
+                        )
                     tmp_cntr = cntr * spec_ref
                     tmp_arr = hist * utils.inverse(tmp_cntr)
                     # Calculate a smooth version of the relative response
@@ -2452,28 +2458,32 @@ def write_pixflat_to_fits(pixflat_norm_list, detname_list, spec_name, outdir, pi
     if not pixelflat_file.parent.is_dir():
         pixelflat_file.parent.mkdir(parents=True)
     new_hdulist.writeto(pixelflat_file, overwrite=True)
-    msgs.info(f'A slitless Pixel Flat file for detectors {detname_list} has been saved to {msgs.newline()}'
+    msgs.info(f'A slitless Pixel Flat file for detectors {detname_list} has been saved to\n'
               f'{pixelflat_file}')
 
     # common msg
-    add_msgs = f"add the following to your PypeIt Reduction File:{msgs.newline()}"  \
-               f" [calibrations]{msgs.newline()}"  \
-               f"   [[flatfield]]{msgs.newline()}"  \
-               f"     pixelflat_file = {pixelflat_name}{msgs.newline()}{msgs.newline()}{msgs.newline()}"  \
-               f"Please consider sharing your Pixel Flat file with the PypeIt Developers.{msgs.newline()}"  \
-
+    add_msgs = (
+        f"add the following to your PypeIt Reduction File:\n"
+        f" [calibrations]\n"
+        f"   [[flatfield]]\n"
+        f"     pixelflat_file = {pixelflat_name}\n\n\n"
+        f"Please consider sharing your Pixel Flat file with the PypeIt Developers.\n"
+    )
 
     if to_cache:
         # NOTE that the file saved in the cache is gzipped, while the one saved in the outdir is not
         # This prevents `dataPaths.pixelflat.get_file_path()` from returning the file saved in the outdir
         cache.write_file_to_cache(pixelflat_file, pixelflat_name+'.gz', f"pixelflats")
-        msgs.info(f"The slitless Pixel Flat file has also been saved to the PypeIt cache directory {msgs.newline()}"
-                  f"{str(dataPaths.pixelflat)} {msgs.newline()}"
-                  f"It will be automatically used in this run. "
-                  f"If you want to use this file in future runs, {add_msgs}")
+        msgs.info(
+            f"The slitless Pixel Flat file has also been saved to the PypeIt cache directory\n"
+            f"{str(dataPaths.pixelflat)}\n"
+            f"It will be automatically used in this run. "
+            f"If you want to use this file in future runs, {add_msgs}")
     else:
-        msgs.info(f"To use this file, move it to the PypeIt data directory {msgs.newline()}"
-                  f"{str(dataPaths.pixelflat)} {msgs.newline()} and {add_msgs}")
+        msgs.info(
+            f"To use this file, move it to the PypeIt data directory\n"
+            f"{str(dataPaths.pixelflat)}\n and {add_msgs}"
+        )
 
 
 def load_pixflat(pixel_flat_file, spectrograph, det, flatimages, calib_dir=None, chk_version=False):

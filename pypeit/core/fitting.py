@@ -187,8 +187,10 @@ class PypeItFit(DataContainer):
                     xv, y_out, self.order[0], 
                     w=np.sqrt(w_out) if w_out is not None else None) # numpy convention
         else:
-            raise PypeItError("Fitting function '{0:s}' is not implemented yet" + msgs.newline() +
-                       "Please choose from 'polynomial', 'legendre', 'chebyshev','polynomial2d', 'legendre2d'")
+            raise PypeItError(
+                f"Fitting function '{self.func}' is not implemented yet\nPlease choose from "
+                "'polynomial', 'legendre', 'chebyshev', 'polynomial2d', 'legendre2d', 'chebyshev2d'"
+            )
 
         self.success = 1
         return self.success
@@ -299,8 +301,10 @@ def evaluate_fit(fitc, func, x, x2=None, minx=None,
         return (np.polynomial.legendre.legval(xv, fitc) if func == "legendre"
                 else np.polynomial.chebyshev.chebval(xv, fitc))
     else:
-        raise PypeItError("Fitting function '{0:s}' is not implemented yet" + msgs.newline() +
-                   "Please choose from 'polynomial', 'legendre', 'chebyshev', 'polynomial2d', 'legendre2d', 'chebyshev2d'")
+        raise PypeItError(
+            f"Fitting function '{func}' is not implemented yet\nPlease choose from "
+            "'polynomial', 'legendre', 'chebyshev', 'polynomial2d', 'legendre2d', 'chebyshev2d'"
+        )
 
 
 def robust_fit(xarray, yarray, order, x2=None, function='polynomial',

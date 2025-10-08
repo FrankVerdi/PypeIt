@@ -540,18 +540,18 @@ class PypeIt:
         objFind_list = []
 
         # Print status message
-        msgs_string = 'Reducing target {:s}'.format(self.fitstbl['target'][frames[0]]) + msgs.newline()
+        msgs_string = f'Reducing target {self.fitstbl['target'][frames[0]]}\n'
         # TODO: Print these when the frames are actually combined,
         # backgrounds are used, etc?
-        msgs_string += 'Combining frames:' + msgs.newline()
+        msgs_string += 'Combining frames:\n'
         for iframe in frames:
-            msgs_string += '{0:s}'.format(self.fitstbl['filename'][iframe]) + msgs.newline()
+            msgs_string += f'{self.fitstbl['filename'][iframe]}\n'
         msgs.info(msgs_string)
         if has_bg:
             bg_msgs_string = ''
             for iframe in bg_frames:
-                bg_msgs_string += '{0:s}'.format(self.fitstbl['filename'][iframe]) + msgs.newline()
-            bg_msgs_string = msgs.newline() + 'Using background from frames:' + msgs.newline() + bg_msgs_string
+                bg_msgs_string += f'{self.fitstbl['filename'][iframe]}\n'
+            bg_msgs_string = '\nUsing background from frames:\n' + bg_msgs_string
             msgs.info(bg_msgs_string)
 
         # Find the detectors to reduce
@@ -941,7 +941,9 @@ class PypeIt:
         # Get the regions
         status, regions = skysub.read_userregions(skyregtxt, self.caliBrate.slits.nslits, maxslitlength)
         if status == 1:
-            raise PypeItError("Unknown error in sky regions definition. Please check the value:" + msgs.newline() + skyregtxt)
+            raise PypeItError(
+                "Unknown error in sky regions definition. Please check the value:\n" + skyregtxt
+            )
         elif status == 2:
             raise PypeItError("Sky regions definition must contain a percentage range, and therefore must contain a ':'")
         # Generate and return image

@@ -1948,14 +1948,14 @@ class EchelleCoAdd2D(CoAdd2D):
         """
 
         # Print out a report on the SNR
-        msg_string = msgs.newline() + '-------------------------------------'
-        msg_string += msgs.newline() + '  Summary for highest S/N object'
-        msg_string += msgs.newline() + '-------------------------------------'
-        msg_string += msgs.newline() + '           exp#        S/N'
+        msg_string = '\n-------------------------------------'
+        msg_string += '\n  Summary for highest S/N object'
+        msg_string += '\n-------------------------------------'
+        msg_string += '\n           exp#        S/N'
         for iexp, snr in enumerate(snr_bar):
-            msg_string += msgs.newline() + '            {:d}         {:5.2f}'.format(iexp, snr)
+            msg_string += '\n            {:d}         {:5.2f}'.format(iexp, snr)
 
-        msg_string += msgs.newline() + '-------------------------------------'
+        msg_string += '\n-------------------------------------'
         msgs.info(msg_string)
 
 

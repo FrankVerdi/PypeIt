@@ -1431,9 +1431,9 @@ class PypeItMetaData:
                 try:
                     type_bits[indx] = self.type_bitmask.turn_on(type_bits[indx], flag=ftypes.split(','))
                 except ValueError as err:
-                    raise PypeItError(f'Improper frame type supplied!{msgs.newline()}'
-                               f'{err}{msgs.newline()}'
-                               'Check your PypeIt Reduction File')
+                    raise PypeItError(
+                        f'Improper frame type supplied!l\n{err}\nCheck your PypeIt Reduction File'
+                    )
             return self.set_frame_types(type_bits, merge=merge)
     
         # Loop over the frame types

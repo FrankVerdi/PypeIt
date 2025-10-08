@@ -589,15 +589,19 @@ def get_whitelight_range(wavemin, wavemax, wl_range):
     wlrng = [wavemin, wavemax]
     if wl_range[0] is not None:
         if wl_range[0] < wavemin:
-            msgs.warning("The user-specified minimum wavelength ({0:.2f}) to use for the white light".format(wl_range[0]) +
-                      msgs.newline() + "images is lower than the recommended value ({0:.2f}),".format(wavemin) +
-                      msgs.newline() + "which ensures that all spaxels cover the same wavelength range.")
+            msgs.warning(
+                f"The user-specified minimum wavelength ({wl_range[0]:.2f}) to use for the white "
+                f"light\nimages is lower than the recommended value ({wavemin:.2f}),\n"
+                "which ensures that all spaxels cover the same wavelength range."
+            )
         wlrng[0] = wl_range[0]
     if wl_range[1] is not None:
         if wl_range[1] > wavemax:
-            msgs.warning("The user-specified maximum wavelength ({0:.2f}) to use for the white light".format(wl_range[1]) +
-                      msgs.newline() + "images is greater than the recommended value ({0:.2f}),".format(wavemax) +
-                      msgs.newline() + "which ensures that all spaxels cover the same wavelength range.")
+            msgs.warning(
+                f"The user-specified maximum wavelength ({wl_range[1]:.2f}) to use for the white "
+                "light\nimages is greater than the recommended value ({wavemax:.2f}),\n"
+                "which ensures that all spaxels cover the same wavelength range."
+            )
         wlrng[1] = wl_range[1]
     msgs.info("The white light images will cover the wavelength range: {0:.2f}A - {1:.2f}A".format(wlrng[0], wlrng[1]))
     return wlrng
@@ -714,8 +718,10 @@ def align_user_offsets(ifu_ra, ifu_dec, ra_offset, dec_offset):
         # Apply the shift
         out_ra_offsets[ff] = ref_shift_ra[ff] + ra_offset[ff]
         out_dec_offsets[ff] = ref_shift_dec[ff] + dec_offset[ff]
-        msgs.info("Spatial shift of cube #{0:d}:".format(ff + 1) + msgs.newline() +
-                  "RA, DEC (arcsec) = {0:+0.3f} E, {1:+0.3f} N".format(ra_offset[ff]*3600.0, dec_offset[ff]*3600.0))
+        msgs.info(
+            f"Spatial shift of cube #{ff + 1}:\nRA, DEC (arcsec) = {ra_offset[ff]*3600.0:+0.3f} "
+            f"E, {dec_offset[ff]*3600.0:+0.3f} N"
+        )
     return out_ra_offsets, out_dec_offsets
 
 
@@ -751,19 +757,19 @@ def set_voxel_sampling(spatscale, specscale, dspat=None, dwv=None):
     if np.any(np.abs(ratio) > 1E-4):
         msgs.warning("The pixel scales of all input frames are not the same!")
         spatstr = ", ".join(["{0:.6f}".format(ss) for ss in spatscale[:,0]*3600.0])
-        msgs.info("Pixel scales of all input frames:" + msgs.newline() + spatstr + "arcseconds")
+        msgs.info("Pixel scales of all input frames:\n" + spatstr + "arcseconds")
     # Make sure all frames have consistent slicer scales
     ratio = (spatscale[:, 1] - spatscale[0, 1]) / spatscale[0, 1]
     if np.any(np.abs(ratio) > 1E-4):
         msgs.warning("The slicer scales of all input frames are not the same!")
         spatstr = ", ".join(["{0:.6f}".format(ss) for ss in spatscale[:,1]*3600.0])
-        msgs.info("Slicer scales of all input frames:" + msgs.newline() + spatstr + "arcseconds")
+        msgs.info("Slicer scales of all input frames:\n" + spatstr + "arcseconds")
     # Make sure all frames have consistent wavelength sampling
     ratio = (specscale - specscale[0]) / specscale[0]
     if np.any(np.abs(ratio) > 1E-2):
         msgs.warning("The wavelength samplings of the input frames are not the same!")
         specstr = ", ".join(["{0:.6f}".format(ss) for ss in specscale])
-        msgs.info("Wavelength samplings of all input frames:" + msgs.newline() + specstr + "Angstrom")
+        msgs.info("Wavelength samplings of all input frames:\n" + specstr + "Angstrom")
 
     # If the user has not specified the spatial scale, then set it appropriately now to the largest spatial scale
     _dspat = np.max(spatscale) if dspat is None else dspat
@@ -999,14 +1005,16 @@ def create_wcs(raImg, decImg, waveImg, slitid_img_gpm, dspat, dwave,
         numra, numdec = reference_image.shape
 
     cubewcs = generate_WCS(coord_min, coord_dlt, numra, equinox=equinox, name=specname)
-    msgs.info(msgs.newline() + "-" * 40 +
-              msgs.newline() + "Parameters of the WCS:" +
-              msgs.newline() + "RA   min = {0:f}".format(coord_min[0]) +
-              msgs.newline() + "DEC  min = {0:f}".format(coord_min[1]) +
-              msgs.newline() + "WAVE min, max = {0:f}, {1:f}".format(_wave_min, _wave_max) +
-              msgs.newline() + "Spaxel size = {0:f} arcsec".format(3600.0 * dspat) +
-              msgs.newline() + "Wavelength step = {0:f} A".format(dwave) +
-              msgs.newline() + "-" * 40)
+    msgs.info(
+        f'\n{"-"*40}'
+        "\nParameters of the WCS:"
+        f"\nRA   min = {coord_min[0]}"
+        f"\nDEC  min = {coord_min[1]}"
+        f"\nWAVE min, max = {_wave_min}, {_wave_max}"
+        f"\nSpaxel size = {3600.0 * dspat} arcsec"
+        f"\nWavelength step = {dwave} A"
+        f'\n{"-"*40}'
+    )
 
     # Generate the output binning
     xbins = np.arange(1 + numra) - 0.5

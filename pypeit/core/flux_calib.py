@@ -284,10 +284,10 @@ def find_standard_file(ra, dec, toler=20.*units.arcmin, check=False, to_pkg=None
     if check:
         return False
 
-    raise PypeItError(f"No standard star was found within a tolerance of {toler}{msgs.newline()}"
-               f"Closest standard was {closest['name']} at separation {closest['sep'].to('arcmin')}")
-
-    return None
+    raise PypeItError(
+        f"No standard star was found within a tolerance of {toler}\nClosest standard was "
+        f"{closest['name']} at separation {closest['sep'].to('arcmin')}"
+    )
 
 
 def stellar_model(V, sptype):
@@ -508,11 +508,11 @@ def load_extinction_data(longitude, latitude, extinctfilepar,
             msgs.info(f"Using {extinct_file} for extinction corrections.")
         else:
             # Crash with a helpful error message
-            msgs.warning(f"No observatory extinction file was found within {toler}{msgs.newline()}"
-                      f"of observation at lon = {longitude:.1f} lat = {latitude:.1f}  You may{msgs.newline()}"
-                      f"select an included extinction file (e.g., KPNO) for use by{msgs.newline()}"
-                      f"adding the following to the Sensitivity Input File{msgs.newline()}"
-                      "(for pypeit_sensfunc):")
+            msgs.warning(
+                f"No observatory extinction file was found within {toler}\nof observation at "
+                f"lon = {longitude:.1f} lat = {latitude:.1f}  You may\nselect an included "
+                "extinction file (e.g., KPNO) for use by\nadding the following to the "
+                f"Sensitivity Input File\n(for pypeit_sensfunc):")
             msgs.pypeitpar(['sensfunc', 'UVIS', 'extinct_file = kpnoextinct.dat'])
             msgs.warning("or the following to the Flux File (for pypeit_flux_calib):")
             msgs.pypeitpar(['fluxcalib', 'extinct_file = kpnoextinct.dat'])

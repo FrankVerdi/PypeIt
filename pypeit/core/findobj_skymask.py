@@ -418,8 +418,10 @@ def ech_fof_sobjs(sobjs:specobjs.SpecObjs,
         for iord in range(norders):
             on_order = (obj_id_init == uni_obj_id_init[iobj]) & (sobjs.ECH_ORDER == order_vec[iord])
             if (np.sum(on_order) > 1):
-                msgs.warning('Found multiple objects in a FOF group on order iord={:d}'.format(order_vec[iord]) + msgs.newline() +
-                          'Spawning new objects to maintain a single object per order.')
+                msgs.warning(
+                    f'Found multiple objects in a FOF group on order iord={order_vec[iord]}\n'
+                    'Spawning new objects to maintain a single object per order.'
+                )
                 off_order = (obj_id_init == uni_obj_id_init[iobj]) & (sobjs.ECH_ORDER != order_vec[iord])
                 ind = np.where(on_order)[0]
                 if np.any(off_order):

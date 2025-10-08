@@ -893,8 +893,10 @@ def fit_profile(image, ivar, waveimg, thismask, spat_img, trace_in, wave,
     eligible_pixels = np.sum((wave >= wave_min) & (wave <= wave_max))
     good_pix_frac = 0.05
     if (np.sum(indsp) < good_pix_frac*eligible_pixels) or (eligible_pixels == 0):
-        msgs.warning('There are no pixels eligible to be fit for the object profile.' + msgs.newline() +
-                  'There is likely an issue in local_skysub_extract. Returning a Gassuain with fwhm={:5.3f}'.format(thisfwhm))
+        msgs.warning(
+            'There are no pixels eligible to be fit for the object profile.\nThere is likely an '
+            f'issue in local_skysub_extract. Returning a Gassuain with fwhm={thisfwhm:5.3f}'
+        )
         profile_model = return_gaussian(sigma_x, None, thisfwhm, 0.0, obj_string, False)
         return profile_model, trace_in, fwhmfit, 0.0
 
@@ -908,8 +910,10 @@ def fit_profile(image, ivar, waveimg, thismask, spat_img, trace_in, wave,
     try:
         cont_flux, _ = c_answer.value(wave[indsp])
     except:
-        msgs.warning('Problem estimating S/N ratio of spectrum' + msgs.newline() +
-                  'There is likely an issue in local_skysub_extract. Returning a Gassuain with fwhm={:5.3f}'.format(thisfwhm))
+        msgs.warning(
+            'Problem estimating S/N ratio of spectrum\nThere is likely an issue in '
+            f'local_skysub_extract. Returning a Gassuain with fwhm={thisfwhm:5.3f}'
+        )
         profile_model = return_gaussian(sigma_x, None, thisfwhm, 0.0, obj_string, False)
         return profile_model, trace_in, fwhmfit, 0.0
 

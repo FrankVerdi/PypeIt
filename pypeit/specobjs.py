@@ -249,7 +249,7 @@ class SpecObjs:
             if not remove_missing:
                 raise PypeItError(msg)
             else:
-                msg += f"{msgs.newline()}-- The missing data will be removed --"
+                msg += f"\n-- The missing data will be removed --"
                 msgs.warning(msg)
                 # Remove missing data
                 r_indx = np.where(none_flux)[0]

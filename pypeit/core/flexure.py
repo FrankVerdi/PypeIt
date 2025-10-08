@@ -112,10 +112,12 @@ def spat_flexure_shift(sciimg, slits, bpm=None, maxlag=20, sigdetect=10., debug=
     _, _, pix_max, _, _, _, _, _ = arc.detect_lines(xcorr_max, cont_subtract=False, input_thresh=0., nfind=1, debug=debug)
     # No peak? -- e.g. data fills the entire detector
     if (len(pix_max) == 0) or pix_max[0] == -999.0:
-        msgs.warning('No peak found in the x-correlation between the traced slits and the science/calib image.'
-                  '  Assuming there is NO SPATIAL FLEXURE.'+msgs.newline() + 'If a flexure is expected, '
-                  'consider either changing the maximum lag for the cross-correlation, '
-                  'or the "spat_flexure_sigdetect" parameter, or use the manual flexure correction.')
+        msgs.warning(
+            'No peak found in the x-correlation between the traced slits and the science/calib '
+            'image.  Assuming there is NO SPATIAL FLEXURE.\nIf a flexure is expected, consider '
+            'either changing the maximum lag for the cross-correlation, or the '
+            '"spat_flexure_sigdetect" parameter, or use the manual flexure correction.'
+        )
 
         return 0.
 
@@ -480,12 +482,14 @@ def spec_flex_shift(obj_skyspec, sky_file=None, arx_skyspec=None, arx_fwhm_pix=N
                       f"larger than specified maximum {mxshft} pix.")
 
             if excess_shft == "crash":
-                raise PypeItError(f"Flexure compensation failed for one of your{msgs.newline()}"
-                           f"objects.  Either adjust the \"spec_maxshift\"{msgs.newline()}"
-                           f"FlexurePar Keyword, or see the flexure documentation{msgs.newline()}"
-                           f"for information on how to bypass this error using the{msgs.newline()}"
-                           f"\"excessive_shift\" keyword.{msgs.newline()}"
-                           "https://pypeit.readthedocs.io/en/release/flexure.html")
+                raise PypeItError(
+                    "Flexure compensation failed for one of your\n"
+                    "objects.  Either adjust the \"spec_maxshift\"\n"
+                    "FlexurePar Keyword, or see the flexure documentation\n"
+                    "for information on how to bypass this error using the\n"
+                    "\"excessive_shift\" keyword.\n"
+                    "https://pypeit.readthedocs.io/en/release/flexure.html"
+                )
 
             elif excess_shft == "set_to_zero":
                 msgs.warning("Flexure compensation failed for one of your objects.")

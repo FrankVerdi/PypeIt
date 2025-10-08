@@ -525,8 +525,9 @@ class SpecObj(datamodel.DataContainer):
         # Apply
         for attr in ['BOX', 'OPT']:
             if self[attr+'_WAVE'] is not None:
-                msgs.info("Applying flexure correction to {0:s} extraction for object:".format(attr) +
-                          msgs.newline() + "{0:s}".format(str(self.NAME)))
+                msgs.info(
+                    f"Applying flexure correction to {attr:s} extraction for object:\n{self.NAME}"
+                )
                 self[attr+'_WAVE'] = flexure.flexure_interp(shift, self[attr+'_WAVE']).copy()
         # Shift sky spec too
         twave = flexure.flexure_interp(shift, sky_spec.wavelength.value) * units.AA
@@ -590,7 +591,7 @@ class SpecObj(datamodel.DataContainer):
         for attr in ['BOX', 'OPT']:
             if self[attr+'_WAVE'] is None:
                 continue
-            msgs.info("Fluxing {:s} extraction for:".format(attr) + msgs.newline() + "{}".format(self))
+            msgs.info(f"Fluxing {attr} extraction for:\n{self}")
 
             wave = self[attr+'_WAVE']
             # Interpolate the sensitivity function onto the wavelength grid of the data
@@ -632,9 +633,9 @@ class SpecObj(datamodel.DataContainer):
         # Apply
         for attr in ['BOX', 'OPT']:
             if self[attr+'_WAVE'] is not None:
-                msgs.info('Applying {0} correction to '.format(refframe)
-                          + '{0} extraction for object:'.format(attr)
-                          + msgs.newline() + "{0}".format(str(self.NAME)))
+                msgs.info(
+                    f'Applying {refframe} correction to {attr} extraction for object:\n'{self.NAME}'
+                )
                 self[attr+'_WAVE'] *= vel_corr
                 # Record
                 self['VEL_TYPE'] = refframe

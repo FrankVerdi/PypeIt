@@ -534,17 +534,19 @@ def tweak_slit_edges_gradient(left, right, spat_coo, norm_flat, maxfrac=0.1, deb
 
     # Check if the shift is within the allowed range
     if np.abs(left_shift) > maxfrac:
-        msgs.warning('Left slit edge shift of {0:.1f}% exceeds the maximum allowed of {1:.1f}%'.format(
-                  100*left_shift, 100*maxfrac) + msgs.newline() +
-                  'The left edge will not be tweaked.')
+        msgs.warning(
+            f'Left slit edge shift of {100*left_shift:.1f}% exceeds the maximum allowed of '
+            f'{100*maxfrac:.1f}%\nThe left edge will not be tweaked.'
+        )
         left_shift = 0.0
     else:
         msgs.info('Tweaking left slit boundary by {0:.1f}%'.format(100 * left_shift) +
                   ' ({0:.2f} pixels)'.format(left_shift * slitwidth))
     if np.abs(right_shift) > maxfrac:
-        msgs.warning('Right slit edge shift of {0:.1f}% exceeds the maximum allowed of {1:.1f}%'.format(
-                  100*right_shift, 100*maxfrac) + msgs.newline() +
-                  'The right edge will not be tweaked.')
+        msgs.warning(
+            f'Right slit edge shift of {100*right_shift:.1f}% exceeds the maximum allowed of '
+            f'{100*maxfrac:.1f}%\nThe right edge will not be tweaked.'
+        )
         right_shift = 0.0
     else:
         msgs.info('Tweaking right slit boundary by {0:.1f}%'.format(100 * right_shift) +

@@ -117,14 +117,17 @@ def renormalize_errors(chi, mask, clip=6.0, max_corr=5.0, title = '', debug=Fals
         chi2_sigrej = np.percentile(chi2[maskchi], 100.0*gauss_prob)
         sigma_corr = np.sqrt(chi2_sigrej)
         if sigma_corr < 1.0:
-            msgs.warning("Error renormalization found correction factor sigma_corr = {:f}".format(sigma_corr) +
-                      " < 1." + msgs.newline() +
-                      " Errors are overestimated so not applying correction")
+            msgs.warning(
+                f"Error renormalization found correction factor sigma_corr = {sigma_corr} < 1.\n"
+                "Errors are overestimated so not applying correction."
+            )
             sigma_corr = 1.0
         if sigma_corr > max_corr:
-            msgs.warning(("Error renormalization found sigma_corr/sigma = {:f} > {:f}." + msgs.newline() +
-                      "Errors are severely underestimated." + msgs.newline() +
-                      "Setting correction to sigma_corr = {:4.2f}").format(sigma_corr, max_corr, max_corr))
+            msgs.warning(
+                f"Error renormalization found sigma_corr/sigma = {sigma_corr} > {max_corr}.\n"
+                "Errors are severely underestimated.\nSetting correction to sigma_corr = "
+                f"{max_corr:4.2f}"
+            )
             sigma_corr = max_corr
 
         if debug:
@@ -1027,13 +1030,13 @@ def robust_median_ratio(
     else:
         if (np.sum(calc_mask) <= min_good*nspec):
             msgs.warning(
-                f'Found only {np.sum(calc_mask)} good pixels for computing median flux ratio.'
-                + msgs.newline() + 'No median rescaling applied'
+                f'Found only {np.sum(calc_mask)} good pixels for computing median flux ratio.\n'
+                'No median rescaling applied'
             )
         if (snr_resc_med <= snr_do_not_rescale):
             msgs.warning(
                 f'Median flux ratio of pixels in reference spectrum {snr_resc_med} <= '
-                f'snr_do_not_rescale = {snr_do_not_rescale}.' + msgs.newline()
+                f'snr_do_not_rescale = {snr_do_not_rescale}.\n'
                 + 'No median rescaling applied'
             )
         ratio = 1.0

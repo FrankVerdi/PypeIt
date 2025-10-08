@@ -108,7 +108,7 @@ class InputFile:
         """
         # Check the files
         if not os.path.isfile(ifile):
-            raise PypeItError('The filename does not exist -' + msgs.newline() + ifile)
+            raise PypeItError('The filename does not exist -\n' + ifile)
 
         # Read the input lines and replace special characters
         with open(ifile, 'r') as f:
