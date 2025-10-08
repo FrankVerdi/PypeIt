@@ -9,9 +9,6 @@ import numpy
 from pypeit.utils import to_string, string_table
 from pypeit.datamodel import DataContainer
 from pypeit.images import buildimage
-from pypeit.flatfield import FlatImages
-from pypeit.edgetrace import EdgeTraceSet
-from pypeit.slittrace import SlitTraceSet
 
 from IPython import embed
 

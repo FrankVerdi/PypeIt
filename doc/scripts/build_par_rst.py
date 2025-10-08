@@ -13,14 +13,9 @@ from pypeit.spectrographs import available_spectrographs
 
 from IPython import embed
 
-#-----------------------------------------------------------------------------
-#def class_name(p):
-#    return '.'.join([type(p).__module__, type(p).__name__])
-
 
 def link_string(p):
     return f':ref:`{type(p).__name__.lower()}`'
-#    return '`{0} Keywords`_'.format(type(p).__name__)
 
 
 def par_hierarchy(p, indent_level=0, key=''):
@@ -29,7 +24,6 @@ def par_hierarchy(p, indent_level=0, key=''):
     if len(line_head) > 0:
         line_head = '``' + line_head + '``: '
     lines = [ indent_step + line_head + link_string(p) ]
-#    lines += [ '' ]
 
     for k in p.keys():
         if not isinstance(p[k], ParSet):

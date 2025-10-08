@@ -5,6 +5,8 @@ Version 1.18.2dev
 Documentation Updates
 ---------------------
 
+- Added tables with the list of available telluric model spectra.
+
 
 
 Dependency Changes
