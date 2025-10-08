@@ -11,7 +11,7 @@ from pypeit.utils import string_table
 from IPython import embed
 
 def link_string(p):
-    return '`{0} Keywords`_'.format(type(p).__name__)
+    return f'`{type(p).__name__} Keywords`_'
 
 #-----------------------------------------------------------------------------
 
@@ -42,13 +42,13 @@ def single_table_datamodel(obj, output_root, ext, descr):
                        'Empty data HDU.  Contains basic header information.']
     data_table[2,:] = [f'``{ext}``', '`astropy.io.fits.BinTableHDU`_', '...', descr]
 
-    lines = [''] + ['Version {:s}'.format(obj.version)] + [''] \
+    lines = [''] + [f'Version {obj.version}'] + [''] \
                 + [string_table(data_table, delimeter='rst')]
 
     ofile = output_root / f'datamodel_{obj.__name__.lower()}.rst'
     with open(ofile, 'w') as f:
         f.write('\n'.join(lines))
-    print('Wrote: {}'.format(ofile))
+    print(f'Wrote: {ofile}')
 
 
 def sens_datamodel(output_root):
@@ -90,7 +90,7 @@ def sens_datamodel(output_root):
     for i,key in enumerate(sens.keys()):
         sens_table[i+1,:] = [f'``{key}``', column_type(sens[key]), sens[key].description]
 
-    lines = [''] + ['Version {:s}'.format(SensFunc.version)] + [''] \
+    lines = [''] + [f'Version {SensFunc.version}'] + [''] \
                 + [string_table(hdu_table, delimeter='rst')] \
                 + [''] + ['TELLURIC table (if present)'] + [''] \
                 + [string_table(tell_table, delimeter='rst')] \
@@ -100,7 +100,7 @@ def sens_datamodel(output_root):
     ofile = output_root / f'datamodel_{SensFunc.__name__.lower()}.rst'
     with open(ofile, 'w') as f:
         f.write('\n'.join(lines))
-    print('Wrote: {}'.format(ofile))
+    print(f'Wrote: {ofile}')
 
 
 def telluric_datamodel(output_root):
@@ -121,7 +121,7 @@ def telluric_datamodel(output_root):
     for i,key in enumerate(telluric.keys()):
         tell_table[i+1,:] = [f'``{key}``', column_type(telluric[key]), telluric[key].description]
 
-    lines = [''] + ['Version {:s}'.format(Telluric.version)] + [''] \
+    lines = [''] + [f'Version {Telluric.version}'] + [''] \
                 + [string_table(hdu_table, delimeter='rst')] \
                 + [''] + ['TELLURIC table'] + [''] \
                 + [string_table(tell_table, delimeter='rst')]
@@ -129,7 +129,7 @@ def telluric_datamodel(output_root):
     ofile = output_root / f'datamodel_{Telluric.__name__.lower()}.rst'
     with open(ofile, 'w') as f:
         f.write('\n'.join(lines))
-    print('Wrote: {}'.format(ofile))
+    print(f'Wrote: {ofile}')
 
 
 if __name__ == '__main__':

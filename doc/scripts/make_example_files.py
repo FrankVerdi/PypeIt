@@ -7,7 +7,6 @@ import os
 import pathlib
 import shutil 
 import sys
-import time
 
 from pypeit import dataPaths
 from pypeit.scripts import setup
@@ -42,12 +41,6 @@ def verbatim_to_rst(inp, out):
         for l in lines:
             f.write('    '+l)
         f.write('\n\n')
-
-
-def extinction_files():
-    inp = dataPaths.extinction.get_file_path('extinction_curves.txt')
-    ofile = PYP_ROOT / 'doc' / 'include' / f'{inp.name}.rst'
-    verbatim_to_rst(inp, ofile)
 
 
 def make_example_kast_pypeit_file(version, date):
@@ -222,7 +215,6 @@ def make_meta_examples():
 
 
 if __name__ == '__main__':
-    t = time.perf_counter()
     tag, date = git_most_recent_tag()
     if DEV_ROOT is None:
         print(
@@ -243,8 +235,5 @@ if __name__ == '__main__':
 
     print('Make meta examples')
     make_meta_examples()
-    print('Make extinction file')
-    extinction_files()
-    print('Elapsed time: {0} seconds'.format(time.perf_counter() - t))
 
 

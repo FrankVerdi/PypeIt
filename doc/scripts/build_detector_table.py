@@ -49,7 +49,7 @@ def write_detector_table(ofile):
     lines = string_table(numpy.atleast_1d(data_table), delimeter='rst')
     with open(ofile, 'w') as f:
         f.write(lines)
-    print('Wrote: {}'.format(ofile))
+    print(f'Wrote: {ofile}')
 
 
 def main():

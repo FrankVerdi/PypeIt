@@ -3,7 +3,6 @@ Dynamically build the rst documentation of the pypeit parameters.
 """
 
 from importlib import resources
-import time
 import textwrap
 
 from pypeit.par import pypeitpar
@@ -35,8 +34,6 @@ def par_hierarchy(p, indent_level=0, key=''):
 #-----------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    t = time.perf_counter()
-
     # Read the baseline file that is not changed and must be edited by
     # the person building the documentation as necessary.
     pypeit_root = resources.files('pypeit').parent 
@@ -79,7 +76,7 @@ if __name__ == '__main__':
         s = load_spectrograph(spec)
         lines += [ f'.. _instr_par-{s.name}:']
         lines += ['']
-        lines += [ ' '.join([s.telescope['name'], s.camera, '(``{0}``)'.format(s.name)]) ]
+        lines += [ ' '.join([s.telescope['name'], s.camera, f'(``{s.name}``)']) ]
         lines += [ '-'*len(lines[-1]) ]
         lines += [ 'Alterations to the default parameters are:' ]
         lines += ['']
@@ -93,8 +90,3 @@ if __name__ == '__main__':
     output_rst = pypeit_root / 'doc' / 'pypeit_par.rst'
     with open(output_rst, 'w') as f:
         f.write('\n'.join(lines))
-    
-    print('Elapsed time: {0} seconds'.format(time.perf_counter() - t))
-
-
-
