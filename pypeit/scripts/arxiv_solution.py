@@ -38,7 +38,7 @@ class ArxivSolution(scriptbase.ScriptBase):
         chk_version = not args.try_old
 
         # Set the verbosity, and create a logfile if verbosity == 2
-        msgs.set_logfile_and_verbosity('arxiv_solution', args.verbosity)
+#        msgs.set_logfile_and_verbosity('arxiv_solution', args.verbosity)
 
         # Check that a file has been provided
         if args.file is None:

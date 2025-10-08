@@ -848,13 +848,13 @@ class CoAdd2D:
         """
 
         if offsets_method is not None and offsets is not None:
-            msg_string = msgs.newline() + '---------------------------------------------------------------------------------'
-            msg_string += msgs.newline() + ' Summary of offsets from {}     '.format(offsets_method)
-            msg_string += msgs.newline() + '---------------------------------------------------------------------------------'
-            msg_string += msgs.newline() + '           exp#      offset (pixels)    offset (arcsec)'
+            msg_string = '---------------------------------------------------------------------------------'
+            msg_string += ' Summary of offsets from {}     '.format(offsets_method)
+            msg_string += '---------------------------------------------------------------------------------'
+            msg_string += '           exp#      offset (pixels)    offset (arcsec)'
             for iexp, off in enumerate(offsets):
-                msg_string += msgs.newline() + '            {:2d}            {:6.2f}              {:6.3f}'.format(iexp, off, off*pixscale)
-            msg_string += msgs.newline() + '---------------------------------------------------------------------------------'
+                msg_string += '            {:2d}            {:6.2f}              {:6.3f}'.format(iexp, off, off*pixscale)
+            msg_string += '---------------------------------------------------------------------------------'
             msgs.info(msg_string)
 
     def offset_slit_cen(self, slitid, offsets):
@@ -1599,15 +1599,15 @@ class MultiSlitCoAdd2D(CoAdd2D):
         """
 
         # Print out a report on the SNR
-        msg_string = msgs.newline() + '-------------------------------------'
-        msg_string += msgs.newline() + '  Summary for highest S/N object'
-        msg_string += msgs.newline() + '      found on slitid = {:d}            '.format(slitid)
-        msg_string += msgs.newline() + '-------------------------------------'
-        msg_string += msgs.newline() + '       exp#   spat_pixpos     S/N'
-        msg_string += msgs.newline() + '-------------------------------------'
+        msg_string = '-------------------------------------'
+        msg_string += '  Summary for highest S/N object'
+        msg_string += '      found on slitid = {:d}            '.format(slitid)
+        msg_string += '-------------------------------------'
+        msg_string += '       exp#   spat_pixpos     S/N'
+        msg_string += '-------------------------------------'
         for iexp, (spat,snr) in enumerate(zip(spat_pixpos, snr_bar)):
-            msg_string += msgs.newline() + '       {:2d}      {:7.1f}      {:5.2f}'.format(iexp, spat, snr)
-        msg_string += msgs.newline() + '-------------------------------------'
+            msg_string += '       {:2d}      {:7.1f}      {:5.2f}'.format(iexp, spat, snr)
+        msg_string += '-------------------------------------'
         msgs.info(msg_string)
 
 

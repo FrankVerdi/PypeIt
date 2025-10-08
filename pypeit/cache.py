@@ -260,26 +260,26 @@ def fetch_remote_file(
             in [requests.codes.forbidden, requests.codes.not_found]
         ):
             err_msg = (
-                f"The file {filename}{msgs.newline()}"
-                f"is not hosted in the cloud.  Please download this file from{msgs.newline()}"
-                f"the PypeIt Google Drive and install it using the script{msgs.newline()}"
-                f"pypeit_install_telluric --local.  See instructions at{msgs.newline()}"
+                f"The file {filename}"
+                f"is not hosted in the cloud.  Please download this file from"
+                f"the PypeIt Google Drive and install it using the script"
+                f"pypeit_install_telluric --local.  See instructions at"
                 "https://pypeit.readthedocs.io/en/latest/installing.html#additional-data"
             )
 
         elif filetype == "arc_lines/lists":
             err_msg = (
-                f"Cannot find local arc line list {filename}{msgs.newline()}"
-                f"Use the script `pypeit_install_linelist` to install{msgs.newline()}"
-                f"your custom line list into the cache.  See instructions at{msgs.newline()}"
+                f"Cannot find local arc line list {filename}"
+                f"Use the script `pypeit_install_linelist` to install"
+                f"your custom line list into the cache.  See instructions at"
                 "https://pypeit.readthedocs.io/en/latest/wave_calib.html#line-lists"
             )
 
         elif filetype == "extinction":
             err_msg = (
-                f"Cannot find local extinction file {filename}{msgs.newline()}"
-                f"Use the script `pypeit_install_extinctfile` to install{msgs.newline()}"
-                f"your custom extinction file into the cache.  See instructions at{msgs.newline()}"
+                f"Cannot find local extinction file {filename}"
+                f"Use the script `pypeit_install_extinctfile` to install"
+                f"your custom extinction file into the cache.  See instructions at"
                 "https://pypeit.readthedocs.io/en/latest/fluxing.html#extinction-correction"
             )
 
@@ -288,11 +288,11 @@ def fetch_remote_file(
 
         else:
             err_msg = (
-                f"Error downloading {filename}: {error}{msgs.newline()}"
-                f"URL attempted: {remote_url}{msgs.newline()}"
-                f"If the error relates to the server not being found,{msgs.newline()}"
-                f"check your internet connection.  If the remote server{msgs.newline()}"
-                f"name has changed, please contact the PypeIt development{msgs.newline()}"
+                f"Error downloading {filename}: {error}"
+                f"URL attempted: {remote_url}"
+                f"If the error relates to the server not being found,"
+                f"check your internet connection.  If the remote server"
+                f"name has changed, please contact the PypeIt development"
                 "team."
             )
 

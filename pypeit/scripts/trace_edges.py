@@ -74,7 +74,7 @@ class TraceEdges(scriptbase.ScriptBase):
         from IPython import embed
 
         # Set the verbosity, and create a logfile if verbosity == 2
-        msgs.set_logfile_and_verbosity('trace_edges', args.verbosity)
+#        msgs.set_logfile_and_verbosity('trace_edges', args.verbosity)
 
         if args.show:
             msgs.warn('"show" option is deprecated.  Setting debug = 1.')

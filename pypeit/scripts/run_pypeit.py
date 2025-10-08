@@ -31,21 +31,18 @@ class RunPypeIt(scriptbase.ScriptBase):
         """
         Print pypeit usage description.
         """
-        import textwrap
-        import pypeit
-        from pypeit.spectrographs import available_spectrographs
+        from pypeit import __version__
 
+        descr = 'PypeIt: The Python Spectroscopic Data Reduction Pipeline\n'
+        descr += f'Version {__version__}\n\n'
+        import textwrap
+        from pypeit.spectrographs import available_spectrographs
         spclist = ', '.join(available_spectrographs)
         spcl = textwrap.wrap(spclist, width=70)
-        descs = '##  '
-        descs += '\x1B[1;37;42m' + 'PypeIt : '
-        descs += 'The Python Spectroscopic Data Reduction Pipeline v{0:s}'.format(pypeit.__version__) \
-                  + '\x1B[' + '0m' + '\n'
-        descs += '##  '
-        descs += '\n##  Available spectrographs include:'
+        descr += 'Available spectrographs include:\n'
         for ispcl in spcl:
-            descs += '\n##   ' + ispcl
-        return descs
+            descr += f'    {ispcl}\n'
+        return descr
 
     @classmethod
     def get_parser(cls, width=None):

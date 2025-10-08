@@ -91,7 +91,7 @@ class PypeIt:
         self.verbosity = verbosity
         self.pypeit_file = pypeit_file
         
-        self.msgs_reset()
+        msgs.init(level=msgs.level, log_file=self.logname)
         
         # Load up PypeIt file
         self.pypeItFile = inputfiles.PypeItFile.from_file(pypeit_file)
@@ -175,7 +175,7 @@ class PypeIt:
         """
         Generate QA wrappers
         """
-        msgs.qa_path = self.qa_path
+#        msgs.qa_path = self.qa_path
         qa.gen_qa_dir(self.qa_path)
         qa.gen_mf_html(self.pypeit_file, self.qa_path)
         qa.gen_exp_html()
@@ -1255,14 +1255,13 @@ class PypeIt:
                                  update_det=update_det,
                                  slitspatnum=self.par['rdx']['slitspatnum'])
 
-    def msgs_reset(self):
-        """
-        Reset the msgs object
-        """
-
-        # Reset the global logger
-        msgs.reset(log=self.logname, verbosity=self.verbosity)
-        msgs.pypeit_file = self.pypeit_file
+#    def msgs_reset(self):
+#        """
+#        Reset the msgs object
+#        """
+#        # Reset the global logger
+#        msgs.reset(log=self.logname, verbosity=self.verbosity)
+#        msgs.pypeit_file = self.pypeit_file
 
     def print_end_time(self):
         """

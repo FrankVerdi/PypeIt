@@ -18,8 +18,9 @@ __version__ = version
 # Report current coverage
 __coverage__ = 0.55
 
+import logging
 from pypeit import logger
-msgs = logger.get_logger()
+msgs = logger.get_logger(level=logging.DEBUG)
 
 # Import and instantiate the data path parser
 # NOTE: This *MUST* come after msgs and __version__ are defined above

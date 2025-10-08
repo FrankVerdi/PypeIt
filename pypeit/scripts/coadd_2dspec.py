@@ -65,7 +65,7 @@ class CoAdd2DSpec(scriptbase.ScriptBase):
         from pypeit.spectrographs.util import load_spectrograph
 
         # Set the verbosity, and create a logfile if verbosity == 2
-        msgs.set_logfile_and_verbosity('coadd_2dspec', args.verbosity)
+#        msgs.set_logfile_and_verbosity('coadd_2dspec', args.verbosity)
 
         # Load the file
         coadd2dFile = inputfiles.Coadd2DFile.from_file(args.coadd2d_file)

@@ -73,7 +73,7 @@ class Identify(scriptbase.ScriptBase):
         chk_version = not args.try_old
 
         # Set the verbosity, and create a logfile if verbosity == 2
-        msgs.set_logfile_and_verbosity('identify', args.verbosity)
+#        msgs.set_logfile_and_verbosity('identify', args.verbosity)
 
         # Load the Arc file
         msarc = ArcImage.from_file(args.arc_file, chk_version=chk_version)

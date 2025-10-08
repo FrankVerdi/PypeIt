@@ -44,7 +44,7 @@ class ExtractDataCube(scriptbase.ScriptBase):
         from pypeit.coadd3d import DataCube
 
         # Set the verbosity, and create a logfile if verbosity == 2
-        msgs.set_logfile_and_verbosity('extract_datacube', args.verbosity)
+#        msgs.set_logfile_and_verbosity('extract_datacube', args.verbosity)
 
         # Check that a file has been provided
         if args.file is None:
