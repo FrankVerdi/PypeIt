@@ -278,14 +278,6 @@ class ESOFilFluxStandard(ArchivedFluxStandard):
 
     def __init__(self, file, meta=None):
         self.file = self.path.get_file_path(file)
-        # NOTE: When the file is in the cache, the name of the file becomes
-        # 'contents', so this check for the file name fails.  General users
-        # won't be adding files to the directory, so I think we can skip this
-        # step.
-#        if not self.file.name.startswith('f'):
-#            msgs.error(f'The ESO reference standard filename must start with the string '
-#                        '`f`;  make sure it is the case. Also make sure that the flux '
-#                        'units in the file are in 10**(-16) erg/s/cm2/AA.')
         std_spec = table.Table.read(self.file, format='ascii')
         wave = std_spec['col1']
         flux = std_spec['col2'] * 10    # Convert from 1e-16 to 1e-17 erg/s/cm^2/Angstrom
@@ -364,7 +356,7 @@ def archived_flux_classes():
     c = c[[cls.archive is not None for cls in c]]
     # Construct a dictionary with the archive and class
     srt = np.argsort(np.array([cls.archive for cls in c]))
-    return dict([ (cls.archive,cls) for cls in c[srt]])
+    return {cls.archive:cls for cls in c[srt]}
 
 
 class ModelFluxStandard(spectrum.Spectrum):

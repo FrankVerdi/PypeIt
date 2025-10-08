@@ -41,42 +41,34 @@ class Spectrum:
         all pixels are valid.
     meta : dict, optional
         Collection of relevant metadata.
-    copy : bool, optional
-        Copy all the input data, including the metadata.
     """
-    def __init__(self, wave, flux, ivar=None, gpm=None, meta=None, copy=True):
-        
-        self.flux = np.asarray(flux, dtype=float)
-        if copy:
-            self.flux = self.flux.copy()
+    def __init__(self, wave, flux, ivar=None, gpm=None, meta=None):
 
-        self.wave = np.asarray(wave, dtype=float)
+        # Throughout I use the copy method to ensure the original arrays are
+        # copied
+        self.flux = np.asarray(flux, dtype=float).copy()
+
+        self.wave = np.asarray(wave, dtype=float).copy()
         if self.wave.ndim != 1:
             msgs.error('wavelength array must always be 1D in the spectrum object')
         if self.wave.size != self.flux.shape[0]:
             msgs.error('wavelength vector must match length of flux array')
-        if copy:
-            self.wave = self.wave.copy()
 
         if ivar is None:
             self.ivar = None
         else:
-            self.ivar = np.asarray(ivar, dtype=float)
+            self.ivar = np.asarray(ivar, dtype=float).copy()
             if self.ivar.shape != self.flux.shape:
                 msgs.error('Wavelength and inverse variance arrays do not have the same shape.')
-            if copy:
-                self.ivar = self.ivar.copy()
 
         if gpm is None:
             self.gpm = np.ones(self.flux.shape, dtype=bool)
         else:
-            self.gpm = np.asarray(gpm, dtype=bool)
+            self.gpm = np.asarray(gpm, dtype=bool).copy()
             if self.gpm.shape != self.flux.shape:
                 msgs.error('Wavelength and good-pixel arrays do not have the same size.')
-            if copy:
-                self.gpm = self.gpm.copy()
 
-        self.meta = meta if meta is None or not copy else deepcopy(meta)
+        self.meta = meta if meta is None else deepcopy(meta)
 
     @property
     def size(self):
@@ -157,7 +149,7 @@ class Spectrum:
             a_flux = np.asarray(a)
 
         # Check the input
-        if self.ndim == 1 and a_flux.ndim > 1:
+        if a_flux.ndim > self.ndim == 1:
             msgs.error(
                 'Multiplication does not allow the dimensionality of the spectrum to change.  '
                 f'The dimensionality of this spectrum is {self.ndim} and the multiplier is '
