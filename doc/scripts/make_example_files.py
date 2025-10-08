@@ -18,7 +18,9 @@ from pypeit.cache import git_most_recent_tag
 from IPython import embed
 
 PYP_ROOT = resources.files('pypeit').parent
-DEV_ROOT = pathlib.Path(os.getenv('PYPEIT_DEV')).resolve()
+DEV_ROOT = os.getenv('PYPEIT_DEV')
+if DEV_ROOT is not None:
+    DEV_ROOT = pathlib.Path(DEV_ROOT).resolve()
 
 #-----------------------------------------------------------------------------
 
@@ -222,16 +224,23 @@ def make_meta_examples():
 if __name__ == '__main__':
     t = time.perf_counter()
     tag, date = git_most_recent_tag()
-    print('Making shane_kast_blue_A.pypeit.rst')
-    make_example_kast_pypeit_file(tag, date)
-    print('Making keck_deimos_A.pypeit.rst')
-    make_example_deimos_pypeit_file(tag, date)
-    print('Making gemini_gnirs files')
-    make_example_gnirs_pypeit_files(tag, date)
-    print('Making keck_nires files')
-    make_example_nires_pypeit_files(tag, date)
-    print('Making keck_deimos.sorted.rst')
-    make_example_sorted_file()
+    if DEV_ROOT is None:
+        print(
+            'PYPEIT_DEV environmental variable is not available!  Skipping build of example '
+            'pypeit and sorted files.'
+        )
+    else:
+        print('Making shane_kast_blue_A.pypeit.rst')
+        make_example_kast_pypeit_file(tag, date)
+        print('Making keck_deimos_A.pypeit.rst')
+        make_example_deimos_pypeit_file(tag, date)
+        print('Making gemini_gnirs files')
+        make_example_gnirs_pypeit_files(tag, date)
+        print('Making keck_nires files')
+        make_example_nires_pypeit_files(tag, date)
+        print('Making keck_deimos.sorted.rst')
+        make_example_sorted_file()
+
     print('Make meta examples')
     make_meta_examples()
     print('Make extinction file')

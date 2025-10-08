@@ -15,7 +15,7 @@ def write_help(script_cls, opath, width=80):
     ofile = opath / f'{exe}.rst'
     lines = ['.. code-block:: console', '']
     lines += ['    $ {0} -h'.format(exe)]
-    parser = script_cls.get_parser(width=80)
+    parser = script_cls.get_parser(width=width)
     parser.prog = exe
     lines += ['    ' + l for l in parser.format_help().split('\n')]
     print('Writing: {0}'.format(ofile))

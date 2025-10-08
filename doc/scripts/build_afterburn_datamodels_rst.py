@@ -6,12 +6,7 @@ from importlib import resources
 
 import numpy
 
-from pypeit.utils import to_string, string_table
-from pypeit.datamodel import DataContainer
-from pypeit.images import buildimage
-from pypeit.flatfield import FlatImages
-from pypeit.edgetrace import EdgeTraceSet
-from pypeit.slittrace import SlitTraceSet
+from pypeit.utils import string_table
 
 from IPython import embed
 
@@ -60,7 +55,6 @@ def sens_datamodel(output_root):
 
     from pypeit.sensfunc import SensFunc
     from pypeit.core.telluric import Telluric
-    from astropy import table
 
     hdu_table = numpy.empty((7, 4), dtype=object)
     hdu_table[0,:] = ['HDU Name', 'HDU Type', 'Data Type', 'Description']
@@ -112,7 +106,6 @@ def sens_datamodel(output_root):
 def telluric_datamodel(output_root):
 
     from pypeit.core.telluric import Telluric
-    from astropy import table
 
     hdu_table = numpy.empty((3, 4), dtype=object)
     hdu_table[0,:] = ['HDU Name', 'HDU Type', 'Data Type', 'Description']
