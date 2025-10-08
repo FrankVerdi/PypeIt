@@ -5,6 +5,7 @@ Module for Subaru FOCAS
 """
 import numpy as np
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import telescopes
 from pypeit.core import parse
 from pypeit.core import framematch

@@ -20,7 +20,7 @@ from pypeit import msgs
 from pypeit import cache
 from pypeit import utils
 from pypeit.core import arc
-from pypeit.pypmsgs import PypeItError
+from pypeit import PypeItError
 
 from IPython import embed
 

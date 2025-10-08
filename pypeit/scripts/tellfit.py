@@ -72,6 +72,7 @@ class TellFit(scriptbase.ScriptBase):
         from astropy.io import fits
 
         from pypeit import msgs
+        from pypeit import PypeItError
         from pypeit import dataPaths
         from pypeit.par import pypeitpar
         from pypeit.spectrographs.util import load_spectrograph

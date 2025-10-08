@@ -93,6 +93,7 @@ class SensFunc(scriptbase.ScriptBase):
         import os
 
         from pypeit import msgs
+        from pypeit import PypeItError
         from pypeit import inputfiles
         from pypeit import io
         from pypeit.par import pypeitpar

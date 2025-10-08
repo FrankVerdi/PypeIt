@@ -30,6 +30,7 @@ from astropy import stats
 from astropy.io import ascii
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit.move_median import move_median
 from pypeit import dataPaths
 

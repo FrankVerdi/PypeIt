@@ -24,6 +24,7 @@ from astropy.table import Table
 from astropy.time import Time
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import telescopes
 from pypeit.core import framematch
 from pypeit.core import parse

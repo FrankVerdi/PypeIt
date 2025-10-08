@@ -23,6 +23,7 @@ from astropy.io import fits
 from ginga.util import grc
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import io
 from pypeit import utils
 
@@ -577,7 +578,7 @@ def show_tilts(viewer, ch, tilt_traces, yoff=0., xoff=0., points=True, nspec=Non
 
     """
     if tilt_traces is None:
-        return raise PypeItError('No tilts have been traced or fitted')
+        raise PypeItError('No tilts have been traced or fitted')
 
     canvas = viewer.canvas(ch._chname)
     if clear_canvas:

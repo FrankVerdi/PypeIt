@@ -27,6 +27,7 @@ from scipy import interpolate
 from linetools.spectra import xspectrum1d
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import dataPaths
 from pypeit import io
 from pypeit.core.wavecal import autoid

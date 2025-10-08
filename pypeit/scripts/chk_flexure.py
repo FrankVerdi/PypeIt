@@ -32,6 +32,7 @@ class ChkFlexure(scriptbase.ScriptBase):
         from IPython import embed
         from astropy.io import fits
         from pypeit import msgs
+        from pypeit import PypeItError
         from pypeit import specobjs
         from pypeit import spec2dobj
 

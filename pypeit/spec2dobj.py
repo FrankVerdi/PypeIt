@@ -19,6 +19,7 @@ from astropy.stats import mad_std
 from astropy import table
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import io
 from pypeit import datamodel
 from pypeit import slittrace

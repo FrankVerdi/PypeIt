@@ -14,6 +14,7 @@ from pypeit.core import findobj_skymask
 from pypeit import datamodel
 from pypeit import calibframe
 from pypeit import msgs
+from pypeit import PypeItError
 
 
 class Alignments(calibframe.CalibFrame):

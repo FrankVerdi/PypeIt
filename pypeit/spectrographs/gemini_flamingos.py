@@ -6,6 +6,7 @@ Module for Gemini FLAMINGOS.
 import numpy as np
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import telescopes
 from pypeit.core import framematch
 from pypeit.images import detector_container

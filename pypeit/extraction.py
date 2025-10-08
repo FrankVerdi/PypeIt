@@ -14,6 +14,7 @@ from astropy import stats
 from abc import ABCMeta
 
 from pypeit import msgs, utils
+from pypeit import PypeItError
 from pypeit.display import display
 from pypeit.core import skysub, extract, flexure, flat
 from IPython import embed

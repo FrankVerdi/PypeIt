@@ -19,6 +19,7 @@ conf.auto_max_age = None
 
 
 from pypeit import msgs
+from pypeit import PypeItError
 
 from IPython import embed
 

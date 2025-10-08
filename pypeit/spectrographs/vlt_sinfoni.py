@@ -9,6 +9,7 @@ from IPython import embed
 import numpy as np
 from astropy.io import fits
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import telescopes
 from pypeit.core import framematch
 from pypeit.spectrographs import spectrograph

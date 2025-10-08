@@ -15,6 +15,7 @@ from abc import ABCMeta
 
 from pypeit import specobjs
 from pypeit import msgs, utils
+from pypeit import PypeItError
 from pypeit.display import display
 from pypeit.core import skysub, qa, parse, flat, flexure
 from pypeit.core import procimg

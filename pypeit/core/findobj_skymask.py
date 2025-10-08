@@ -14,6 +14,7 @@ import astropy.stats
 from astropy import table
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import utils
 from pypeit import specobj
 from pypeit import specobjs

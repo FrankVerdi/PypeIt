@@ -11,6 +11,7 @@ from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import telescopes
 from pypeit import utils
 from pypeit import io

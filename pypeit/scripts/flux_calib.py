@@ -9,6 +9,7 @@ from IPython import embed
 from astropy.io import fits
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import inputfiles
 from pypeit.spectrographs.util import load_spectrograph
 from pypeit import fluxcalibrate

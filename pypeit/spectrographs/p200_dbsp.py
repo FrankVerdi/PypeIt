@@ -13,6 +13,7 @@ from astropy import units as u
 from astropy.time import Time
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import io
 from pypeit import telescopes
 from pypeit.core import framematch

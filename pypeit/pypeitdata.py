@@ -60,6 +60,7 @@ import shutil
 from IPython import embed
 
 from pypeit import msgs
+from pypeit import PypeItError, PypeItPathError
 from pypeit import cache
 
 # NOTE: A better approach may be to subclass from Path.  I briefly tried that,
@@ -148,7 +149,7 @@ class PypeItDataPath:
             where the output type is based on the type of ``p``.
 
         Raises:
-            :class:`~pypeit.pypmsgs.PypeItPathError`:
+            :class:`~pypeit.exceptions.PypeItPathError`:
                 Raised if the requested contents *do not exist*.
         """
         if (self.path / p).is_dir():
@@ -158,8 +159,10 @@ class PypeItDataPath:
                                   remote_host=self.host)
         if (self.path / p).is_file():
             return self.path / p
-        raise PypeItError(f'{str(self.path / p)} is not a valid PypeIt data path or is a file '
-                   'that does not exist.', cls='PypeItPathError')
+        raise PypeItPathError(
+            f'{str(self.path / p)} is not a valid PypeIt data path or is a file that does not '
+            'exist.'
+        )
 
     @staticmethod
     def check_isdir(path:pathlib.Path) -> pathlib.Path:
@@ -174,11 +177,11 @@ class PypeItDataPath:
             `Path`_: The input path is returned if it is valid.
 
         Raises:
-            :class:`~pypeit.pypmsgs.PypeItPathError`:
+            :class:`~pypeit.exceptions.PypeItPathError`:
                 Raised if the path does not exist or is not a directory.
         """
         if not path.is_dir():
-            raise PypeItError(f"Unable to find {path}.  Check your installation.", cls='PypeItPathError')
+            raise PypeItPathError(f'Unable to find {path}.  Check your installation.')
         return path
 
     @staticmethod

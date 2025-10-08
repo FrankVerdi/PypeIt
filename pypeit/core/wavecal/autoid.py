@@ -30,6 +30,7 @@ from pypeit.core import pca
 from pypeit import utils
 
 from pypeit import msgs
+from pypeit import PypeItError
 
 from matplotlib import pyplot as plt
 from matplotlib import gridspec

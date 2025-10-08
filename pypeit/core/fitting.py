@@ -16,6 +16,7 @@ from scipy.optimize import curve_fit
 from pypeit.core import pydl
 from pypeit import bspline
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit.datamodel import DataContainer
 
 from IPython import embed

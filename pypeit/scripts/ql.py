@@ -48,7 +48,7 @@ import configobj
 
 from astropy.table import Table
 
-from pypeit.pypmsgs import PypeItError
+from pypeit import PypeItError
 from pypeit import msgs
 from pypeit import pypeitsetup
 from pypeit import metadata

@@ -20,7 +20,7 @@ from matplotlib import gridspec
 from IPython import embed
 
 from pypeit import msgs
-from pypeit.pypmsgs import PypeItDataModelError
+from pypeit import PypeItError, PypeItDataModelError
 from pypeit import utils
 from pypeit import bspline
 

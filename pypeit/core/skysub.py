@@ -17,7 +17,9 @@ from pypeit.core import basis, pixels, extract
 from pypeit.core import fitting
 from pypeit.core import procimg
 from pypeit import msgs, utils, bspline, slittrace
+from pypeit import PypeItError
 from pypeit.display import display
+
 
 def skysub_npoly(thismask):
     """

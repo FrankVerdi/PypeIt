@@ -26,17 +26,17 @@ from pypeit.core.qa import close_qa
 developers = ['ema', 'joe', 'milvang', 'rcooke', 'thsyu', 'xavier']
 
 
-class PypeItError(Exception):
-    pass
-
-class PypeItBitMaskError(PypeItError):
-    pass
-
-class PypeItDataModelError(PypeItError):
-    pass
-
-class PypeItPathError(PypeItError):
-    pass
+#class PypeItError(Exception):
+#    pass
+#
+#class PypeItBitMaskError(PypeItError):
+#    pass
+#
+#class PypeItDataModelError(PypeItError):
+#    pass
+#
+#class PypeItPathError(PypeItError):
+#    pass
 
 
 class Messages:

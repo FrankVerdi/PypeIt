@@ -21,6 +21,7 @@ from pypeit.par import pypeitpar
 from pypeit.spectrographs.util import load_spectrograph
 from pypeit import coadd1d
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import par
 from pypeit.utils import is_float
 from pypeit.core import wave

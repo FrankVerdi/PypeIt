@@ -66,6 +66,7 @@ class TraceEdges(scriptbase.ScriptBase):
         from pathlib import Path
         import numpy as np
         from pypeit import msgs
+        from pypeit import PypeItError
         from pypeit.spectrographs.util import load_spectrograph
         from pypeit import edgetrace
         from pypeit.pypeit import PypeIt

@@ -17,6 +17,7 @@ from astropy.table import Table
 
 from pypeit import spec2dobj
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import io
 from pypeit import utils
 from pypeit.scripts import scriptbase

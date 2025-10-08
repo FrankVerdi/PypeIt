@@ -15,6 +15,7 @@ from scipy.interpolate import interp1d
 import numpy as np
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import alignframe, datamodel, flatfield, io, sensfunc, spec2dobj, utils
 from pypeit.core.flexure import calculate_image_phase
 from pypeit.core import datacube, extract, flux_calib, parse

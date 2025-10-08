@@ -5,9 +5,13 @@ Module to generate an optical model for a spectrograph.
 
 """
 import warnings
-from pypeit import msgs
+
 import numpy
 import scipy
+
+from pypeit import msgs
+from pypeit import PypeItError
+
 # ----------------------------------------------------------------------
 # General class for a reflection grating
 class ReflectionGrating:

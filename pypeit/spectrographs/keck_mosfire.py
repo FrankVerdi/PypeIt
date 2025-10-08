@@ -9,6 +9,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import telescopes
 from pypeit.core import framematch, meta
 from pypeit import utils

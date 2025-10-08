@@ -21,6 +21,8 @@ from astropy.coordinates import SkyCoord, Angle
 from pypeit import specobjs
 from pypeit.spectrographs.util import load_spectrograph
 from pypeit import msgs
+from pypeit import PypeItError
+
 
 class SourceObject:
 

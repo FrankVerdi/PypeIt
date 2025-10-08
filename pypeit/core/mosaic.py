@@ -11,6 +11,7 @@ import numpy as np
 from scipy import ndimage
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit.core import transform
 from pypeit.utils import inverse
 

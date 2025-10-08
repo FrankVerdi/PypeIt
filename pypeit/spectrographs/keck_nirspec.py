@@ -7,6 +7,7 @@ Module for Keck/NIRSPEC specific methods.
 import numpy as np
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import io
 from pypeit.images import detector_container
 from pypeit import telescopes

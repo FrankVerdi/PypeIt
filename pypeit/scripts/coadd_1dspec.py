@@ -14,6 +14,7 @@ from astropy.io import fits
 from astropy.time import Time
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import inputfiles
 from pypeit import coadd1d
 from pypeit import inputfiles

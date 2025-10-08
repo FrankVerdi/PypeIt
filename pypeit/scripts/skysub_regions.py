@@ -42,6 +42,7 @@ class SkySubRegions(scriptbase.ScriptBase):
         import os
         import astropy.io.fits as fits
         from pypeit import msgs
+        from pypeit import PypeItError
         from pypeit import io
         from pypeit.core.gui.skysub_regions import SkySubGUI
         from pypeit.images import buildimage

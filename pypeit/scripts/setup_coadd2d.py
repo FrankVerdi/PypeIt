@@ -93,6 +93,7 @@ class SetupCoAdd2D(scriptbase.ScriptBase):
         from astropy.table import Table
 
         from pypeit import msgs
+        from pypeit import PypeItError
         from pypeit import io
         from pypeit import utils
         from pypeit import inputfiles

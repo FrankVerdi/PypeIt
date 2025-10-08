@@ -74,6 +74,7 @@ from pypeit.par import util
 from pypeit.core.framematch import FrameTypeBitMask
 from pypeit.core import parse
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import dataPaths
 
 

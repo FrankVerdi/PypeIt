@@ -13,7 +13,7 @@ from pypeit import __version__
 from pypeit import msgs, spec2dobj
 from pypeit.images.detector_container import DetectorContainer
 from pypeit.images.imagebitmask import ImageBitMask
-from pypeit.pypmsgs import PypeItDataModelError
+from pypeit import PypeItDataModelError
 from pypeit.scripts import scriptbase
 
 

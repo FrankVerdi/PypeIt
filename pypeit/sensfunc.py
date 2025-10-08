@@ -16,6 +16,7 @@ from astropy.io import fits
 from astropy import table
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import specobjs
 from pypeit import specobj
 from pypeit import utils

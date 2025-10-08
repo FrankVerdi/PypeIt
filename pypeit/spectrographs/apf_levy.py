@@ -11,6 +11,7 @@ from astropy.time import Time
 from IPython import embed
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import telescopes
 from pypeit import io
 from pypeit.core import framematch

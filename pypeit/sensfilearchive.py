@@ -5,11 +5,11 @@ Provides a class that handles archived sensfunc files.
 .. include:: ../include/links.rst
 """
 from abc import ABC, abstractmethod
-import os
 
 from astropy.io import fits
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import dataPaths
 
 class SensFileArchive(ABC):

@@ -18,6 +18,7 @@ import yaml
 from pypeit import utils
 from pypeit.io import files_from_extension
 from pypeit import msgs, __version__
+from pypeit import PypeItError
 from pypeit.spectrographs.util import load_spectrograph
 from pypeit.par.pypeitpar import PypeItPar
 
@@ -601,7 +602,7 @@ class InputFile:
             parameter.
 
         Raises:
-            :class:`~pypeit.pypmsgs.PypeItError`:
+            :class:`~pypeit.exceptions.PypeItError`:
                 Raised if the relevant configuration parameter is not available.
         """
         if 'rdx' not in self.config.keys() or 'spectrograph' not in self.config['rdx'].keys():

@@ -10,6 +10,7 @@ import linetools.utils
 import numpy as np
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import dataPaths
 from pypeit import cache
 from pypeit.core.wavecal import defs

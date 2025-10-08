@@ -10,6 +10,7 @@ from collections import OrderedDict
 import numpy as np
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit.bitmask import BitMask
 
 class FrameTypeBitMask(BitMask):
@@ -94,13 +95,11 @@ def valid_frametype(frametype, quiet=False, raise_error=False):
     """
     good_frametype = frametype in FrameTypeBitMask().keys()
     if not good_frametype:
-        _f = None
+        message = f'{frametype} is not a valid PypeIt frame type.'
         if not quiet and not raise_error:
-            _f = msgs.warning
+            msgs.warning(message)
         elif raise_error:
-            _f = raise PypeItError
-        if _f is not None:
-            _f(f'{frametype} is not a valid PypeIt frame type.')
+            raise PypeItError(message)
     return good_frametype
     
 

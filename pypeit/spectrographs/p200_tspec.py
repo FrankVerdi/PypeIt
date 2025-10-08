@@ -8,6 +8,7 @@ import numpy as np
 from astropy.time import Time
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import telescopes
 from pypeit.core import framematch
 from pypeit.spectrographs import spectrograph

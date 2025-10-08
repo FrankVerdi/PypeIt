@@ -6,6 +6,7 @@ from IPython import embed
 import numpy as np
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import utils
 from pypeit.core import basis
 from pypeit.core import fitting

@@ -9,6 +9,7 @@ from astropy.time import Time
 from astropy import units
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import telescopes
 from pypeit import io
 from pypeit.core import flux_calib

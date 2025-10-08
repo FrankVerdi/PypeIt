@@ -17,6 +17,7 @@ import scipy
 from astropy import stats
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import utils
 from pypeit.core import fitting
 from IPython import embed

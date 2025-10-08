@@ -14,6 +14,7 @@ from astropy.wcs import wcs
 from astropy.io import fits
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit.spectrographs import spectrograph
 from pypeit import telescopes
 from pypeit import io

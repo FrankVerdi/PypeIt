@@ -19,6 +19,7 @@ from astropy.table import Table
 from astropy.time import Time
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import specobj
 from pypeit import io
 from pypeit.spectrographs.util import load_spectrograph

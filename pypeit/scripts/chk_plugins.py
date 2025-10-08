@@ -13,6 +13,7 @@ class ChkPlugins(scriptbase.ScriptBase):
 
         from pypeit.display import required_plugins, plugins_available
         from pypeit import msgs
+        from pypeit import PypeItError
 
         success, report = plugins_available(return_report=True)
         if not success:

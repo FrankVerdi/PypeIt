@@ -18,7 +18,7 @@ from astropy.io import fits
 from pypeit.datamodel import DataContainer
 from pypeit.bitmask import BitMask
 from pypeit import msgs
-
+from pypeit import PypeItError
 
 class BitMaskArray(DataContainer):
     """
@@ -189,9 +189,10 @@ class BitMaskArray(DataContainer):
         hdr = hdu[parsed_hdus[0]].header if isinstance(hdu, fits.HDUList) else hdu.header
         hdr_bitmask = BitMask.from_header(hdr)
         if chk_version and hdr_bitmask.bits != self.bitmask.bits:
-            raise PypeItError('The bitmask in this fits file appear to be out of date!  Recreate this '
-                       'file by re-running the relevant script or set chk_version=False.',
-                       cls='PypeItBitMaskError')
+            raise PypeItBitMaskError(
+                'The bitmask in this fits file appear to be out of date!  Recreate this file by '
+                're-running the relevant script or set chk_version=False.'
+            )
 
         return self
     

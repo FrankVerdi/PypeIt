@@ -17,8 +17,9 @@ from astropy import units
 from astropy.stats import sigma_clipped_stats
 from astropy.io import fits
 
-from pypeit.pypmsgs import PypeItBitMaskError
+from pypeit import PypeItBitMaskError
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import datamodel
 from pypeit import calibframe
 from pypeit import specobj
@@ -357,9 +358,10 @@ class SlitTraceSet(calibframe.CalibFrame):
         hdr = hdu[parsed_hdus[0]].header if isinstance(hdu, fits.HDUList) else hdu.header
         hdr_bitmask = BitMask.from_header(hdr)
         if chk_version and hdr_bitmask.bits != self.bitmask.bits:
-            raise PypeItError('The bitmask in this fits file appear to be out of date!  Recreate this '
-                       'file by re-running the relevant script or set chk_version=False.',
-                       cls='PypeItBitMaskError')
+            raise PypeItBitMaskError(
+                'The bitmask in this fits file appear to be out of date!  Recreate this file by '
+                're-running the relevant script or set chk_version=False.'
+            )
 
         return self
 

@@ -36,6 +36,7 @@ from astropy.io import fits
 from astropy import units
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import io
 from pypeit.core import parse
 from pypeit.core import procimg

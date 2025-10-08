@@ -12,6 +12,7 @@ import numpy as np
 from astropy.io import fits
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit.images.imagebitmask import ImageBitMaskArray
 from pypeit.images.detector_container import DetectorContainer
 from pypeit.images.mosaic import Mosaic

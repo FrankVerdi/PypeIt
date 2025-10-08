@@ -35,6 +35,7 @@ class CleanCache(scriptbase.ScriptBase):
         import astropy.utils.data
 
         from pypeit import msgs
+        from pypeit import PypeItError
         from pypeit import cache
 
         if args.list:

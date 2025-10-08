@@ -9,6 +9,7 @@ from IPython import embed
 import numpy as np
 
 from pypeit import msgs
+from pypeit import PypeItError
 
 
 def phys_to_pix(array, pixlocn, axis):

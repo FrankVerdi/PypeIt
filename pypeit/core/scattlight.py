@@ -10,6 +10,7 @@ from scipy import signal, interpolate, ndimage
 from IPython import embed
 
 from pypeit import msgs, utils
+from pypeit import PypeItError
 
 
 def pad_frame(_frame, detpad=300):

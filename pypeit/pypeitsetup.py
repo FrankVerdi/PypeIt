@@ -11,6 +11,7 @@ import os
 from IPython import embed
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit.metadata import PypeItMetaData
 from pypeit import inputfiles
 from pypeit.par import PypeItPar

@@ -15,6 +15,7 @@ from astropy.table import Table
 from astropy.io import fits
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit.core import arc, qa
 from pypeit.core import fitting
 from pypeit.core import parse

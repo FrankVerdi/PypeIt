@@ -28,6 +28,7 @@ class CoAddDataCube(scriptbase.ScriptBase):
         import time
 
         from pypeit import msgs
+        from pypeit import PypeItError
         from pypeit import par
         from pypeit import inputfiles
         from pypeit import utils

@@ -51,6 +51,7 @@ class RunToCalibStep(scriptbase.ScriptBase):
 
         from pypeit import pypeit
         from pypeit import msgs
+        from pypeit import PypeItError
 
         # Load options from command line
         _pypeit_file = Path(args.pypeit_file).absolute()

@@ -16,6 +16,7 @@ from astropy.coordinates import EarthLocation
 from scipy.optimize import curve_fit
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import telescopes
 from pypeit import utils
 from pypeit import io

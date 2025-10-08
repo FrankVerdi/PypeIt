@@ -11,6 +11,7 @@ from astropy.io import fits
 
 from pypeit import spectrographs
 from pypeit import msgs
+from pypeit import PypeItError
 
 
 def load_spectrograph(spec):

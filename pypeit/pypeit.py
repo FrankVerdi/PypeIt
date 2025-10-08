@@ -20,6 +20,7 @@ from pypeit import inputfiles
 from pypeit.calibframe import CalibFrame
 from pypeit.core import parse, wave, qa
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import calibrations
 from pypeit.images import buildimage
 from pypeit.display import display

@@ -8,6 +8,7 @@ from astropy.io import fits
 from astropy.time import Time
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import telescopes
 from pypeit import utils
 from pypeit.core import framematch

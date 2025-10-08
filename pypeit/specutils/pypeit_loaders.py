@@ -32,7 +32,7 @@ except ModuleNotFoundError:
                               'option to use the pypeit.specutils module.')
 
 from pypeit import __version__
-from pypeit.pypmsgs import PypeItError
+from pypeit import PypeItError
 from pypeit import msgs
 from pypeit import specobjs
 from pypeit import onespec

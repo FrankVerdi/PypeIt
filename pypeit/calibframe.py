@@ -14,7 +14,7 @@ import numpy as np
 from astropy.io import fits
 
 from pypeit import msgs
-from pypeit.pypmsgs import PypeItError
+from pypeit import PypeItError
 from pypeit import datamodel
 from pypeit import io
 

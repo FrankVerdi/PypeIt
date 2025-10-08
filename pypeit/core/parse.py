@@ -13,7 +13,7 @@ import numpy as np
 
 # Logging
 from pypeit import msgs
-
+from pypeit import PypeItError
 
 def load_sections(string, fmt_iraf=True):
     """

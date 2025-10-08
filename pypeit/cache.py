@@ -56,8 +56,8 @@ else:
 # NOTE: To avoid circular imports, avoid (if possible) importing anything from
 # pypeit into this module!  Objects created or available in pypeit/__init__.py
 # are the exceptions, for now.
-from pypeit.pypmsgs import PypeItPathError
 from pypeit import msgs
+from pypeit import PypeItError, PypeItPathError
 from pypeit import __version__
 
 

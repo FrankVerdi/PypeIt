@@ -7,6 +7,7 @@ into a PypeIt arxiv solution that can be used with the full_template method.
 """
 import time
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import par
 from pypeit import inputfiles
 from pypeit import utils

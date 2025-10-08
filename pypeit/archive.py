@@ -59,6 +59,7 @@ from astropy.io import ascii
 from astropy.table import Table
 
 from pypeit import msgs
+from pypeit import PypeItError
 
 
 class ArchiveMetadata():

@@ -6,6 +6,7 @@ Module for JWST NIRSpec specific methods.
 import numpy as np
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import telescopes
 from pypeit import utils
 from pypeit.core import framematch

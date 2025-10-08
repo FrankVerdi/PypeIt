@@ -14,6 +14,7 @@ import numpy as np
 
 from astropy import stats
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit.core import arc
 from pypeit.core import parse
 from pypeit.core import procimg

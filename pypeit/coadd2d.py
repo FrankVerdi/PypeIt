@@ -17,6 +17,7 @@ from astropy.table import Table, vstack
 from astropy.io import fits
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import utils
 from pypeit import specobjs
 from pypeit import slittrace

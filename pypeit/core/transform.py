@@ -10,6 +10,7 @@ from IPython import embed
 import numpy as np
 
 from pypeit import msgs
+from pypeit import PypeItError
 
 
 def affine_transform_matrix(scale=None, rotation=None, translation=None):

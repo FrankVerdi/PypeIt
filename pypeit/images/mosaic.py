@@ -16,6 +16,7 @@ from pypeit import datamodel
 from pypeit import io
 from pypeit.images.detector_container import DetectorContainer
 from pypeit import msgs
+from pypeit import PypeItError
 
 
 class Mosaic(datamodel.DataContainer):

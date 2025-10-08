@@ -16,6 +16,7 @@ import scipy.optimize
 import scipy.signal
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import utils
 
 
@@ -1127,7 +1128,7 @@ def trim_frame(frame, mask):
         `numpy.ndarray`_: Trimmed image
 
     Raises:
-        :class:`~pypeit.pypmsgs.PypeItError`:
+        :class:`~pypeit.exceptions.PypeItError`:
             Error raised if the trimmed image includes masked values
             because the shape of the valid region is odd.
     """

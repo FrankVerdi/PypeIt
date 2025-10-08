@@ -22,6 +22,7 @@ from matplotlib import pyplot as plt
 from astropy.stats import sigma_clipped_stats, sigma_clip
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import utils
 from pypeit import sampling
 from pypeit.core import arc

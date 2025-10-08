@@ -83,6 +83,7 @@ class RunPypeIt(scriptbase.ScriptBase):
 
         from pypeit import pypeit
         from pypeit import msgs
+        from pypeit import PypeItError
 
         # Load options from command line
         splitnm = os.path.splitext(args.pypeit_file)

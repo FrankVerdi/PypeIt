@@ -49,6 +49,7 @@ class ViewFits(scriptbase.ScriptBase):
     def main(args):
 
         from pypeit import msgs
+        from pypeit import PypeItError
         from pypeit.display import display
         from pypeit.spectrographs import util
         from pypeit import io

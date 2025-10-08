@@ -14,6 +14,7 @@ import numpy as np
 from astropy.io import fits
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import utils
 from pypeit.io import hdu_iter_by_ext
 from pypeit.core import trace

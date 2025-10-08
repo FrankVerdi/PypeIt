@@ -13,7 +13,7 @@ from pypeit.core.wavecal import autoid
 from pypeit.core.wavecal import defs
 from pypeit.core import fitting
 from pypeit import msgs
-
+from pypeit import PypeItError
 from pypeit import datamodel
 
 from IPython import embed

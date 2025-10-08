@@ -16,6 +16,7 @@ import yaml
 
 from pypeit import __version__
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import alignframe
 from pypeit import flatfield
 from pypeit import edgetrace

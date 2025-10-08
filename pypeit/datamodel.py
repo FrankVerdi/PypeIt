@@ -468,7 +468,7 @@ from astropy.io import fits
 from astropy.table import Table
 
 from pypeit import io
-from pypeit import msgs
+from pypeit import msgs, PypeItDataModelError
 
 # TODO: There are methods in, e.g., doc/scripts/build_specobj_rst.py that output
 # datamodels for specific datacontainers.  It would be useful if we had
@@ -676,8 +676,10 @@ class DataContainer:
                         else:
                             break
                     if dc is None:
-                        raise PypeItError(f'Could not assign dictionary element {key} to datamodel '
-                                   f'for {self.__class__.__name__}.', cls='PypeItDataModelError')
+                        raise PypeItDataModelError(
+                            f'Could not assign dictionary element {key} to datamodel for '
+                            f'{self.__class__.__name__}.'
+                        )
                     setattr(self, key, dc)
                     continue
                 
@@ -824,8 +826,10 @@ class DataContainer:
             try:
                 d = Table(d)
             except:
-                raise PypeItError(f'Cannot force all elements of {self.__class__.__name__} datamodel'
-                           'into a single-row astropy Table!', cls='PypeItDataModelError')
+                raise PypeItDataModelError(
+                    f'Cannot force all elements of {self.__class__.__name__} datamodelinto a '
+                    'single-row astropy Table!'
+                )
 
         return [d] if ext is None else [{ext:d}]
 
@@ -959,8 +963,10 @@ class DataContainer:
         _ext_pseudo = _ext if ext_pseudo is None else np.atleast_1d(ext_pseudo)
 
         if len(_ext_pseudo) != len(_ext):
-            raise PypeItError(f'Length of provided extension pseudonym list must match number of '
-                       f'extensions selected: {len(_ext)}.', cls='PypeItDataModelError')
+            raise PypeItDataModelError(
+                f'Length of provided extension pseudonym list must match number of extensions '
+                f'selected: {len(_ext)}.'
+            )
 
         str_ext = np.logical_not([isinstance(e, (int, np.integer)) for e in _ext_pseudo])
 
@@ -1144,13 +1150,12 @@ class DataContainer:
                 Flag to impose strict version checking.
         """
         if not type_passed:
-            raise PypeItError(f'The HDU(s) cannot be parsed by a {cls.__name__} object!',
-                       cls='PypeItDataModelError')
+            raise PypeItDataModelError(f'The HDU(s) cannot be parsed by a {cls.__name__} object!')
         if not version_passed:
             msg = f'Current version of {cls.__name__} object in code ({cls.version}) ' \
                   'does not match version used to write your HDU(s)!'
             if chk_version:
-                raise PypeItError(msg, cls='PypeItDataModelError')
+                raise PypeItDataModelError(msg)
             else:
                 msgs.warning(msg)
 
@@ -1382,9 +1387,10 @@ class DataContainer:
             hdr_keys = np.array([k.upper() for k in self.keys()])
             indx = np.isin(hdr_keys, list(_primary_hdr.keys()))
             if np.sum(indx) > 1:
-                raise PypeItError('CODING ERROR: Primary header should not contain keywords that are the '
-                           'same as the datamodel for {0}.'.format(self.__class__.__name__),
-                           cls='PypeItDataModelError')
+                raise PypeItDataModelError(
+                    'CODING ERROR: Primary header should not contain keywords that are the same '
+                    f'as the datamodel for {self.__class__.__name__}.'
+                )
 
         # Initialize the base header
         _hdr = self._base_header(hdr=hdr)
@@ -1392,9 +1398,10 @@ class DataContainer:
         # with any datamodel keys.
         if _hdr is not None \
                 and np.any(np.isin([k.upper() for k in self.keys()], list(_hdr.keys()))):
-            raise PypeItError('CODING ERROR: Baseline header should not contain keywords that are the '
-                       'same as the datamodel for {0}.'.format(self.__class__.__name__),
-                       cls='PypeItDataModelError')
+            raise PypeItDataModelError(
+                'CODING ERROR: Baseline header should not contain keywords that are the same as '
+                f'the datamodel for {self.__class__.__name__}.'
+            )
 
         # Construct the list of HDUs
         hdu = []

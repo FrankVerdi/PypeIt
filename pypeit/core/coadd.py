@@ -23,6 +23,7 @@ from astropy import stats
 from astropy import convolution
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import dataPaths
 from pypeit import utils
 from pypeit.core import fitting

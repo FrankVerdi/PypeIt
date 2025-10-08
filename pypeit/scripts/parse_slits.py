@@ -11,6 +11,7 @@ from pypeit.scripts import scriptbase
 from pypeit import slittrace
 from pypeit import spec2dobj
 from pypeit import msgs
+from pypeit import PypeItError
 
 from astropy.table import Table
 from astropy.io import fits

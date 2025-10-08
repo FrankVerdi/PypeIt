@@ -11,7 +11,7 @@ import numpy as np
 from configobj import ConfigObj
 
 from pypeit import msgs, __version__
-from pypeit.pypmsgs import PypeItError
+from pypeit import PypeItError
 
 
 #-----------------------------------------------------------------------

@@ -37,6 +37,7 @@ import time
 from linetools.spectra import xspectrum1d
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import dataPaths
 from pypeit import __version__
 
@@ -363,10 +364,6 @@ def header_version_check(hdr, warning_only=True):
             msg = '{0} version used to create the file ({1}) '.format(package, hdr_version) \
                         + 'does not match the current system version ({0})!'.format(sys_version)
             if warning_only:
-                # TODO: I had to change pypeit/__init__.py to get these
-                # to show up. We eventually need to make pypmsgs play
-                # nice with warnings and other logging, or just give up
-                # on pypmsgs...
                 warnings.warn(msg)
             else:
                 raise ValueError(msg)
@@ -674,11 +671,10 @@ def write_to_fits(d, ofile, name=None, hdr=None, overwrite=False, checksum=True)
     # Compress the file if the output filename has a '.gz' extension;
     # this is slow but still faster than if you have astropy.io.fits do
     # it directly
-    # TODO: use pypmsgs?
     if _ofile is not ofile:
-        pypeit.msgs.info('Compressing file: {0}'.format(_ofile))
+        msgs.info('Compressing file: {0}'.format(_ofile))
         compress_file(_ofile, overwrite=True)
-    pypeit.msgs.info('File written to: {0}'.format(ofile))
+    msgs.info('File written to: {0}'.format(ofile))
 
 
 def hdu_iter_by_ext(hdu, ext=None, hdu_prefix=None):

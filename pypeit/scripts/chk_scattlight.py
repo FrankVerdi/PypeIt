@@ -36,7 +36,7 @@ class ChkScattLight(scriptbase.ScriptBase):
 
         from pypeit import scattlight, spec2dobj, slittrace
         from pypeit import msgs
-        from pypeit.pypmsgs import PypeItError, PypeItDataModelError
+        from pypeit import PypeItError, PypeItDataModelError
         from pypeit.images.detector_container import DetectorContainer
         from pypeit import io
 

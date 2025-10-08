@@ -25,6 +25,7 @@ class ShowPixFlat(scriptbase.ScriptBase):
     def main(args):
         import numpy as np
         from pypeit import msgs
+        from pypeit import PypeItError
         from pypeit import io
         from pypeit.display import display
         from pypeit import dataPaths

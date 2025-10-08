@@ -20,6 +20,7 @@ from astropy import stats, visualization
 from astropy import table
 
 from pypeit import msgs, datamodel, utils
+from pypeit import PypeItError
 from pypeit import calibframe
 from pypeit import slittrace, wavecalib
 from pypeit.display import display
@@ -1011,7 +1012,7 @@ def show_tilts_mpl(tilt_img, tilt_traces, show_traces=False, left_edges=None,
     """
 
     if tilt_traces is None:
-        return raise PypeItError('No tilts have been traced or fitted')
+        raise PypeItError('No tilts have been traced or fitted')
 
     if cut is None:
         cut = utils.growth_lim(tilt_img, 0.98, fac=1)

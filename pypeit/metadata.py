@@ -18,6 +18,7 @@ import numpy as np
 from astropy import table, time
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import inputfiles
 from pypeit.core import framematch
 from pypeit.core import parse

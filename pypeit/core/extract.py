@@ -15,6 +15,7 @@ import scipy.special
 from IPython import embed
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import utils
 from pypeit import bspline
 from pypeit.core import pydl

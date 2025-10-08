@@ -15,12 +15,13 @@ from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
 
 from pypeit import msgs
+from pypeit import PypeItError
 from pypeit import slittrace
 from pypeit import specobjs
 from pypeit import io
 from pypeit import utils
 from pypeit import __version__
-from pypeit.pypmsgs import PypeItDataModelError, PypeItBitMaskError
+from pypeit import PypeItDataModelError, PypeItBitMaskError
 
 from pypeit.display import display
 from pypeit.images.imagebitmask import ImageBitMask
