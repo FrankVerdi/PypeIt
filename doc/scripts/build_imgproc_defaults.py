@@ -68,7 +68,7 @@ def write_imgproc_def_table(ofile, spec=None):
     lines = string_table(data_table, delimeter='rst')
     with open(ofile, 'w') as f:
         f.write(lines)
-    print('Wrote: {}'.format(ofile))
+    print(f'Wrote: {ofile}')
 
 
 def main():
