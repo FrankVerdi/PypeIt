@@ -149,7 +149,7 @@ class Spectrum:
             a_flux = np.asarray(a)
 
         # Check the input
-        if a_flux.ndim > self.ndim == 1:
+        if a_flux.ndim > self.ndim:
             msgs.error(
                 'Multiplication does not allow the dimensionality of the spectrum to change.  '
                 f'The dimensionality of this spectrum is {self.ndim} and the multiplier is '
