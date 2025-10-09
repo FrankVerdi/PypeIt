@@ -16,13 +16,16 @@ from typing import Optional
 from IPython import embed
 
 import warnings
-def short_warning(message, category, filename, lineno, file=None, line=None):
-    """
-    Return the format for a short warning message.
-    """
-    return f'{category.__name__}: {message}'
 
-warnings.formatwarning = short_warning
+#def short_warning(message, category, filename, lineno, file=None, line=None):
+#    """
+#    Return the format for a short warning message.
+#    """
+#    embed()
+#    exit()
+#    return f'{category.__name__}: {message}'
+#
+#warnings.formatwarning = short_warning
 
 # NOTE: This is essentially a hack to deal with all the RankWarnings that numpy
 # can throw during polynomial fitting.  Specifically this happens frequently
@@ -70,11 +73,11 @@ class StreamFormatter(logging.Formatter):
 
         # Add the level in colored text
         msg = color_text(f'[{levelname.upper()}]', level_colors[levelname], bold=True, nchar=10)
-        msg += ' : '
+        msg += ' - '
         if self.base_level == logging.DEBUG:
             # If including debug messages, include file inspection in *all* log
             # messages.
-            msg += color_text(f'{rec.filename}:{rec.funcName}:{rec.lineno}', inspect_color) + ' : '
+            msg += color_text(f'{rec.filename}:{rec.funcName}:{rec.lineno}', inspect_color) + ' - '
         # Add the message header
         rec.msg = msg + rec.msg
 
@@ -149,6 +152,7 @@ class PypeItLogger(logging.Logger):
         level: int = logging.INFO,
         capture_exceptions: bool = True,
         capture_warnings: bool = True,
+        stream = None,
         log_file: Optional[str | Path] = None,
         log_file_level: Optional[int] = None,
     ):
@@ -174,6 +178,9 @@ class PypeItLogger(logging.Logger):
         """
         self.warnings_logger = logging.getLogger("py.warnings")
 
+        embed()
+        exit()
+
         self.setLevel(logging.DEBUG)
 
         # Clear handlers before recreating.
@@ -194,7 +201,7 @@ class PypeItLogger(logging.Logger):
             sys.excepthook = self._excepthook
 
         # Set the stream handler
-        self.sh = logging.StreamHandler()
+        self.sh = logging.StreamHandler(stream=stream)
         formatter = DebugStreamFormatter() if level <= logging.DEBUG else StreamFormatter()
         self.sh.setFormatter(formatter)
         self.sh.setLevel(level)
@@ -260,6 +267,10 @@ class PypeItLogger(logging.Logger):
         """
         Override the default makeRecord function to rework the message for exceptions.
         """
+
+        embed()
+        exit()
+
         # If this is an error message, the execution information is provided,
         # and the error originates from the exception hook, reset the frame
         # information (file, function, and line number) to the calling function.
