@@ -251,8 +251,10 @@ class AATUHRFSpectrograph(spectrograph.Spectrograph):
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
         if par['calibrations']['wavelengths']['reid_arxiv'] is None:
-            msgs.warning("Wavelength setup not supported!" + msgs.newline() + msgs.newline() +
-                       "Please perform your own wavelength calibration, and provide the path+filename using:" + msgs.newline() +
-                       msgs.pypeitpar_text(['calibrations', 'wavelengths', 'reid_arxiv = <insert path+fileanme>']))
+            msgs.warning(
+                "Wavelength setup not supported!\n\n"
+                "Please perform your own wavelength calibration, and provide the path+filename "
+                "using the reid_arxiv parameter."
+            )
         # Return
         return par

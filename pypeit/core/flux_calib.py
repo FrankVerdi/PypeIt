@@ -263,10 +263,11 @@ def get_sensfunc_factor(wave, wave_zp, zeropoint, exptime, tellmodel=None, delta
                       "par['sensfunc']['extrap_red'] to extrapolate further and recreate your "
                       "sensfunc. But we are extrapolating per your direction. Good luck!")
         else:
-            raise PypeItError("Your data extends beyond the bounds of your sensfunc. " + msgs.newline() +
-                       "Adjust the par['sensfunc']['extrap_blu'] and/or "
-                       "par['sensfunc']['extrap_red'] to extrapolate further and recreate "
-                       "your sensfunc.")
+            raise PypeItError(
+                "Your data extends beyond the bounds of your sensfunc.\nAdjust the "
+                "par['sensfunc']['extrap_blu'] and/or par['sensfunc']['extrap_red'] to "
+                "extrapolate further and recreate your sensfunc."
+            )
 
     # This is the S_lam factor required to convert N_lam = counts/sec/Ang to
     # F_lam = 1e-17 erg/s/cm^2/Ang, i.e.  F_lam = S_lam*N_lam

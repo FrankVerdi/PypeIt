@@ -289,8 +289,8 @@ class Show2DSpec(scriptbase.ScriptBase):
                 sobjs = specobjs.SpecObjs.from_fitsfile(spec1d_file, chk_version=False)
             else:
                 sobjs = None
-                msgs.warning('Could not find spec1d file: {:s}'.format(spec1d_file) + msgs.newline() +
-                          '                          No objects were extracted.')
+                msgs.warning(f'Could not find spec1d file: {spec1d_file}\n'
+                             'No objects were extracted.')
                 
         # TODO: This may be too restrictive, i.e. ignore BADFLTCALIB??
         slit_gpm = slit_mask == 0

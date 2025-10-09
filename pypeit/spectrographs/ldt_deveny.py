@@ -182,7 +182,7 @@ class LDTDeVenySpectrograph(spectrograph.Spectrograph):
             if (grating_kwd := headarr[0]['GRATING']) not in gratings:
                 raise PypeItError(f"Grating value {grating_kwd} not recognized.")
             if grating_kwd == "UNKNOWN":
-                msgs.warning(f"Grating not selected in the LOUI; {msgs.newline()}"
+                msgs.warning(f"Grating not selected in the LOUI; \n"
                           "Fix the header keyword GRATING before proceeding.")
             return f"{gratings[grating_kwd]} ({grating_kwd})"
 
@@ -202,7 +202,7 @@ class LDTDeVenySpectrograph(spectrograph.Spectrograph):
             # Extract lines/mm, catch 'UNKNOWN' grating
             if (grating_kwd := headarr[0]["GRATING"]) == "UNKNOWN":
                 lpmm = np.inf
-                msgs.warning(f"Grating angle not selected in the LOUI; {msgs.newline()}"
+                msgs.warning(f"Grating angle not selected in the LOUI; \n"
                           "Fix the header keyword GRANGLE before proceeding.")
             else:
                 lpmm = float(grating_kwd.split("/")[0])

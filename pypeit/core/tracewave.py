@@ -489,9 +489,10 @@ def trace_tilts_work(arcimg, lines_spec, lines_spat, thismask, slit_cen, inmask=
         # cause a full fault of the code, we need to make sure the user
         # sees these kinds of critical failures instead of them getting
         # buried in all the other messages.
-        msgs.warning('Too many lines rejected in this slit/order.' + msgs.newline()
-                  + 'Would reject {0}/{1} lines (more than 95%).'.format(nlines - nuse, nlines)
-                  + msgs.newline() + 'Proceeding without rejection, but reduction likely bogus.')
+        msgs.warning(
+            f'Too many lines rejected in this slit/order.\nWould reject {nlines - nuse}/{nlines} '
+            'lines (more than 95%).\nProceeding without rejection, but reduction likely bogus.'
+        )
         use_tilt = np.ones(nlines, dtype=bool)
         nuse = nlines
 

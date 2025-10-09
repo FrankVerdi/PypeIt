@@ -110,12 +110,12 @@ class CoAdd2DSpec(scriptbase.ScriptBase):
         find_negative = head2d['FINDOBJ'] == 'POS_NEG'
 
         # Print status message
-        msgs_string = f'Reducing target {basename}' + msgs.newline()
-        msgs_string += f"Coadding frame sky-subtracted with {head2d['SKYSUB']}" + msgs.newline()
-        msgs_string += f"Searching for objects that are {head2d['FINDOBJ']}" + msgs.newline()
-        msgs_string += 'Combining frames in 2d coadd:' + msgs.newline()
+        msgs_string = f'Reducing target {basename}\n'
+        msgs_string += f"Coadding frame sky-subtracted with {head2d['SKYSUB']}\n"
+        msgs_string += f"Searching for objects that are {head2d['FINDOBJ']}\n"
+        msgs_string += 'Combining frames in 2d coadd:\n'
         for f, file in enumerate(spec2d_files):
-            msgs_string += f'Exp {f}: {Path(file).name}' + msgs.newline()
+            msgs_string += f'Exp {f}: {Path(file).name}\n'
         msgs.info(msgs_string)
 
         # Instantiate the sci_dict

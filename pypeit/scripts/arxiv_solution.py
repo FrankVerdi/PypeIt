@@ -45,7 +45,7 @@ class ArxivSolution(scriptbase.ScriptBase):
         if args.file is None:
             raise PypeItError('You must input a MasterWaveCalib file')
         elif not os.path.exists(args.file):
-            raise PypeItError("The following MasterWaveCalib file does not exist:" + msgs.newline() + args.file)
+            raise PypeItError(f"The following MasterWaveCalib file does not exist:\n{args.file}")
 
         # Load the wavelength calibration file
         wv_calib = WaveCalib.from_file(args.file, chk_version=chk_version)
@@ -60,7 +60,7 @@ class ArxivSolution(scriptbase.ScriptBase):
             if len(gd_slits) == 0:
                 thismsg += "There are no good slits - the WaveCalib file is bad."
             else:
-                thismsg += "Try one of the following slits, instead: " + msgs.newline() + ", ".join(gd_slits)
+                thismsg += "Try one of the following slits, instead: \n{', '.join(gd_slits)}\n"
             raise PypeItError(thismsg)
         wave = wv_calib['wv_fits'][args.slit]['wave_soln'].flatten()
         spec = wv_calib['wv_fits'][args.slit]['spec'].flatten()

@@ -125,9 +125,9 @@ class SetupCoAdd2D(scriptbase.ScriptBase):
 
         sci_dirs_exist = [sc.exists() for sc in sci_dirs]
         if not np.all(sci_dirs_exist):
-            msgs_string = 'The following science directories do not exist:' + msgs.newline()
+            msgs_string = 'The following science directories do not exist:\n'
             for s in np.array(sci_dirs)[np.logical_not(sci_dirs_exist)]:
-                msgs_string += f'{s}' + msgs.newline()
+                msgs_string += f'{s}\n'
             raise PypeItError(msgs_string)
 
         # Find all the spec2d files:

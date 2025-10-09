@@ -81,7 +81,7 @@ class P200DBSPSpectrograph(spectrograph.Spectrograph):
             try:
                 return Angle(headarr[0]['ANGLE'].lower()).deg
             except Exception as e:
-                msgs.warning("Could not read dispangle from header:" + msgs.newline() + str(headarr[0]['ANGLE']))
+                msgs.warning("Could not read dispangle from header:\n" + str(headarr[0]['ANGLE']))
                 raise e
         else:
             return None

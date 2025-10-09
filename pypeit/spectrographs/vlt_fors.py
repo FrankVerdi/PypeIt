@@ -455,8 +455,12 @@ class VLTFORS2Spectrograph(VLTFORSSpectrograph):
                 u_hat_this  = np.array([ra_off.to('arcsec').value/separation, dec_off.to('arcsec').value/separation])
                 dot_product = np.dot(u_hat_slit, u_hat_this)
                 if not np.isclose(np.abs(dot_product),1.0, atol=1e-2):
-                    raise PypeItError('The slit appears misaligned with the angle between the coordinates: dot_product={:7.5f}'.format(dot_product) + msgs.newline() +
-                               'The position angle in the headers {:5.3f} differs from that computed from the coordinates {:5.3f}'.format(posang_this, posang_ref))
+                    raise PypeItError(
+                        'The slit appears misaligned with the angle between the coordinates: '
+                        f'dot_product={dot_product:7.5f}\n'
+                        f'The position angle in the headers {posang_this:5.3f} differs from that '
+                        f'computed from the coordinates {posang_ref:5.3f}'
+                    )
                 offset_arcsec[ifile] = separation*np.sign(dot_product)
 
 #            dither_id.append(hdr['FRAMEID'])

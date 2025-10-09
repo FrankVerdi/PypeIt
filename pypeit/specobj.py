@@ -638,7 +638,7 @@ class SpecObj(datamodel.DataContainer):
         for attr in ['BOX', 'OPT']:
             if self[attr+'_WAVE'] is not None:
                 msgs.info(
-                    f'Applying {refframe} correction to {attr} extraction for object:\n'{self.NAME}'
+                    f'Applying {refframe} correction to {attr} extraction for object:\n{self.NAME}'
                 )
                 self[attr+'_WAVE'] *= vel_corr
                 # Record

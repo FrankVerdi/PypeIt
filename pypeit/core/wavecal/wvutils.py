@@ -800,10 +800,12 @@ def xcorr_shift_stretch(inspec1, inspec2, cc_thresh=-1.0, percent_ceil=50.0, use
 
     if(corr_de < corr_cc):
         # Occasionally the differential evolution crapps out and returns a value worse that the CC value. In these cases just use the cc value
-        msgs.warning('Shift/Stretch optimizer performed worse than simple x-correlation.' +
-                  'Returning simple x-correlation shift and no stretch:' + msgs.newline() +
-                  '   Optimizer: corr={:5.3f}, shift={:5.3f}, stretch={:7.5f}'.format(corr_de, shift_de,stretch_de) + msgs.newline() +
-                  '     X-corr : corr={:5.3f}, shift={:5.3f}'.format(corr_cc,shift_cc))
+        msgs.warning(
+            'Shift/Stretch optimizer performed worse than simple x-correlation.  '
+            'Returning simple x-correlation shift and no stretch:\n'
+            f' Optimizer: corr={corr_de:5.3f}, shift={shift_de:5.3f}, stretch={stretch_de:7.5f}\n'
+            f'   X-corr : corr={corr_cc:5.3f}, shift={shift_cc:5.3f}'
+        )
         corr_out = corr_cc
         shift_out = shift_cc
         stretch_out = 1.0
@@ -956,15 +958,15 @@ def write_template(nwwv, nwspec, binspec, outpath, outroot, det_cut=None,
         # Also copy the file to the cache for direct use
         cache.write_file_to_cache(outroot, outroot, "arc_lines/reid_arxiv")
 
-        msgs.info(f"Your arxiv solution has also been cached.{msgs.newline()}"
-                  f"To utilize this wavelength solution, insert the{msgs.newline()}"
-                  f"following block in your PypeIt Reduction File:{msgs.newline()}"
-                  f" [calibrations]{msgs.newline()}"
-                  f"   [[wavelengths]]{msgs.newline()}"
-                  f"     reid_arxiv = {outroot}{msgs.newline()}"
+        msgs.info(f"Your arxiv solution has also been cached.\n"
+                  f"To utilize this wavelength solution, insert the\n"
+                  f"following block in your PypeIt Reduction File:\n"
+                  f" [calibrations]\n"
+                  f"   [[wavelengths]]\n"
+                  f"     reid_arxiv = {outroot}\n"
                   f"     method = full_template\n")
         print("")  # Empty line for clarity
-        msgs.info(f"To use exactly the solutions created above {msgs.newline()}"
+        msgs.info(f"To use exactly the solutions created above\n"
                   f"disable the 2d fitting by adding the keyword ech_2dfit = False")
     print("")  # Empty line for clarity
     msgs.info("Please consider sharing your solution with the PypeIt Developers.")

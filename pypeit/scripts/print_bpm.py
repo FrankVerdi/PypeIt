@@ -56,7 +56,7 @@ class PrintBPM(scriptbase.ScriptBase):
             descr = bpm.descr
         else:
             # Read the spec2d file
-            msgs.info("Using the bad pixel mask from the following spec2d file:" + msgs.newline() + f"{args.file}.")
+            msgs.info(f"Using the bad pixel mask from the following spec2d file:\n{args.file}.")
             spec2d_file = args.file
 
             # Parse the detector name
@@ -92,18 +92,17 @@ class PrintBPM(scriptbase.ScriptBase):
                 descr = bpm.bitmask.descr
 
         # Print the description of the bad pixel mask value
-        outstr = f"The bad pixel mask value ({args.bit}) corresponds to the following:" \
-                 + msgs.newline() + msgs.newline()
+        outstr = f"The bad pixel mask value ({args.bit}) corresponds to the following:\n\n"
         bitkeys = list(bpm.bits.keys())
         # Pad the bit keys with spaces so that they all have the same length
         bitlen = len(max(bitkeys, key=len))
         for i in range(len(binvals)):
             if binvals[i] == 1:
-                outstr += f"* {bitkeys[i].ljust(bitlen)} : {descr[i]}" + msgs.newline()
+                outstr += f"* {bitkeys[i].ljust(bitlen)} : {descr[i]}\n"
 
         # Print the message to the user
         msgs.info(outstr)
 
         # Finally, print out a message to point users to the online documentation
-        msgs.info("Please see the following website for more information:" + msgs.newline() +
+        msgs.info("Please see the following website for more information:\n"
                   "https://pypeit.readthedocs.io/en/release/out_masks.html")

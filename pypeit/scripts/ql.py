@@ -1067,16 +1067,18 @@ def print_offset_report(fitstbl:Table, platescale:float):
         raise PypeItError('Script only supported for a single type of dither pattern.')
 
     # Print out a report on the offsets
-    msg_string = msgs.newline() + '*******************************************************'
-    msg_string += msgs.newline() + ' Summary of offsets for target {:s} with dither pattern:   {:s}'.format(target,
-                                                                                                            dither_pattern[
-                                                                                                                0])
-    msg_string += msgs.newline() + '*******************************************************'
-    msg_string += msgs.newline() + 'filename     Position         arcsec    pixels    '
-    msg_string += msgs.newline() + '----------------------------------------------------'
+    msg_string = '\n*******************************************************'
+    msg_string += (
+        f'\n Summary of offsets for target {target} with dither pattern: {dither_pattern[0]}'
+    )
+    msg_string += '\n*******************************************************'
+    msg_string += '\n  filename     Position         arcsec    pixels    '
+    msg_string += '\n----------------------------------------------------'
     for iexp, file in enumerate(files):
-        msg_string += msgs.newline() + '    {:s}    {:s}   {:6.2f}    {:6.2f}'.format(
-            file, dither_id[iexp], offset_arcsec[iexp], offset_arcsec[iexp] / platescale)
-    msg_string += msgs.newline() + '********************************************************'
+        msg_string += (
+            f'\n    {file}    {dither_id[iexp]}   {offset_arcsec[iexp]:6.2f}    '
+            f'{offset_arcsec[iexp] / platescale:6.2f}'
+        )
+    msg_string += '\n********************************************************'
     msgs.info(msg_string)
 

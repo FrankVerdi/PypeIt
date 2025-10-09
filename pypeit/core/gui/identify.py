@@ -815,9 +815,10 @@ class Identify:
                             #better try again... Return to the start of the loop
                             continue
                         if len(order_vec) != len(wvcalib.wv_fits):
-                            msgs.warning(f'The number of orders in this list, {order_vec} '+msgs.newline()+
-                            f'does not match the number of traces: {len(wvcalib.wv_fits)}' + msgs.newline() +
-                            'Please try again...')
+                            msgs.warning(
+                                f'The number of orders in this list, {order_vec}\ndoes not match '
+                                f'the number of traces: {len(wvcalib.wv_fits)}\nPlease try again.'
+                            )
                             continue
                         # we are done, break out of the loop
                         break
@@ -894,9 +895,11 @@ class Identify:
                     if not force_save:
                         while ow_wvcalib != 'y' and ow_wvcalib != 'n':
                             print('')
-                            msgs.warning('Do you want to overwrite existing Calibrations/WaveCalib*.fits file? ' + msgs.newline() +
-                                    'NOTE: To use this WaveCalib file the user will need to delete the other files in Calibrations/ ' + msgs.newline() +
-                                    ' and re-run run_pypeit. ')
+                            msgs.warning(
+                                'Do you want to overwrite existing Calibrations/WaveCalib*.fits '
+                                'file?\nNOTE: To use this WaveCalib file the user will need to '
+                                'delete the other files in Calibrations/ \nand re-run run_pypeit.'
+                            )
                             print('')
                             ow_wvcalib = input('Proceed with overwrite? (y/[n]): ')
 
@@ -1457,9 +1460,9 @@ class Identify:
             self._detns = data['pixel'].data
             self._lineids = data['wavelength'].data
             self._lineflg = data['flag'].data
-            msgs.info("Loaded line IDs:" + msgs.newline() + fname)
+            msgs.info(f"Loaded line IDs:\n{fname}")
         else:
-            msgs.info("Could not find line IDs:" + msgs.newline()+fname)
+            msgs.info(f"Could not find line IDs:\n{fname}")
         self._detnsy = self.get_ann_ypos()  # Get the y locations of the annotations
         self.replot()
 
@@ -1477,5 +1480,5 @@ class Identify:
                      names=['pixel', 'wavelength', 'flag'],
                      meta=meta)
         ascii_io.write(data, fname, format='fixed_width', overwrite=True)
-        msgs.info("Line IDs saved as:" + msgs.newline() + fname)
+        msgs.info(f"Line IDs saved as:\n{fname}")
         self.update_infobox(message="Line IDs saved as: {0:s}".format(fname), yesno=False)

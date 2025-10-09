@@ -298,8 +298,10 @@ def load_tree(polygon=4, numsearch=20):
             file_load = pickle.load(f_obj)
         index = np.load(fileindx)
     except FileNotFoundError:
-        msgs.info('The requested KDTree was not found on disk' + msgs.newline() +
-                  'please be patient while the ThAr KDTree is built and saved to disk.')
+        msgs.info(
+            'The requested KDTree was not found on disk\nplease be patient while the ThAr KDTree '
+            'is built and saved to disk.'
+        )
         from pypeit.core.wavecal import kdtree_generator
         file_load, index = kdtree_generator.main(polygon, numsearch=numsearch, verbose=True,
                                                  ret_treeindx=True, outname=filename)

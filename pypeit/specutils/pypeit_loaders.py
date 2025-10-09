@@ -327,5 +327,7 @@ def pypeit_spec1d_loader_nolist(filename, extract=None, fluxed=True, **kwargs):
         calibration hasn't been performed or ``fluxed=False``, the spectrum is
         returned in counts.
     """
-    raise PypeItError(f'The spec1d file {filename.name} cannot be ingested into a Spectrum object.'
-               f'{msgs.newline()}Please use the SpectrumList object for spec1d files.')
+    raise PypeItError(
+        f'The spec1d file {filename.name} cannot be ingested into a Spectrum object.\n'
+        'Please use the SpectrumList object for spec1d files.'
+    )

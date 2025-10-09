@@ -783,7 +783,7 @@ class EdgeTraceSet(calibframe.CalibFrame):
                 'Sync predict cannot use PCA because too few edges were found.  If you are '
                 'reducing multislit or echelle data, you may need a better trace image or '
                 'change the mode used to predict traces (see below).  If you are reducing '
-                'longslit data, make sure to set the "sync_predict" parameter to "nearest".
+                'longslit data, make sure to set the "sync_predict" parameter to "nearest".'
             )
             self.success = False
         else:

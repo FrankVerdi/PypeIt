@@ -142,10 +142,11 @@ def global_skysub(image, ivar, tilts, thismask, slit_left, slit_righ, inmask=Non
             & np.isfinite(image) & np.isfinite(ivar)
     bad_pixel_frac = np.sum(thismask & np.logical_not(gpm))/np.sum(thismask)
     if bad_pixel_frac > max_mask_frac:
-        msgs.warning(f'This slit/order has {100.0*bad_pixel_frac:.3f}% of the pixels masked, which '
-                  f'exceeds the threshold of {100.0*max_mask_frac:.3f}%.'
-                  + msgs.newline() + 'There is likely a problem with this slit. Giving up on '
-                  'global sky-subtraction.')
+        msgs.warning(
+            f'This slit/order has {100.0*bad_pixel_frac:.3f}% of the pixels masked, which exceeds '
+            f'the threshold of {100.0*max_mask_frac:.3f}%.\nThere is likely a problem with this '
+            'slit. Giving up on global sky-subtraction.'
+        )
         return np.zeros(np.sum(thismask))
 
     # Sub arrays
@@ -172,8 +173,10 @@ def global_skysub(image, ivar, tilts, thismask, slit_left, slit_righ, inmask=Non
                                             kwargs_bspline={'bkspace':bsp},
                                             kwargs_reject={'groupbadpix': True, 'maxrej': 10})
             if exit_status != 0:
-                msgs.warning('Global sky-subtraction did not exit cleanly for initial positive sky fit.'
-                          + msgs.newline() + 'Initial masking based on positive sky fit will be skipped')
+                msgs.warning(
+                    'Global sky-subtraction did not exit cleanly for initial positive sky fit.\n'
+                    'Initial masking based on positive sky fit will be skipped'
+                )
             else:
                 res = (sky[pos_sky] - np.exp(lsky_fit)) * np.sqrt(sky_ivar[pos_sky])
                 lmask = (res < 5.0) & (res > -4.0)
@@ -200,9 +203,10 @@ def global_skysub(image, ivar, tilts, thismask, slit_left, slit_righ, inmask=Non
     # better understand what this functionality is doing, but it makes the rejection much more quickly approach a small
     # chi^2
     if exit_status == 1:
-        msgs.warning('Maximum iterations reached in bspline_profile global sky-subtraction for npoly={:d}.'.format(npoly_fit) +
-                  msgs.newline() +
-                  'Redoing sky-subtraction without polynomial degrees of freedom')
+        msgs.warning(
+            'Maximum iterations reached in bspline_profile global sky-subtraction for '
+            f'npoly={npoly_fit}.\nRedoing sky-subtraction without polynomial degrees of freedom'
+        )
         poly_basis = np.ones_like(sky)
         # Perform the full fit now
         skyset, outmask, yfit, _, exit_status \
@@ -1354,12 +1358,13 @@ def ech_local_skysub_extract(sciimg, sciivar, fullmask, tilts, waveimg,
     # Print out a status message
     str_out = ''
     for iord in srt_order_snr:
-        str_out += '{:<8d}{:<8d}{:>10.2f}'.format(slitids[iord], order_vec[iord], order_snr[iord,ibright]) + msgs.newline()
+        str_out += f'{slitids[iord]:<8d}{order_vec[iord]:<8d}{order_snr[iord,ibright]:>10.2f}\n'
     dash = '-'*27
     dash_big = '-'*40
-    msgs.info(msgs.newline() + 'Reducing orders in order of S/N of brightest object:' + msgs.newline() + dash +
-              msgs.newline() + '{:<8s}{:<8s}{:>10s}'.format('slit','order','S/N') + msgs.newline() + dash +
-              msgs.newline() + str_out)
+    msgs.info(
+        f'\nReducing orders in order of S/N of brightest object:\n{dash}\n'
+        f'{"slit":<8s}{"order":<8s}{"S/N":>10s}\n{dash}\n' + str_out
+    )
     # Loop over orders in order of S/N ratio (from highest to lowest) for the brightest object
     for iord in srt_order_snr:
         order = order_vec[iord]
@@ -1401,14 +1406,15 @@ def ech_local_skysub_extract(sciimg, sciivar, fullmask, tilts, waveimg,
                         slitids[other_orders], order_vec[other_orders],
                         order_snr[other_orders,ibright], 
                         fwhm_here[other_orders]):
-                        str_out += '{:<8d}{:<8d}{:>10.2f}{:>10.2f}'.format(slit_now, order_now, snr_now, fwhm_now) + msgs.newline()
-                    msgs.info(msgs.newline() + 'Using' +  fwhm_str + ' for FWHM of object={:d}'.format(uni_objid[iobj]) +
-                              ' on slit/order: {:d}/{:d}'.format(iord,order) + msgs.newline() + dash_big +
-                              msgs.newline() + '{:<8s}{:<8s}{:>10s}{:>10s}'.format('slit', 'order','SNR','FWHM') +
-                              msgs.newline() + dash_big +
-                              msgs.newline() + str_out[:-8] +
-                              fwhm_str.upper() +  ':{:<8d}{:<8d}{:>10.2f}{:>10.2f}'.format(iord, order, order_snr[iord,ibright], fwhm_this_ord) +
-                              msgs.newline() + dash_big)
+                        str_out += f'{slit_now:<8d}{order_now:<8d}{snr_now:>10.2f}{fwhm_now:>10.2f}'
+                    msgs.info(
+                        f'\nUsing {fwhm_str} for FWHM of object={uni_objid[iobj]} on slit/order: '
+                        f'{iord}/{order}\n{dash_big}\n'
+                        f'{"slit":<8s}{"order":<8s}{"SNR":>10s}{"FWHM":>10s}\n{dash_big}\n'
+                        f'{str_out[:-8]}{fwhm_str.upper()}'
+                        f':{iord:<8d}{order:<8d}{order_snr[iord,ibright]:>10.2f}'
+                        f'{fwhm_this_ord:>10.2f}\n{dash_big}'
+                    )
                     if show_fwhm:
                         plt.plot(order_vec[other_orders][fit_mask], fwhm_here[other_orders][fit_mask], marker='o', linestyle=' ',
                         color='k', mfc='k', markersize=4.0, label='orders informing fit')
