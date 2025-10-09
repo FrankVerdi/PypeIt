@@ -347,7 +347,7 @@ class AlignmentSplines:
             Spectral tilts.
         """
         # Perform some checks
-        msgs.work("Spatial flexure is not currently implemented for the astrometric alignment")
+        msgs.debug("Spatial flexure is not currently implemented for the astrometric alignment")
         if type(locations) is list:
             locations = np.array(locations)
         if locations.size != traces.shape[1]:

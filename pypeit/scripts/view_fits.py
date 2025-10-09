@@ -61,8 +61,8 @@ class ViewFits(scriptbase.ScriptBase):
             print(hdu.info())
             return
 
-        # Setup for PYPIT imports
-        msgs.reset(verbosity=2)
+        # TODO: Update verbosity
+        msgs.init(level=msgs.level)
 
         if args.proc and args.exten is not None:
             raise PypeItError('You cannot specify --proc and --exten, since --exten shows the raw image')

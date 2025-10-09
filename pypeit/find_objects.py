@@ -1236,7 +1236,7 @@ class SlicerIFUFindObjects(MultiSlitFindObjects):
         # Save QA
         # TODO :: Need to implement QA once the flexure code has been tidied up, and this routine has been moved
         #         out of the find_objects() class.
-        msgs.work("QA is not currently implemented for the flexure correction")
+        msgs.debug("QA is not currently implemented for the flexure correction")
         if False:#flex_list is not None:
             basename = f'{self.basename}_global_{self.spectrograph.get_det_name(self.det)}'
             out_dir = os.path.join(self.par['rdx']['redux_path'], 'QA')

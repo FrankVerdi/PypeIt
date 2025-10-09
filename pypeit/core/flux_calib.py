@@ -995,9 +995,9 @@ def standard_zeropoint(wave, Nlam, Nlam_ivar, Nlam_gpm, flam_true, mask_recomb=N
     # Compute an effective resolution for the standard. This could be improved
     # to setup an array of breakpoints based on the resolution. At the
     # moment we are using only one number
-    msgs.work("Should pull resolution from arc line analysis")
-    msgs.work("At the moment the resolution is taken as the PixelScale")
-    msgs.work("This needs to be changed!")
+    msgs.debug("Should pull resolution from arc line analysis")
+    msgs.debug("At the moment the resolution is taken as the PixelScale")
+    msgs.debug("This needs to be changed!")
     std_pix = np.median(np.abs(wave[zeropoint_data_gpm] - np.roll(wave[zeropoint_data_gpm], 1)))
     std_res = np.median(wave[zeropoint_data_gpm]/resolution) # median resolution in units of Angstrom.
     if (nresln * std_res) < std_pix:
@@ -1006,7 +1006,7 @@ def standard_zeropoint(wave, Nlam, Nlam_ivar, Nlam_gpm, flam_true, mask_recomb=N
         nresln = std_res / std_pix
 
     # Output some helpful information for double-checking input params are correct
-    msgs.test(f" This is the passed-in R: {resolution}")
+    msgs.debug(f" This is the passed-in R: {resolution}")
     msgs.info(f" This is the standard pixel: {std_pix:.2f} Å")
     msgs.info(f" This is the standard resolution element: {std_res:.2f} Å")
     msgs.info(f" Breakpoint spacing: {std_res * nresln:.2f} pixels")

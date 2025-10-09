@@ -1236,8 +1236,10 @@ class PypeItSetupGUIModel(QObject):
         else:
             logfile = None
 
+        # TODO: Need help from Dusty to update this
         self.log_buffer = LogBuffer(logfile,verbosity)
-        msgs.reset(verbosity=verbosity, log=self.log_buffer, log_to_stderr=False)
+        msgs.init(level=msgs.level, log_file=self.log_buffer)
+#        msgs.reset(verbosity=verbosity, log=self.log_buffer, log_to_stderr=False)
         msgs.info(f"QT Version: {qtpy.QT_VERSION}")
         msgs.info(f"PySide version: {qtpy.PYSIDE_VERSION}")
         msgs.info(f"PyQt version: {qtpy.PYQT_VERSION}")

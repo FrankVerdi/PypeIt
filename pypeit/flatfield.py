@@ -1864,7 +1864,7 @@ class SlitlessFlat:
             msgs.info(f'Creating slitless pixel-flat calibration frame '
                       f'for {self.spectrograph.get_det_name(_det)} using files: ')
             for f in this_raw_files:
-                msgs.prindent(f'{Path(f).name}')
+                msgs.info(f'        {Path(f).name}')
 
             # Reset the BPM
             msbpm = self.spectrograph.bpm(this_raw_files[0], _det, msbias=msbias if self.par['bpm_usebias'] else None)

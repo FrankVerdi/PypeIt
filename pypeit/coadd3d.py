@@ -885,8 +885,7 @@ class CoAdd3D:
         Main entry routine to set the order of operations to coadd the data. For specific
         details of this procedure, see the child routines.
         """
-        msgs.bug("This routine should be overridden by child classes.")
-        raise PypeItError("Cannot proceed without coding the run() routine.")
+        raise NotImplementedError('Base class run function must be overriden by deerived class.')
 
 
 class SlicerIFUCoAdd3D(CoAdd3D):

@@ -79,7 +79,7 @@ class SkySubRegions(scriptbase.ScriptBase):
         det = spec2DObj.detector.parse_name(detname)
 
         # Setup for PypeIt imports
-        msgs.reset(verbosity=args.verbosity)
+        msgs.init(level=msgs.level)
 
         # Grab the slit edges
         slits = spec2DObj.slits

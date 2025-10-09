@@ -1747,7 +1747,7 @@ class Spectrograph:
             if np.any(none_coords):
                 msgs.warning('The following frames have None coordinates. '
                           'They could be a twilight flat frame that was missed by the automatic identification')
-                [msgs.prindent(f) for f in fitstbl['filename'][none_coords]]
+                [msgs.warning(f'        {f}') for f in fitstbl['filename'][none_coords]]
                 # turn off the standard star flag for these frames
                 type_bits[none_coords] = fitstbl.type_bitmask.turn_off(type_bits[none_coords], flag='standard')
 

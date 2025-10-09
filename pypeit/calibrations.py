@@ -234,13 +234,13 @@ class Calibrations:
                 maxlmp = max([len("Lamp status")] + [len(x) for x in lampstat])
                 strout = "{0:" + str(maxlen) + "}  {1:s}"
                 # Print the messages
-                print(msgs.indent() + '-' * maxlen + "  " + '-' * maxlmp)
-                print(msgs.indent() + strout.format("Filename", "Lamp status"))
-                print(msgs.indent() + '-' * maxlen + "  " + '-' * maxlmp)
+                print('        ' + '-' * maxlen + "  " + '-' * maxlmp)
+                print('        ' + strout.format("Filename", "Lamp status"))
+                print('        ' + '-' * maxlen + "  " + '-' * maxlmp)
                 for ff, file in enumerate(file_list):
-                    print(msgs.indent()
+                    print('        '
                           + strout.format(os.path.split(file)[1], " ".join(lampstat[ff].split("_"))))
-                print(msgs.indent() + '-' * maxlen + "  " + '-' * maxlmp)
+                print('        ' + '-' * maxlen + "  " + '-' * maxlmp)
 
     def find_calibrations(self, frametype, frameclass):
         """
@@ -685,7 +685,7 @@ class Calibrations:
         # Need to build everything from scratch.  Start with the trace image.
         msgs.info('Creating scattered light calibration frame using files: ')
         for f in raw_scattlight_files:
-            msgs.prindent(f'{Path(f).name}')
+            msgs.info(f'        {Path(f).name}')
 
         # Reset the BPM
         self.get_bpm(frame=raw_scattlight_files[0])
@@ -862,7 +862,7 @@ class Calibrations:
 
             msgs.info('Creating pixel-flat calibration frame using files: ')
             for f in raw_pixel_files:
-                msgs.prindent(f'{Path(f).name}')
+                msgs.info(f'        {Path(f).name}')
             pixel_flat = buildimage.buildimage_fromlist(self.spectrograph, self.det,
                                                         self.par['pixelflatframe'],
                                                         raw_pixel_files, dark=self.msdark,
@@ -878,7 +878,7 @@ class Calibrations:
 
                 msgs.info('Subtracting lamp off flats using files: ')
                 for f in raw_lampoff_files:
-                    msgs.prindent(f'{Path(f).name}')
+                    msgs.info(f'        {Path(f).name}')
                 lampoff_flat = buildimage.buildimage_fromlist(self.spectrograph, self.det,
                                                               self.par['lampoffflatsframe'],
                                                               raw_lampoff_files,
@@ -908,7 +908,7 @@ class Calibrations:
 
             msgs.info('Creating slit-illumination flat calibration frame using files: ')
             for f in raw_illum_files:
-                msgs.prindent(f'{Path(f).name}')
+                msgs.info(f'        {Path(f).name}')
 
             illum_flat = buildimage.buildimage_fromlist(self.spectrograph, self.det,
                                                         self.par['illumflatframe'], raw_illum_files,
@@ -917,7 +917,7 @@ class Calibrations:
             if len(raw_lampoff_files) > 0:
                 msgs.info('Subtracting lamp off flats using files: ')
                 for f in raw_lampoff_files:
-                    msgs.prindent(f'{Path(f).name}')
+                    msgs.info(f'        {Path(f).name}')
                 if lampoff_flat is None:
                     # Perform a check on the files
                     self.check_calibrations(raw_lampoff_files)
@@ -1033,7 +1033,7 @@ class Calibrations:
         # Need to build everything from scratch.  Start with the trace image.
         msgs.info('Creating edge tracing calibration frame using files: ')
         for f in raw_trace_files:
-            msgs.prindent(f'{Path(f).name}')
+            msgs.info(f'        {Path(f).name}')
 
         # Reset the BPM
         self.get_bpm(frame=raw_trace_files[0])
@@ -1052,7 +1052,7 @@ class Calibrations:
         if len(raw_lampoff_files) > 0:
             msgs.info('Subtracting lamp off flats using files: ')
             for f in raw_lampoff_files:
-                msgs.prindent(f'{Path(f).name}')
+                msgs.info(f'        {Path(f).name}')
 
             # Reset the BPM
             self.get_bpm(frame=raw_trace_files[0])

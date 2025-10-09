@@ -284,7 +284,7 @@ def lacosmic(sciframe, saturation=None, nonlinear=1., bpm=None, varframe=None, m
 
     # Additional algorithms (not traditionally implemented by LA cosmic) to
     # remove some false positives.
-    #msgs.work("The following algorithm would be better on the rectified, tilts-corrected image")
+    #msgs.debug("The following algorithm would be better on the rectified, tilts-corrected image")
     filt  = scipy.ndimage.sobel(sciframe, axis=1, mode='constant')
     _inv_mad = utils.inverse(np.sqrt(np.abs(sciframe))) # Avoid divisions by 0
     filty = scipy.ndimage.sobel(filt * _inv_mad, axis=0, mode='constant')

@@ -1073,7 +1073,7 @@ class Identify:
                 self.update_infobox(message="WARNING: There are unsaved changes!!\nPress q again to exit", yesno=False)
                 self._qconf = True
             else:
-                msgs.bug("Need to change this to kill and return the results to PypeIt")
+                msgs.debug("Need to change this to kill and return the results to PypeIt")
                 plt.close()
         elif self._qconf:
             self.update_infobox(default=True)
@@ -1089,7 +1089,7 @@ class Identify:
                 # Deal with the response
                 if self._respreq[1] == "write":
                     # First remove the old file, and save the new one
-                    msgs.work("Not implemented yet!")
+                    msgs.debug("Not implemented yet!")
                     self.write()
                 else:
                     return
@@ -1157,7 +1157,7 @@ class Identify:
             elif self._fitr is None:
                 msgs.info("You must select a fitting region first")
             else:
-                msgs.work("Feature not yet implemented")
+                msgs.debug("Feature not yet implemented")
         elif key == 's':
             self.save_IDs()
         elif key == 'w':
@@ -1253,7 +1253,7 @@ class Identify:
             else:
                 return np.polyval(self._fitdict["coeff"], xfit[idx] / self._fitdict["scale"])
         else:
-            msgs.bug("Cannot predict wavelength value - no fit has been performed")
+            msgs.debug("Cannot predict wavelength value - no fit has been performed")
             return None
 
     def fitsol_deriv(self, xfit=None, idx=None):
@@ -1279,7 +1279,7 @@ class Identify:
             else:
                 return np.polyval(cder, xfit[idx] / self._fitdict["scale"]) / self._fitdict["scale"]
         else:
-            msgs.bug("Cannot predict wavelength value - no fit has been performed")
+            msgs.debug("Cannot predict wavelength value - no fit has been performed")
             return None
 
     def add_new_detection(self):

@@ -562,7 +562,7 @@ class ObjFindGUI:
                 self.update_infobox(message="WARNING: There are unsaved changes!!\nPress q again to exit", yesno=False)
                 self._qconf = True
             else:
-                msgs.bug("Need to change this to kill and return the results to PypeIt")
+                msgs.debug("Need to change this to kill and return the results to PypeIt")
                 plt.close()
         elif self._qconf:
             self.update_infobox(default=True)
@@ -823,7 +823,7 @@ class ObjFindGUI:
             SpecObjs: SpecObjs Class
         """
         if self._use_updates:
-            msgs.work("Have not updated SpecObjs yet")
+            msgs.debug("Have not updated SpecObjs yet")
             return self.specobjs
         else:
             return None

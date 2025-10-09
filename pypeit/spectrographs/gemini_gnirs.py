@@ -723,7 +723,7 @@ class GNIRSIFUSpectrograph(GeminiGNIRSSpectrograph):
 
         # Get the pixel and slice scales
         pxscl = platescale * binspat / 3600.0  # Need to convert arcsec to degrees
-        msgs.work("NEED TO WORK OUT SLICER SCALE AND PIXEL SCALE")
+        msgs.debug("NEED TO WORK OUT SLICER SCALE AND PIXEL SCALE")
         slscl = self.get_meta_value([hdr], 'slitwid')
         if spatial_scale is not None:
             if pxscl > spatial_scale / 3600.0:

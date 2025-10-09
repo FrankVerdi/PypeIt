@@ -1258,14 +1258,6 @@ class PypeIt:
                                  update_det=update_det,
                                  slitspatnum=self.par['rdx']['slitspatnum'])
 
-#    def msgs_reset(self):
-#        """
-#        Reset the msgs object
-#        """
-#        # Reset the global logger
-#        msgs.reset(log=self.logname, verbosity=self.verbosity)
-#        msgs.pypeit_file = self.pypeit_file
-
     def print_end_time(self):
         """
         Print the elapsed time

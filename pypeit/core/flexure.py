@@ -404,7 +404,7 @@ def spec_flex_shift(obj_skyspec, sky_file=None, arx_skyspec=None, arx_fwhm_pix=N
     obj_skyspec = obj_skyspec.rebin(keep_wave)
 
     # Deal with bad pixels
-    msgs.work("Need to mask bad pixels")
+    msgs.debug("Need to mask bad pixels")
     # Trim edges (rebinning is junk there)
     arx_skyspec.data['flux'][0,:2] = 0.
     arx_skyspec.data['flux'][0,-2:] = 0.
@@ -453,7 +453,7 @@ def spec_flex_shift(obj_skyspec, sky_file=None, arx_skyspec=None, arx_fwhm_pix=N
         arx_sky_flux = np.clip(arx_sky_flux, arx_lower, arx_upper)
     #
     # # Consider sharpness filtering (e.g. LowRedux)
-    # msgs.work("Consider taking median first [5 pixel]")
+    # msgs.debug("Consider taking median first [5 pixel]")
 
     # Cross correlation of spectra
     corr = np.correlate(arx_sky_flux, obj_sky_flux, "same")
@@ -880,7 +880,7 @@ def spec_flexure_slit(slits, slitord, slit_bpm, sky_file, method="boxcar", speco
         results of each slit. This is filled with a basically empty
         dict if the slit is skipped.
     """
-    msgs.work("Consider doing 2 passes in flexure as in LowRedux")
+    msgs.debug("Consider doing 2 passes in flexure as in LowRedux")
 
     # Determine the method
     slit_cen = True if (specobjs is None) or (method == "slitcen") else False
