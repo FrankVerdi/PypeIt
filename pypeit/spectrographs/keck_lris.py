@@ -117,7 +117,7 @@ class KeckLRISSpectrograph(spectrograph.Spectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -125,9 +125,10 @@ class KeckLRISSpectrograph(spectrograph.Spectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -136,18 +137,12 @@ class KeckLRISSpectrograph(spectrograph.Spectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # Adjust parameters based on settings used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            decker = scifile['decker'][0]
-            binning = scifile['binning'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            decker = self.get_meta_value(scifile, 'decker')
-            binning = self.get_meta_value(scifile, 'binning')
+        decker = self.get_meta_value(inp, 'decker')
+        binning = self.get_meta_value(inp, 'binning')
 
         # Ignore PCA if longslit
         #  This is a little risky as a user could put long into their maskname
@@ -987,7 +982,7 @@ class KeckLRISBSpectrograph(KeckLRISSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -995,9 +990,10 @@ class KeckLRISBSpectrograph(KeckLRISSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1006,16 +1002,11 @@ class KeckLRISBSpectrograph(KeckLRISSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # Adjust parameters based on settings used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            grating = scifile['dispname'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            grating = self.get_meta_value(scifile, 'dispname')
+        grating = self.get_meta_value(inp, 'dispname')
 
         # Wavelength calibrations
         match grating:
@@ -1437,7 +1428,7 @@ class KeckLRISRSpectrograph(KeckLRISSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -1445,9 +1436,10 @@ class KeckLRISRSpectrograph(KeckLRISSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1456,18 +1448,12 @@ class KeckLRISRSpectrograph(KeckLRISSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # Adjust parameters based on binning & grating used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            grating = scifile['dispname'][0]
-            binning = scifile['binning'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            grating = self.get_meta_value(scifile, 'dispname')
-            binning = self.get_meta_value(scifile, 'binning')
+        grating = self.get_meta_value(inp, 'dispname')
+        binning = self.get_meta_value(inp, 'binning')
 
         # Lacosmic CR settings
         #   Grab the defaults for LRISr
@@ -1826,7 +1812,7 @@ class KeckLRISROrigSpectrograph(KeckLRISRSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -1834,9 +1820,10 @@ class KeckLRISROrigSpectrograph(KeckLRISRSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1845,16 +1832,11 @@ class KeckLRISROrigSpectrograph(KeckLRISRSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # Adjust parameters based on grating used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            grating = scifile['dispname'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            grating = self.get_meta_value(scifile, 'dispname')
+        grating = self.get_meta_value(inp, 'dispname')
 
         # Wavelength calibrations
         match grating:

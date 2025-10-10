@@ -352,7 +352,7 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -360,9 +360,10 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -371,16 +372,11 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # Adjust parameters based on decker used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            decker = scifile['decker'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            decker = self.get_meta_value(scifile, 'decker')
+        decker = self.get_meta_value(inp, 'decker')
 
         # Turn PCA off for long slits
         if 'arcsec' in decker:
@@ -1043,7 +1039,7 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -1051,9 +1047,10 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1062,20 +1059,13 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
-        # Adjust parameters
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            grating = scifile['dispname'][0]
-            binning = scifile['binning'][0]
-            mjd = scifile['mjd'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            grating = self.get_meta_value(scifile, 'dispname')
-            binning = self.get_meta_value(scifile, 'binning')
-            mjd = self.get_meta_value(scifile, 'mjd')
+        # Adjust parameters based on configuration
+        grating = self.get_meta_value(inp, 'dispname')
+        binning = self.get_meta_value(inp, 'binning')
+        mjd = self.get_meta_value(inp, 'mjd')
 
         # Case out the grating
         match grating[:4]:
@@ -1239,7 +1229,7 @@ class GeminiGMOSNHamSpectrograph(GeminiGMOSNSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -1247,9 +1237,10 @@ class GeminiGMOSNHamSpectrograph(GeminiGMOSNSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1258,16 +1249,11 @@ class GeminiGMOSNHamSpectrograph(GeminiGMOSNSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
-        # Adjust parameters
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            grating = scifile['dispname'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            grating = self.get_meta_value(scifile, 'dispname')
+        # Adjust parameters based on disperser used
+        grating = self.get_meta_value(inp, 'dispname')
 
         # Case out the grating
         match grating[:4]:
@@ -1301,7 +1287,7 @@ class GeminiGMOSNHamNSSpectrograph(GeminiGMOSNHamSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -1312,9 +1298,10 @@ class GeminiGMOSNHamNSSpectrograph(GeminiGMOSNHamSpectrograph):
         in this class.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1323,16 +1310,11 @@ class GeminiGMOSNHamNSSpectrograph(GeminiGMOSNHamSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
-        # Adjust parameters based on decker and binning used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            self.nod_shuffle_pix = scifile['nodpix'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            self.nod_shuffle_pix = self.get_meta_value(scifile, 'nodpix')
+        # Load the ``nodpix`` value into the class attribute
+        self.nod_shuffle_pix = self.get_meta_value(inp, 'nodpix')
 
         return par
 
@@ -1566,7 +1548,7 @@ class GeminiGMOSNE2VSpectrograph(GeminiGMOSNSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -1574,9 +1556,10 @@ class GeminiGMOSNE2VSpectrograph(GeminiGMOSNSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1585,16 +1568,11 @@ class GeminiGMOSNE2VSpectrograph(GeminiGMOSNSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # Adjust parameters based on grating used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            grating = scifile['dispname'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            grating = self.get_meta_value(scifile, 'dispname')
+        grating = self.get_meta_value(inp, 'dispname')
 
         if grating[0:4] == 'R400':
             par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_r400_e2v_mosaic.fits'

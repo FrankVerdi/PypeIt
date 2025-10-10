@@ -319,7 +319,7 @@ class GeminiGNIRSSpectrograph(spectrograph.Spectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -327,9 +327,10 @@ class GeminiGNIRSSpectrograph(spectrograph.Spectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -338,21 +339,15 @@ class GeminiGNIRSSpectrograph(spectrograph.Spectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # TODO The ``self.``` are hacks for now until we figure out how to set
         #      dispname and other meta information in the spectrograph class itself
 
         # Adjust parameters based on grating and camera position
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            self.dispname = scifile['dispname'][0]
-            self.camera_pos = scifile['camera_pos'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            self.dispname = self.get_meta_value(scifile, 'dispname')
-            self.camera_pos = self.get_meta_value(scifile, 'camera_pos')
+        self.dispname = self.get_meta_value(inp, 'dispname')
+        self.camera_pos = self.get_meta_value(inp, 'camera_pos')
 
         # 32/mmSB_G5533 setup, covering XYJHK with short blue camera
         if '32/mm' in self.dispname:
@@ -469,7 +464,7 @@ class GeminiGNIRSEchelleSpectrograph(GeminiGNIRSSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -477,9 +472,10 @@ class GeminiGNIRSEchelleSpectrograph(GeminiGNIRSSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -488,8 +484,9 @@ class GeminiGNIRSEchelleSpectrograph(GeminiGNIRSSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
+
         # NOTE: The super() method sets ``self.dispname``
 
         # TODO The ``self.``` are hacks for now until we figure out how to set
@@ -686,7 +683,7 @@ class GNIRSIFUSpectrograph(GeminiGNIRSSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -694,9 +691,10 @@ class GNIRSIFUSpectrograph(GeminiGNIRSSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -705,16 +703,11 @@ class GNIRSIFUSpectrograph(GeminiGNIRSSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # Adjust parameters based on filter used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            filter = scifile['filter1'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            filter = self.get_meta_value(scifile, 'filter1')
+        filter = self.get_meta_value(inp, 'filter1')
 
         par['calibrations']['slitedges']['edge_thresh'] = 30.
         # TODO :: The following wavelength solutions are not general enough - need to implement a solution for each setup+grating

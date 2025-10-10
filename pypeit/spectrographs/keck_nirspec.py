@@ -280,7 +280,7 @@ class KeckNIRSPECHighSpectrograph(KeckNIRSPECSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -288,9 +288,10 @@ class KeckNIRSPECHighSpectrograph(KeckNIRSPECSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -299,22 +300,14 @@ class KeckNIRSPECHighSpectrograph(KeckNIRSPECSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # Adjust parameters based on filters, decker, and `xdangle` used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            self.filter1 = scifile['filter1'][0]
-            self.filter2 = scifile['filter2'][0]
-            decker = scifile['decker'][0]
-            xdangle = scifile['xdangle'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            self.filter1 = self.get_meta_value(scifile, 'filter1')
-            self.filter2 = self.get_meta_value(scifile, 'filter2')
-            decker = self.get_meta_value(scifile, 'decker')
-            xdangle = self.get_meta_value(scifile, 'xdangle')
+        self.filter1 = self.get_meta_value(inp, 'filter1')
+        self.filter2 = self.get_meta_value(inp, 'filter2')
+        decker = self.get_meta_value(inp, 'decker')
+        xdangle = self.get_meta_value(inp, 'xdangle')
         self.lamps_list = par['calibrations']['wavelengths']['lamps']
         
         # wavelength calibration
@@ -708,7 +701,7 @@ class KeckNIRSPECHighSpectrographOld(KeckNIRSPECSpectrographOld):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -716,9 +709,10 @@ class KeckNIRSPECHighSpectrographOld(KeckNIRSPECSpectrographOld):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -727,20 +721,13 @@ class KeckNIRSPECHighSpectrographOld(KeckNIRSPECSpectrographOld):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
-        # Adjust parameters based on filters, decker, and `xdangle` used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            self.filter1 = scifile['filter1'][0]
-            self.filter2 = scifile['filter2'][0]
-            decker = scifile['decker'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            self.filter1 = self.get_meta_value(scifile, 'filter1')
-            self.filter2 = self.get_meta_value(scifile, 'filter2')
-            decker = self.get_meta_value(scifile, 'decker')
+        # Adjust parameters based on filters and decker used
+        self.filter1 = self.get_meta_value(inp, 'filter1')
+        self.filter2 = self.get_meta_value(inp, 'filter2')
+        decker = self.get_meta_value(inp, 'decker')
         self.lamps_list = par['calibrations']['wavelengths']['lamps']
 
         # wavelength calibration

@@ -191,7 +191,7 @@ class Spectrograph:
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -210,22 +210,17 @@ class Spectrograph:
             par = super().config_specific_par(scifile, inp_par=inp_par)
 
             # Adjust parameters based on settings used
-            if isinstance(scifile, astropy.table.Table):
-                # The method was passed a metadata table row
-                grating = scifile['dispname'][0]
-                binning = scifile['binning'][0]
-            else:
-                # The method was passed the raw file info in one form or another
-                grating = self.get_meta_value(scifile, 'dispname')
-                binning = self.get_meta_value(scifile, 'binning')
+            grating = self.get_meta_value(scifile, 'dispname')
+            binning = self.get_meta_value(scifile, 'binning')
 
         where the specific metadata keys are those needed by the specific
         method (``grating`` and ``binning`` used here as examples only).
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1419,11 +1414,11 @@ class Spectrograph:
         Return meta data from a given file (or its array of headers).
 
         Args:
-            inp (:obj:`str`, `Path`_, `astropy.io.fits.Header`_, :obj:`list`):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects. {OR A METADATA TABLE ROW} If None, function simply
-                returns None without issuing any warnings/errors, unless
-                ``required`` is True.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table. If None, function simply returns None without
+                issuing any warnings/errors, unless ``required`` is True.
             meta_key (:obj:`str`, :obj:`list`):
                 A (list of) string(s) with the keywords to read from the file
                 header(s).
@@ -1458,22 +1453,18 @@ class Spectrograph:
         """
         headarr = None
 
+        # If the input is a metadata table, return the desired value
         if isinstance(inp, astropy.table.Table):
-            # If the input is a metadata table, return the desired value
             try:
                 return inp[meta_key][0]
             except KeyError:
                 # If the key is not present (e.g., this is an older PypeIt file
                 #   and we are striving for backwards-compatability), get the
                 #   filename from the table row and proceed as below.
-
-                # NOTE: May need to do some path magic here because the
-                #       filename value from the metadata table may need to be
-                #       combined with the path row?
                 headarr = self.get_headarr(inp['filename'][0])
 
+        # Otherwise, this set of statements pulls the Header array for the file in question
         else:
-            # This set of statements pulls the Header array for the file in question
             if isinstance(inp, (str, pathlib.Path, astropy.io.fits.HDUList)):
                 headarr = self.get_headarr(inp)
             elif inp is None or isinstance(inp, list):

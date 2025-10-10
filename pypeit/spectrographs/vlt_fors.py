@@ -309,7 +309,7 @@ class VLTFORS2Spectrograph(VLTFORSSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -317,9 +317,10 @@ class VLTFORS2Spectrograph(VLTFORSSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -328,18 +329,12 @@ class VLTFORS2Spectrograph(VLTFORSSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # Adjust parameters based on grating & decker used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            grating = scifile['dispname'][0]
-            decker = scifile['decker'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            grating = self.get_meta_value(scifile, 'dispname')
-            decker = self.get_meta_value(scifile, 'decker')
+        grating = self.get_meta_value(inp, 'dispname')
+        decker = self.get_meta_value(inp, 'decker')
 
         # TODO: Should we allow the user to override these?
 

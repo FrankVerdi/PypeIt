@@ -410,7 +410,7 @@ class LBTMODS1RSpectrograph(LBTMODSSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -418,9 +418,10 @@ class LBTMODS1RSpectrograph(LBTMODSSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -429,16 +430,11 @@ class LBTMODS1RSpectrograph(LBTMODSSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # Adjust parameters based on grating used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            grating = scifile['dispname'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            grating = self.get_meta_value(scifile, 'dispname')
+        grating = self.get_meta_value(inp, 'dispname')
 
         if grating == 'G670L':
             par['calibrations']['wavelengths']['method'] = 'full_template'
@@ -583,7 +579,7 @@ class LBTMODS1BSpectrograph(LBTMODSSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -591,9 +587,10 @@ class LBTMODS1BSpectrograph(LBTMODSSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -602,16 +599,11 @@ class LBTMODS1BSpectrograph(LBTMODSSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # Adjust parameters based on grating used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            grating = scifile['dispname'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            grating = self.get_meta_value(scifile, 'dispname')
+        grating = self.get_meta_value(inp, 'dispname')
 
         if grating == 'G400L':
             par['calibrations']['wavelengths']['method'] = 'full_template'
@@ -758,7 +750,7 @@ class LBTMODS2RSpectrograph(LBTMODSSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -766,9 +758,10 @@ class LBTMODS2RSpectrograph(LBTMODSSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -777,16 +770,11 @@ class LBTMODS2RSpectrograph(LBTMODSSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
- 
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
+
         # Adjust parameters based on grating used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            grating = scifile['dispname'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            grating = self.get_meta_value(scifile, 'dispname')
+        grating = self.get_meta_value(inp, 'dispname')
 
         if grating == 'G670L':
             par['calibrations']['wavelengths']['method'] = 'full_template'
@@ -930,7 +918,7 @@ class LBTMODS2BSpectrograph(LBTMODSSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -938,9 +926,10 @@ class LBTMODS2BSpectrograph(LBTMODSSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -949,16 +938,11 @@ class LBTMODS2BSpectrograph(LBTMODSSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # Adjust parameters based on grating used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            grating = scifile['dispname'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            grating = self.get_meta_value(scifile, 'dispname')
+        grating = self.get_meta_value(inp, 'dispname')
 
         if grating == 'G400L':
             par['calibrations']['wavelengths']['method'] = 'full_template'
@@ -1127,7 +1111,7 @@ class LBTMODS1RSpectrographProc(LBTMODSSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -1135,9 +1119,10 @@ class LBTMODS1RSpectrographProc(LBTMODSSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1146,16 +1131,11 @@ class LBTMODS1RSpectrographProc(LBTMODSSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # Adjust parameters based on grating used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            grating = scifile['dispname'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            grating = self.get_meta_value(scifile, 'dispname')
+        grating = self.get_meta_value(inp, 'dispname')
 
         if grating == 'G670L':
             par['calibrations']['wavelengths']['method'] = 'full_template'
@@ -1250,7 +1230,7 @@ class LBTMODS1BSpectrographProc(LBTMODSSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -1258,9 +1238,10 @@ class LBTMODS1BSpectrographProc(LBTMODSSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1269,16 +1250,11 @@ class LBTMODS1BSpectrographProc(LBTMODSSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # Adjust parameters based on grating used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            grating = scifile['dispname'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            grating = self.get_meta_value(scifile, 'dispname')
+        grating = self.get_meta_value(inp, 'dispname')
 
         if grating == 'G400L':
             par['calibrations']['wavelengths']['method'] = 'full_template'
@@ -1386,7 +1362,7 @@ class LBTMODS2RSpectrographProc(LBTMODSSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -1394,9 +1370,10 @@ class LBTMODS2RSpectrographProc(LBTMODSSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1405,16 +1382,11 @@ class LBTMODS2RSpectrographProc(LBTMODSSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # Adjust parameters based on grating used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            grating = scifile['dispname'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            grating = self.get_meta_value(scifile, 'dispname')
+        grating = self.get_meta_value(inp, 'dispname')
 
         if grating == 'G670L':
             par['calibrations']['wavelengths']['method'] = 'full_template'
@@ -1508,7 +1480,7 @@ class LBTMODS2BSpectrographProc(LBTMODSSpectrograph):
 
     def config_specific_par(
             self,
-            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
+            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -1516,9 +1488,10 @@ class LBTMODS2BSpectrographProc(LBTMODSSpectrograph):
         specific instrument configurations.
 
         Args:
-            scifile (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
+            inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  Or a row from the metadata table.
+                of `astropy.io.fits.Header`_ objects.  Or a row from the
+                metadata table.
             inp_par (:class:`~pypeit.par.parset.ParSet`, optional):
                 Parameter set used for the full run of PypeIt.  If None,
                 use :func:`default_pypeit_par`.
@@ -1527,16 +1500,11 @@ class LBTMODS2BSpectrographProc(LBTMODSSpectrograph):
             :class:`~pypeit.par.parset.ParSet`: The PypeIt parameter set
             adjusted for configuration specific parameter values.
         """
-        # Start with instrument-wide parameters (does not actually use `scifile`)
-        par = super().config_specific_par(scifile, inp_par=inp_par)
+        # Start with instrument-wide parameters (does not actually use `inp`)
+        par = super().config_specific_par(inp, inp_par=inp_par)
 
         # Adjust parameters based on grating used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            grating = scifile['dispname'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            grating = self.get_meta_value(scifile, 'dispname')
+        grating = self.get_meta_value(inp, 'dispname')
 
         if grating == 'G400L':
             par['calibrations']['wavelengths']['method'] = 'full_template'

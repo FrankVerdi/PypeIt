@@ -730,8 +730,11 @@ class PypeItFile(InputFile):
 
         # Send the Row of the metadata table corresponding to the file
         csf_idx = self.data['filename'] == Path(config_specific_file).name
+        data_row = self.data[csf_idx].copy()
+        # Use the full path to the ``config_specific_file`` for insurance
+        data_row['filename'] = config_specific_file
         spec_par = spec.default_pypeit_par() if config_specific_file is None \
-                    else spec.config_specific_par(self.data[csf_idx])
+                    else spec.config_specific_par(data_row)
 
         par = PypeItPar.from_cfg_lines(cfg_lines=spec_par.to_config(),
                                        merge_with=(self.cfg_lines,))
