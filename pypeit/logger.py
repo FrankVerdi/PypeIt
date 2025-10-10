@@ -68,7 +68,7 @@ def color_text(
     return f'{msg}38;2;{color[0]};{color[1]};{color[2]}m{_text}\033[0m'
 
 
-def clear_text_color(text:str):
+def clear_text_color(text:str) -> str:
     """
     Remove escape characters that colorize the text in a string.
 
@@ -323,7 +323,7 @@ def get_logger(
     stream: Optional[io.TextIOBase] = None,
     log_file: Optional[str | Path] = None,
     log_file_level: Optional[int] = None,
-):
+) -> PypeItLogger:
     """
     Instantiate a new logger.
 
@@ -340,6 +340,10 @@ def get_logger(
     log_file_level
         The logging level specific to the log file.  If None, adopt the
         console logging level.
+
+    Returns
+    -------
+        Logging object for PypeIt.
     """
 
     orig_logger = logging.getLoggerClass()
