@@ -483,14 +483,8 @@ class LDTDeVenySpectrograph(spectrograph.Spectrograph):
         par = super().config_specific_par(scifile, inp_par=inp_par)
 
         # Adjust parameters based on DeVeny grating used
-        if isinstance(scifile, astropy.table.Table):
-            # The method was passed a metadata table row
-            grating = scifile['dispname'][0]
-            binning = scifile['binning'][0]
-        else:
-            # The method was passed the raw file info in one form or another
-            grating = self.get_meta_value(scifile, 'dispname')
-            binning = self.get_meta_value(scifile, 'binning')
+        grating = self.get_meta_value(scifile, 'dispname')
+        binning = self.get_meta_value(scifile, 'binning')
 
         # TODO: Compute resolving power on the fly  (e.g., from p200_dbsp)
         # par['sensfunc']['UVIS']['resolution'] = resolving_power.decompose().value

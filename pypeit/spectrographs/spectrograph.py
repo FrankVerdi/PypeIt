@@ -27,26 +27,25 @@ provide instrument-specific:
 """
 
 from abc import ABCMeta
-from pathlib import Path
+import pathlib
 
-from IPython import embed
-
+import astropy.io.fits
+import astropy.table
 import numpy as np
-from astropy.io import fits
-from astropy import units
-from astropy.table import Table
 
-from pypeit import msgs
 from pypeit import io
+from pypeit import msgs
+from pypeit.core import meta
 from pypeit.core import parse
 from pypeit.core import procimg
-from pypeit.core import meta
 from pypeit.core import standard
 from pypeit.core.atmextinction import AtmosphericExtinction
 from pypeit.par import parset
 from pypeit.par import pypeitpar
 from pypeit.images.detector_container import DetectorContainer
 from pypeit.images.mosaic import Mosaic
+
+from IPython import embed
 
 
 # TODO: Create an EchelleSpectrograph derived class that holds all of
@@ -192,7 +191,7 @@ class Spectrograph:
 
     def config_specific_par(
             self,
-            scifile:str|list|Path|fits.Header|Table,
+            scifile:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
             inp_par:parset.ParSet=None
         ):
         """
@@ -350,12 +349,12 @@ class Spectrograph:
                 Input raw fits filename
         """
         if self.allowed_extensions is not None:
-            _filename = Path(filename).absolute()
+            _filename = pathlib.Path(filename).absolute()
             # Don't check PypeIt spec2d files
             if _filename.name.startswith("spec2d_"):
                 # Double check that it is a PypeIt spec2d file
                 try:
-                    tsthdr = fits.getheader(_filename, ext=0)
+                    tsthdr = astropy.io.fits.getheader(_filename, ext=0)
                 except IOError:
                     msgs.error("Cannot open the file: {0}".format(_filename))
                 if 'PIPELINE' in tsthdr and tsthdr['PIPELINE'] == 'PYPEIT':
@@ -1422,7 +1421,7 @@ class Spectrograph:
         Args:
             inp (:obj:`str`, `Path`_, `astropy.io.fits.Header`_, :obj:`list`):
                 Input filename, an `astropy.io.fits.Header`_ object, or a list
-                of `astropy.io.fits.Header`_ objects.  If None, function simply
+                of `astropy.io.fits.Header`_ objects. {OR A METADATA TABLE ROW} If None, function simply
                 returns None without issuing any warnings/errors, unless
                 ``required`` is True.
             meta_key (:obj:`str`, :obj:`list`):
@@ -1458,14 +1457,31 @@ class Spectrograph:
             Value recovered for (each) keyword.  Can be None.
         """
         headarr = None
-        if isinstance(inp, (str, Path, fits.HDUList)):
-            headarr = self.get_headarr(inp)
-        elif inp is None or isinstance(inp, list):
-            headarr = inp
-        elif isinstance(inp, fits.Header):
-            headarr = [inp]
+
+        if isinstance(inp, astropy.table.Table):
+            # If the input is a metadata table, return the desired value
+            try:
+                return inp[meta_key][0]
+            except KeyError:
+                # If the key is not present (e.g., this is an older PypeIt file
+                #   and we are striving for backwards-compatability), get the
+                #   filename from the table row and proceed as below.
+
+                # NOTE: May need to do some path magic here because the
+                #       filename value from the metadata table may need to be
+                #       combined with the path row?
+                headarr = self.get_headarr(inp['filename'][0])
+
         else:
-            msgs.error(f'Unrecognized type for input: {type(inp)}')
+            # This set of statements pulls the Header array for the file in question
+            if isinstance(inp, (str, pathlib.Path, astropy.io.fits.HDUList)):
+                headarr = self.get_headarr(inp)
+            elif inp is None or isinstance(inp, list):
+                headarr = inp
+            elif isinstance(inp, astropy.io.fits.Header):
+                headarr = [inp]
+            else:
+                msgs.error(f'Unrecognized type for input: {type(inp)}')
 
         if headarr is None:
             if required:
@@ -1716,7 +1732,7 @@ class Spectrograph:
 
         # Faster to open the whole file and then assign the headers,
         # particularly for gzipped files (e.g., DEIMOS)
-        if isinstance(inp, (str, Path)):
+        if isinstance(inp, (str, pathlib.Path)):
             self._check_extensions(inp)
             try:
                 hdul = io.fits_open(inp)
@@ -1726,7 +1742,7 @@ class Spectrograph:
                 else:
                     msgs.warn(f'Cannot open {inp}.  Proceeding, but consider removing this file!')
                     return None
-        elif isinstance(inp, (list, fits.HDUList)):
+        elif isinstance(inp, (list, astropy.io.fits.HDUList)):
             # TODO: If a list, check that the list elements are HDUs?
             hdul = inp
         else:
