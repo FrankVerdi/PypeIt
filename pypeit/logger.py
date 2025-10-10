@@ -361,6 +361,10 @@ def get_logger(
             log_file=log_file,
             log_file_level=log_file_level
         )
+        # TODO: We might want to prohibit propagation of this logger to the root
+        # one, but I'm not really sure if that's necessary or how it works.
+        # Leaving this commented out for now.
+        # log.propagate = False
     finally:
         logging.setLoggerClass(orig_logger)
 
