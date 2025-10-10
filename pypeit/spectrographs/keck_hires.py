@@ -17,7 +17,7 @@ from pypeit import telescopes
 from pypeit import io
 from pypeit.core import parse
 from pypeit.core import framematch
-from pypeit.core import flux_calib
+from pypeit.core import standard
 from pypeit.spectrographs import spectrograph
 from pypeit.images import detector_container
 from pypeit.par import parset
@@ -416,10 +416,8 @@ class KECKHIRESSpectrograph(spectrograph.Spectrograph):
         if ftype == 'standard':
             std = np.zeros(len(fitstbl), dtype=bool)
             if 'ra' in fitstbl.keys() and 'dec' in fitstbl.keys():
-                # std = np.array([flux_calib.find_standard_file(ra, dec, toler=10.*units.arcmin, check=True)
-                #                 for ra, dec in zip(fitstbl['ra'], fitstbl['dec'])])
                 std = np.array([
-                    flux_calib.find_standard_file(ra, dec, toler=10. * units.arcmin, check=True)
+                    standard.get_archive_standard(ra, dec, tol=10., check=True)
                     if ra is not None and dec is not None and not np.isnan(ra) and not np.isnan(dec)
                     else False for ra, dec in zip(fitstbl['ra'], fitstbl['dec'])])
             return good_exp & (fitstbl['idname'] == 'Object') & std

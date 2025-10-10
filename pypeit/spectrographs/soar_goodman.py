@@ -13,7 +13,7 @@ import numpy as np
 
 from pypeit import msgs
 from pypeit import telescopes
-from pypeit.core import flux_calib
+from pypeit.core import standard
 from pypeit.core import framematch
 from pypeit.core import parse
 from pypeit.images import detector_container
@@ -191,8 +191,10 @@ class SOARGoodmanSpectrograph(spectrograph.Spectrograph):
             std = np.zeros(len(fitstbl), dtype=bool)
             # Identify standard stars from flux_calib
             if 'ra' in fitstbl.keys() and 'dec' in fitstbl.keys():
-                std = np.array([flux_calib.find_standard_file(ra, dec, toler=10.*units.arcmin, check=True)
-                                for ra, dec in zip(fitstbl['ra'], fitstbl['dec'])])
+                std = np.array([
+                    standard.get_archive_standard(ra, dec, tol=10., check=True)
+                    for ra, dec in zip(fitstbl['ra'], fitstbl['dec'])
+                ])
             base = good_exp & (fitstbl['idname'] == 'SPECTRUM') & self.lamps(fitstbl, 'off')
             if ftype == 'science':
                 return base & np.logical_not(std)
