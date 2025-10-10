@@ -12,19 +12,18 @@ class CoAddDataCube(scriptbase.ScriptBase):
 
     @classmethod
     def get_parser(cls, width=None):
-        parser = super().get_parser(description='Read in an array of spec2D files and convert '
-                                                'them into a datacube', width=width)
+        parser = super().get_parser(
+            description='Read in an array of spec2D files and convert them into a datacube',
+            width=width, default_log_file=True
+        )
         parser.add_argument('file', type = str, default=None, help='filename.coadd3d file')
         parser.add_argument('--det', default=1, type=int, help="Detector")
         parser.add_argument('-o', '--overwrite', default=False, action='store_true',
                             help='Overwrite any existing files/directories')
-        parser.add_argument('-v', '--verbosity', type=int, default=1,
-                            help='Verbosity level between 0 [none] and 2 [all]. Default: 1. '
-                                 'Level 2 writes a log with filename coadd_datacube_YYYYMMDD-HHMM.log')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
         import time
 
         from pypeit import log
@@ -35,8 +34,8 @@ class CoAddDataCube(scriptbase.ScriptBase):
         from pypeit.coadd3d import CoAdd3D
         from pypeit.spectrographs.util import load_spectrograph
 
-        # Set the verbosity, and create a logfile if verbosity == 2
-#        log.set_logfile_and_verbosity('coadd_datacube', args.verbosity)
+        # Initialize the log
+        cls.init_log(args)
 
         # Check that a file has been provided
         if args.file is None:

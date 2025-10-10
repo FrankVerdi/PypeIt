@@ -10,15 +10,6 @@ from pypeit.scripts import scriptbase
 
 class RunPypeIt(scriptbase.ScriptBase):
 
-    # TODO: Combining classmethod and property works in python 3.9 and later
-    # only: https://docs.python.org/3.9/library/functions.html#classmethod
-    # Order matters.  In python 3.9, it would be:
-    #
-    # @classmethod
-    # @property
-    #
-    # Because we're not requiring python 3.9 yet, we have to leave this as a
-    # classmethod only:
     @classmethod
     def name(cls):
         """
@@ -49,11 +40,10 @@ class RunPypeIt(scriptbase.ScriptBase):
         import argparse
 
         parser = super().get_parser(description=cls.usage(),
-                                    width=width, formatter=argparse.RawDescriptionHelpFormatter)
+                                    width=width, formatter=argparse.RawDescriptionHelpFormatter,
+                                    default_log_file=True)
         parser.add_argument('pypeit_file', type=str,
                             help='PypeIt reduction file (must have .pypeit extension)')
-        parser.add_argument('-v', '--verbosity', type=int, default=2,
-                            help='Verbosity level between 0 [none] and 2 [all]')
 
         parser.add_argument('-r', '--redux_path', default=None,
                             help='Path to directory for the reduction.  Only advised for testing')
@@ -67,7 +57,6 @@ class RunPypeIt(scriptbase.ScriptBase):
                                  'remote control ginga session via '
                                  '"ginga --modules=RC,SlitWavelength &"')
 
-        # TODO: JFH Should the default now be true with the new definition.
         parser.add_argument('-o', '--overwrite', default=False, action='store_true',
                             help='Overwrite any existing files/directories')
         parser.add_argument('-c', '--calib_only', default=False, action='store_true',
@@ -75,27 +64,31 @@ class RunPypeIt(scriptbase.ScriptBase):
 
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
 
-        import os
+        from pathlib import Path
         from IPython import embed
 
         from pypeit import pypeit
         from pypeit import log
         from pypeit import PypeItError
 
-        # Load options from command line
-        splitnm = os.path.splitext(args.pypeit_file)
-        if splitnm[1] != '.pypeit':
-            raise PypeItError('Input file must have a .pypeit extension!')
-        logname = splitnm[0] + ".log"
+        # Set a default log file based on the name of the pypeit file, not the
+        # name of the script
+        if args.log_file == 'default':
+            _pypeit_file = Path(args.pypeit_file)
+            if _pypeit_file.suffix != '.pypeit':
+                raise PypeItError('Input file must have a .pypeit extension!')
+            args.log_file = _pypeit_file.with_suffix('.log')
+
+        cls.init_log(args)
 
         # Instantiate the main pipeline reduction object
-        pypeIt = pypeit.PypeIt(args.pypeit_file, verbosity=args.verbosity,
-                               reuse_calibs=args.reuse_calibs, overwrite=args.overwrite,
-                               redux_path=args.redux_path, calib_only=args.calib_only,
-                               logname=logname, show=args.show)
+        pypeIt = pypeit.PypeIt(
+            args.pypeit_file, reuse_calibs=args.reuse_calibs, overwrite=args.overwrite,
+            redux_path=args.redux_path, calib_only=args.calib_only, show=args.show
+        )
 
         if args.calib_only:
             pypeIt.calib_all()

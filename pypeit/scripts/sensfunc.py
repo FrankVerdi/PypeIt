@@ -17,7 +17,7 @@ class SensFunc(scriptbase.ScriptBase):
     @classmethod
     def get_parser(cls, width=None):
         parser = super().get_parser(description='Compute a sensitivity function', width=width,
-                                    formatter=scriptbase.SmartFormatter)
+                                    formatter=scriptbase.SmartFormatter, default_log_file=True)
         parser.add_argument("spec1dfile", type=str,
                             help='spec1d file for the standard that will be used to compute '
                                  'the sensitivity function. This can be the output file of '
@@ -81,13 +81,10 @@ class SensFunc(scriptbase.ScriptBase):
                             help="show debug plots?")
         parser.add_argument("--par_outfile", default='sensfunc.par',
                             help="Name of output file to save the parameters used by the fit")
-        parser.add_argument('-v', '--verbosity', type=int, default=1,
-                            help='Verbosity level between 0 [none] and 2 [all]. Default: 1. '
-                                 'Level 2 writes a log with filename sensfunc_YYYYMMDD-HHMM.log')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
         """Executes sensitivity function computation."""
 
         import os
@@ -100,8 +97,8 @@ class SensFunc(scriptbase.ScriptBase):
         from pypeit import sensfunc
         from pypeit.spectrographs.util import load_spectrograph
 
-        # Set the verbosity, and create a logfile if verbosity == 2
-#        log.set_logfile_and_verbosity('sensfunc', args.verbosity)
+        # Initialize the log
+        cls.init_log(args)
 
         # Check parameter inputs
         if args.algorithm is not None and args.sens_file is not None:

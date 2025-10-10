@@ -28,9 +28,6 @@ class RunToCalibStep(scriptbase.ScriptBase):
         parser.add_argument('--det', type=str, help='Detector to reduce')
 
         # TODO -- Grab these from run_pypeit.py ?
-        parser.add_argument('-v', '--verbosity', type=int, default=2,
-                            help='Verbosity level between 0 [none] and 2 [all]')
-
         parser.add_argument('-r', '--redux_path', default=None,
                             help='Path to directory for the reduction.  Only advised for testing')
         parser.add_argument('-s', '--show', default=False, action='store_true',
@@ -41,8 +38,8 @@ class RunToCalibStep(scriptbase.ScriptBase):
 
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
 
         import ast
         import numpy as np
@@ -53,11 +50,16 @@ class RunToCalibStep(scriptbase.ScriptBase):
         from pypeit import log
         from pypeit import PypeItError
 
-        # Load options from command line
-        _pypeit_file = Path(args.pypeit_file).absolute()
-        if _pypeit_file.suffix != '.pypeit':
-            raise PypeItError(f'Input file {_pypeit_file} must have a .pypeit extension!')
-        logname = _pypeit_file.parent / f'{_pypeit_file.stem}.log'
+        # Set a default log file based on the name of the pypeit file, not the
+        # name of the script
+        if args.log_file == 'default':
+            _pypeit_file = Path(args.pypeit_file)
+            if _pypeit_file.suffix != '.pypeit':
+                raise PypeItError('Input file must have a .pypeit extension!')
+            args.log_file = _pypeit_file.with_suffix('.log')
+
+        # Initialize the log
+        cls.init_log(args)
 
         # Check for the frame or calib_group
         if args.science_frame is None and args.calib_group is None:
@@ -66,9 +68,9 @@ class RunToCalibStep(scriptbase.ScriptBase):
             log.warning("Both science_frame and calib_group ID provided.  Will use the science_frame")
 
         # Instantiate the main pipeline reduction object
-        pypeIt = pypeit.PypeIt(args.pypeit_file, verbosity=args.verbosity,
-                               redux_path=args.redux_path, 
-                               logname=logname, show=args.show, calib_only=True)
+        pypeIt = pypeit.PypeIt(
+            args.pypeit_file, redux_path=args.redux_path, show=args.show, calib_only=True
+        )
         pypeIt.reuse_calibs = True
 
         # Find the detectors to reduce

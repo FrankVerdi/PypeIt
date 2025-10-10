@@ -14,7 +14,8 @@ class TraceEdges(scriptbase.ScriptBase):
     def get_parser(cls, width=None):
         from pypeit.spectrographs import available_spectrographs
 
-        parser = super().get_parser(description='Trace slit edges', width=width)
+        parser = super().get_parser(description='Trace slit edges', width=width,
+                                    default_log_file=True)
 
         # Require either a pypeit file or a fits file
         inp = parser.add_mutually_exclusive_group(required=True)
@@ -50,17 +51,10 @@ class TraceEdges(scriptbase.ScriptBase):
                                  'plots related to the PCA decomposition and the slit and order '
                                  'matching.  (3) Also show the individual polynomial fits to the '
                                  'detected edges.')
-        parser.add_argument('--show', default=False, action='store_true',
-                            help='DEPRECATED!  If set, the code will assume you mean to set '
-                                 '--debug 1.')
-        parser.add_argument('-v', '--verbosity', type=int, default=1,
-                            help='Verbosity level between 0 [none] and 2 [all]. Default: 1. '
-                                 'Level 2 writes a log with filename trace_edges_YYYYMMDD-HHMM.log')
-
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
 
         import time
         from pathlib import Path
@@ -74,8 +68,8 @@ class TraceEdges(scriptbase.ScriptBase):
 
         from IPython import embed
 
-        # Set the verbosity, and create a logfile if verbosity == 2
-#        log.set_logfile_and_verbosity('trace_edges', args.verbosity)
+        # Initialize the log
+        cls.init_log(args)
 
         if args.show:
             log.warning('"show" option is deprecated.  Setting debug = 1.')

@@ -41,8 +41,8 @@ class CacheGithubData(scriptbase.ScriptBase):
                             help='Force re-download of existing files')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
         import os
         import pathlib
         from IPython import embed
@@ -54,6 +54,9 @@ class CacheGithubData(scriptbase.ScriptBase):
         from pypeit import log
         from pypeit import cache
         from pypeit.pypeitdata import PypeItDataPath
+
+        # Initialize the log
+        cls.init_log(args)
 
         # First check the input spectrograph list
         if any([inst not in available_spectrographs for inst in args.spectrograph]):

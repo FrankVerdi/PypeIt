@@ -41,11 +41,15 @@ class CompileWVarxiv(scriptbase.ScriptBase):
 
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
+
         from astropy.table import Table, join
         from importlib_resources import files as imres_files
         import glob, os
+
+        # Initialize the log
+        cls.init_log(args)
 
         # Read in the wvarxiv files
         assert os.path.isdir(args.wvarxiv_folder), 'The wvarxiv_folder does not exist'

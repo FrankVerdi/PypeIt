@@ -754,8 +754,11 @@ class QL(scriptbase.ScriptBase):
         return parser
 
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
+
+        # Initialize the log
+        cls.init_log(args)
 
         tstart = time.perf_counter()
 

@@ -20,10 +20,13 @@ class InstallWvArxiv(scriptbase.ScriptBase):
                                  'in the PypeIt cache')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
         import numpy as np
         from pypeit import log
+
+        # Initialize the log
+        cls.init_log(args)
 
         # Grab all the files
         files = np.concatenate([sorted(scriptbase.ScriptBase.expandpath(f)) for f in args.files])

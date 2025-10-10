@@ -31,14 +31,17 @@ class ChkScattLight(scriptbase.ScriptBase):
                             help='Attempt to load old datamodel versions.  A crash may ensue..')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
 
         from pypeit import scattlight, spec2dobj, slittrace
         from pypeit import log
         from pypeit import PypeItError, PypeItDataModelError
         from pypeit.images.detector_container import DetectorContainer
         from pypeit import io
+
+        # Initialize the log
+        cls.init_log(args)
 
         chk_version = not args.try_old
 

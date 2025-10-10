@@ -28,15 +28,12 @@ class SkySubRegions(scriptbase.ScriptBase):
                             help='Use flexure corrected slit edges?')
         parser.add_argument('-s', '--standard', default=False, action='store_true',
                             help='List standard stars as well?')
-        parser.add_argument('-v', '--verbosity', type=int, default=1,
-                            help='Verbosity level between 0 [none] and 2 [all]. Default: 1. '
-                                 'Level 2 writes a log with filename skysub_regions_YYYYMMDD-HHMM.log')
         parser.add_argument('--try_old', default=False, action='store_true',
                             help='Attempt to load old datamodel versions.  A crash may ensue..')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
         from IPython import embed
         from pypeit import spec2dobj
         import os
@@ -48,6 +45,9 @@ class SkySubRegions(scriptbase.ScriptBase):
         from pypeit.images import buildimage
         from pypeit.images.detector_container import DetectorContainer
         from pypeit.edgetrace import EdgeTraceSet
+
+        # Initialize the log
+        cls.init_log(args)
 
         chk_version = not args.try_old
 

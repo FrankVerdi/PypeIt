@@ -22,13 +22,16 @@ class ChkWaveCalib(scriptbase.ScriptBase):
                             help='Attempt to load old datamodel versions.  A crash may ensue..')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
 
         from IPython import embed
         from astropy.io import fits
         from pypeit import wavecalib, spec2dobj, log
         from pypeit import PypeItError
+
+        # Initialize the log
+        cls.init_log(args)
 
         chk_version = not args.try_old
 

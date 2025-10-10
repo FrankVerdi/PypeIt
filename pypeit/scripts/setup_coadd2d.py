@@ -81,8 +81,8 @@ class SetupCoAdd2D(scriptbase.ScriptBase):
 
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
 
         from pathlib import Path
 
@@ -99,6 +99,9 @@ class SetupCoAdd2D(scriptbase.ScriptBase):
         from pypeit import inputfiles
         from pypeit.spectrographs.util import load_spectrograph
         from pypeit.coadd2d import CoAdd2D
+
+        # Initialize the log
+        cls.init_log(args)
 
         if args.pypeit_file is None:
             pypeitFile = None

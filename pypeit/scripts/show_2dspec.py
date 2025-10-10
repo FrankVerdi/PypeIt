@@ -83,7 +83,7 @@ class Show2DSpec(scriptbase.ScriptBase):
     def get_parser(cls, width=None):
         parser = super().get_parser(description='Display sky subtracted, spec2d image in a '
                                                 'ginga viewer.',
-                                    width=width)
+                                    width=width, default_log_file=True)
 
         parser.add_argument('file', type=str, default=None, help='Path to a PypeIt spec2d file')
         parser.add_argument('--list', default=False, action='store_true',
@@ -124,24 +124,23 @@ class Show2DSpec(scriptbase.ScriptBase):
         parser.add_argument('--no_clear', dest='clear', default=True, 
                             action='store_false',
                             help='Do *not* clear all existing tabs')
-        parser.add_argument('-v', '--verbosity', type=int, default=1,
-                            help='Verbosity level between 0 [none] and 2 [all]')
         parser.add_argument('--try_old', default=False, action='store_true',
                             help='Attempt to load old datamodel versions.  A crash may ensue..')
         return parser
 
-    @staticmethod
-    def main(args):
-
-        chk_version = not args.try_old
+    @classmethod
+    def main(cls, args):
 
         # List only?
         if args.list:
             io.fits_open(args.file).info()
             return
 
-        # Set the verbosity, and create a logfile if verbosity == 2
-#        log.set_logfile_and_verbosity('show_2dspec', args.verbosity)
+        # Initialize the log
+        cls.init_log(args)
+
+        # Set whether or not to check datamodel versions
+        chk_version = not args.try_old
 
         # Parse the detector name
         if args.det is None: 

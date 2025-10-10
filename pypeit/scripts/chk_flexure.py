@@ -26,8 +26,8 @@ class ChkFlexure(scriptbase.ScriptBase):
                             help='Attempt to load old datamodel versions.  A crash may ensue..')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
 
         from IPython import embed
         from astropy.io import fits
@@ -35,6 +35,9 @@ class ChkFlexure(scriptbase.ScriptBase):
         from pypeit import PypeItError
         from pypeit import specobjs
         from pypeit import spec2dobj
+
+        # Initialize the log
+        cls.init_log(args)
 
         chk_version = not args.try_old
         flexure_type = 'spat' if args.spat else 'spec'

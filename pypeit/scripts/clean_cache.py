@@ -29,14 +29,17 @@ class CleanCache(scriptbase.ScriptBase):
                             help='Only list the contents of the cache.')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
         from IPython import embed
         import astropy.utils.data
 
         from pypeit import log
         from pypeit import PypeItError
         from pypeit import cache
+
+        # Initialize the log
+        cls.init_log(args)
 
         if args.list:
             # Print the full contents

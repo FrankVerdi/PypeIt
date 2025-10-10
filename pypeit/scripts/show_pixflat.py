@@ -21,14 +21,17 @@ class ShowPixFlat(scriptbase.ScriptBase):
                                  'to show detectors 1 and 2. If not provided, all detectors will be shown.')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
         import numpy as np
         from pypeit import log
         from pypeit import PypeItError
         from pypeit import io
         from pypeit.display import display
         from pypeit import dataPaths
+
+        # Initialize the log
+        cls.init_log(args)
 
         # check if the file exists
         file_path = dataPaths.pixelflat.get_file_path(args.file, return_none=True)

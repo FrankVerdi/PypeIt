@@ -12,7 +12,7 @@ class CoAdd2DSpec(scriptbase.ScriptBase):
     @classmethod
     def get_parser(cls, width=None):
         parser = super().get_parser(description='Coadd 2D spectra produced by PypeIt',
-                                    width=width)
+                                    width=width, default_log_file=True)
 
         parser.add_argument('coadd2d_file', type=str, default=None,
                             help='File to guide 2d coadds')
@@ -29,25 +29,16 @@ class CoAdd2DSpec(scriptbase.ScriptBase):
                             help="Basename of files to save the parameters, spec1d, and spec2d")
 
         parser.add_argument("--debug", default=False, action="store_true", help="show debug plots?")
-        parser.add_argument('-v', '--verbosity', type=int, default=1,
-                            help='Verbosity level between 0 [none] and 2 [all]. Default: 1. '
-                                 'Level 2 writes a log with filename coadd_2dspec_YYYYMMDD-HHMM.log')
-        #parser.add_argument("--wave_method", type=str, default=None,
-        #                    help="Wavelength method for wavelength grid. If not set, code will "
-        #                         "use linear for Multislit and log10 for Echelle")
-        #parser.add_argument("--std", default=False, action="store_true",
-        #                    help="This is a standard star reduction.")
 
         return parser
 
-    @staticmethod
-    def main(args):
-        """ Executes 2d coadding
+    @classmethod
+    def main(cls, args):
+        """
+        Executes 2d coadding
         """
 
         from pathlib import Path
-        import os
-        import glob
         import copy
         from collections import OrderedDict
 
@@ -64,8 +55,8 @@ class CoAdd2DSpec(scriptbase.ScriptBase):
         from pypeit import spec2dobj
         from pypeit.spectrographs.util import load_spectrograph
 
-        # Set the verbosity, and create a logfile if verbosity == 2
-#        log.set_logfile_and_verbosity('coadd_2dspec', args.verbosity)
+        # Initialize the log
+        cls.init_log(args)
 
         # Load the file
         coadd2dFile = inputfiles.Coadd2DFile.from_file(args.coadd2d_file)

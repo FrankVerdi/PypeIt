@@ -178,8 +178,10 @@ class ChkNoise2D(scriptbase.ScriptBase):
 
 
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
+        # Initialize the log
+        cls.init_log(args)
 
         chk_version = not args.try_old
 

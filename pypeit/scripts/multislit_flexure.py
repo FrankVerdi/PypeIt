@@ -45,10 +45,13 @@ class MultiSlitFlexure(scriptbase.ScriptBase):
                             action="store_true", help="show debug plots?")
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
 
         from astropy.io import fits
+
+        # Initialize the log
+        cls.init_log(args)
 
         # Load the file
         flexFile = inputfiles.FlexureFile.from_file(args.flex_file)

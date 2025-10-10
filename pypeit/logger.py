@@ -4,7 +4,6 @@ PypeIt logging
 Implementation heavily references loggers from astropy and sdsstools.
 """
 
-import traceback
 import copy
 import inspect
 import io
@@ -12,11 +11,11 @@ import logging
 from pathlib import Path
 import re
 import sys
+import traceback
 from typing import Optional, List
+import warnings
 
 from IPython import embed
-
-import warnings
 
 # TODO: Can we put this *inside* the logger?
 def short_warning(message, category, filename, lineno, file=None, line=None):
@@ -155,8 +154,6 @@ class PypeItLogger(logging.Logger):
 
     def init(self,
         level: int = logging.INFO,
-        capture_exceptions: bool = True,
-        capture_warnings: bool = True,
         stream: Optional[io.TextIOBase] = None,
         log_file: Optional[str | Path] = None,
         log_file_level: Optional[int] = None,
@@ -168,11 +165,6 @@ class PypeItLogger(logging.Logger):
         ----------
         level
             The logging level printed to the console
-        capture_exceptions
-            Override the exception hook and redirect all exceptions to the
-            logging system.
-        capture_warnings
-            Capture warnings and redirect them to the log.
         stream
             Stream for logging messages, which defaults to sys.stderr.
         log_file
@@ -183,6 +175,13 @@ class PypeItLogger(logging.Logger):
             The logging level specific to the log file.  If None, adopt the
             console logging level.
         """
+        # NOTE: I originally included these as options in the class.  I've
+        # removed them for now (i.e., we'll always catch warnings and
+        # exceptions), but I've left the if statements in place below in case we
+        # want to make these things options in the future.
+        capture_exceptions = True
+        capture_warnings = True
+
         # NOTE: Because of how get_logger works, this makes warnings_logger an
         # instance of PypeItLogger.
         self.warnings_logger = logging.getLogger("py.warnings")
@@ -317,10 +316,10 @@ class PypeItLogger(logging.Logger):
             sinfo=sinfo
         )
 
+# NOTE: If we allow warning and exception capture to be optional, remember to
+# add them as parameters here as well.
 def get_logger(
     level: int = logging.INFO,
-    capture_exceptions: bool = True,
-    capture_warnings: bool = True,
     stream: Optional[io.TextIOBase] = None,
     log_file: Optional[str | Path] = None,
     log_file_level: Optional[int] = None,
@@ -332,11 +331,6 @@ def get_logger(
     ----------
     level
         The logging level printed to the console
-    capture_exceptions
-        Override the exception hook and redirect all exceptions to the
-        logging system.
-    capture_warnings
-        Capture warnings and redirect them to the log.
     stream
         Stream for logging messages, which defaults to sys.stderr.
     log_file
@@ -355,8 +349,6 @@ def get_logger(
         log = logging.getLogger("pypeit")
         log.init(
             level=level,
-            capture_exceptions=capture_exceptions,
-            capture_warnings=capture_warnings,
             stream=stream,
             log_file=log_file,
             log_file_level=log_file_level

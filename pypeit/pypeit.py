@@ -53,20 +53,10 @@ class PypeIt:
     Args:
         pypeit_file (:obj:`str`):
             PypeIt filename.
-        verbosity (:obj:`int`, optional):
-            Verbosity level of system output.  Can be:
-
-                - 0: No output
-                - 1: Minimal output (default)
-                - 2: All output
-
         overwrite (:obj:`bool`, optional):
             Flag to overwrite any existing files/directories.
         reuse_calibs (:obj:`bool`, optional):
             Reuse any pre-existing calibration files
-        logname (:obj:`str`, optional):
-            The name of an ascii log file with the details of the
-            reduction.
         show: (:obj:`bool`, optional):
             Show reduction steps via plots (which will block further
             execution until clicked on) and outputs to ginga. Requires
@@ -84,15 +74,13 @@ class PypeIt:
         fitstbl (:obj:`pypeit.metadata.PypeItMetaData`): holds the meta info
 
     """
-    def __init__(self, pypeit_file, verbosity=2, overwrite=True, reuse_calibs=False, logname=None,
-                 show=False, redux_path=None, calib_only=False):
+    def __init__(
+        self, pypeit_file, overwrite=True, reuse_calibs=False, show=False, redux_path=None,
+        calib_only=False
+    ):
 
         # Set up logging
-        self.logname = logname
-        self.verbosity = verbosity
         self.pypeit_file = pypeit_file
-        
-        log.init(level=log.level, log_file=self.logname)
         
         # Load up PypeIt file
         self.pypeItFile = inputfiles.PypeItFile.from_file(pypeit_file)

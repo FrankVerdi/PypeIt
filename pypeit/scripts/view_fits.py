@@ -45,8 +45,8 @@ class ViewFits(scriptbase.ScriptBase):
                             help='Upon completion embed in ipython shell')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
 
         from pypeit import log
         from pypeit import PypeItError
@@ -61,8 +61,8 @@ class ViewFits(scriptbase.ScriptBase):
             print(hdu.info())
             return
 
-        # TODO: Update verbosity
-        log.init(level=log.level)
+        # Initialize the log
+        cls.init_log(args)
 
         if args.proc and args.exten is not None:
             raise PypeItError('You cannot specify --proc and --exten, since --exten shows the raw image')

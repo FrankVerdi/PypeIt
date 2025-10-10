@@ -68,8 +68,8 @@ class FluxSetup(scriptbase.ScriptBase):
                                  '\n')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
         """
         This setups PypeIt input files for fluxing, coadding, and telluric
         corrections.  It will produce three files named as
@@ -77,6 +77,9 @@ class FluxSetup(scriptbase.ScriptBase):
         spectrograph name but can be overriden on the command line.
 
         """
+        # Initialize the log
+        cls.init_log(args)
+
         allfiles = []
         for path in args.paths:
             allfiles += Path(path).iterdir()

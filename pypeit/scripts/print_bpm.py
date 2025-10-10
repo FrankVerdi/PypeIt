@@ -43,8 +43,11 @@ class PrintBPM(scriptbase.ScriptBase):
                                  'value is acceptable.  Default is 1.')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
+
+        # Initialize the log
+        cls.init_log(args)
 
         # Convert the integer bitmask value to a list of binary numbers
         binvals = [int(x) for x in bin(args.bit)[2:]][::-1]

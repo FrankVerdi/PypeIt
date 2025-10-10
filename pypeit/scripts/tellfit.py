@@ -15,7 +15,8 @@ class TellFit(scriptbase.ScriptBase):
     def get_parser(cls, width=None):
         par = TelluricPar()
         parser = super().get_parser(description='Telluric correct a spectrum',
-                                    width=width, formatter=scriptbase.SmartFormatter)
+                                    width=width, formatter=scriptbase.SmartFormatter,
+                                    default_log_file=True)
         parser.add_argument("spec1dfile", type=str,
                             help="spec1d or coadd file that will be used for telluric correction.")
         parser.add_argument("--objmodel", type=str, default=None,
@@ -52,17 +53,14 @@ class TellFit(scriptbase.ScriptBase):
                             help="Show the telluric corrected spectrum")
         parser.add_argument("--par_outfile", default='telluric.par',
                             help="Name of output file to save the parameters used by the fit")
-        parser.add_argument('-v', '--verbosity', type=int, default=1,
-                            help='Verbosity level between 0 [none] and 2 [all]. Default: 1. '
-                                 'Level 2 writes a log with filename tellfit_YYYYMMDD-HHMM.log')
         parser.add_argument('--chk_version', default=False, action='store_true',
                             help='Ensure the datamodels are from the current PypeIt version. '
                                  'By default (consistent with previous functionality) this is '
                                  'not enforced and crashes may ensue ...')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
         """
         Executes telluric correction.
         """
@@ -79,8 +77,8 @@ class TellFit(scriptbase.ScriptBase):
         from pypeit.core import telluric
         from pypeit import inputfiles
 
-        # Set the verbosity, and create a logfile if verbosity == 2
-#        log.set_logfile_and_verbosity('tellfit', args.verbosity)
+        # Initialize the log
+        cls.init_log(args)
 
         # Determine the spectrograph
         header = fits.getheader(args.spec1dfile)

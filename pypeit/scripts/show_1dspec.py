@@ -34,8 +34,8 @@ class Show1DSpec(scriptbase.ScriptBase):
                             help='Open the spectrum in ginga')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
         """ Runs the XSpecGui on an input file
         """
         import sys
@@ -48,6 +48,9 @@ class Show1DSpec(scriptbase.ScriptBase):
         from pypeit import specobjs
         from pypeit import log
         from pypeit import PypeItError
+
+        # Initialize the log
+        cls.init_log(args)
 
         sobjs = specobjs.SpecObjs.from_fitsfile(args.file, chk_version=False)
 

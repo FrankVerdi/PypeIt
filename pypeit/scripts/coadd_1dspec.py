@@ -59,8 +59,10 @@ class CoAdd1DSpec(scriptbase.ScriptBase):
 
     @classmethod
     def get_parser(cls, width=None):
-        parser = super().get_parser(description='Coadd 1D spectra produced by PypeIt',
-                                    width=width, formatter=scriptbase.SmartFormatter)
+        parser = super().get_parser(
+            description='Coadd 1D spectra produced by PypeIt', width=width,
+            formatter=scriptbase.SmartFormatter, default_log_file=True
+        )
 
         parser.add_argument('coadd1d_file', type=str,
                             help="R|File to guide coadding process.\n\n"
@@ -141,18 +143,15 @@ class CoAdd1DSpec(scriptbase.ScriptBase):
                             help="show QA during coadding process")
         parser.add_argument("--par_outfile", default='coadd1d.par',
                             help="Output to save the parameters")
-        parser.add_argument('-v', '--verbosity', type=int, default=1,
-                            help='Verbosity level between 0 [none] and 2 [all]. Default: 1. '
-                                 'Level 2 writes a log with filename coadd_1dspec_YYYYMMDD-HHMM.log')
-        #parser.add_argument("--test_spec_path", type=str, help="Path for testing")
         return parser
 
-    @staticmethod
-    def main(args):
-        """ Runs the 1d coadding steps
+    @classmethod
+    def main(cls, args):
         """
-        # Set the verbosity, and create a logfile if verbosity == 2
-#        log.set_logfile_and_verbosity('coadd_1dspec', args.verbosity)
+        Runs the 1d coadding steps
+        """
+        # Initialize the log
+        cls.init_log(args)
 
         # Load the file
         #config_lines, spec1dfiles, objids = read_coaddfile(args.coadd1d_file)

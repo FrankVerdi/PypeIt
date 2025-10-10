@@ -8,12 +8,15 @@ from pypeit.scripts import scriptbase
 
 class ChkPlugins(scriptbase.ScriptBase):
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
 
         from pypeit.display import required_plugins, plugins_available
         from pypeit import log
         from pypeit import PypeItError
+
+        # Initialize the log
+        cls.init_log(args)
 
         success, report = plugins_available(return_report=True)
         if not success:

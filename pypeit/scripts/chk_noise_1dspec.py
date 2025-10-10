@@ -173,8 +173,10 @@ class ChkNoise1D(scriptbase.ScriptBase):
 
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
+        # Initialize the log
+        cls.init_log(args)
 
         chk_version = not args.try_old
 

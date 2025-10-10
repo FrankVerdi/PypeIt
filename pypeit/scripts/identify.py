@@ -13,8 +13,11 @@ class Identify(scriptbase.ScriptBase):
 
     @classmethod
     def get_parser(cls, width=None):
-        parser = super().get_parser(description='Launch PypeIt pypeit_identify tool, display extracted '
-                                                'Arc, and load linelist.', width=width)
+        parser = super().get_parser(
+            description='Launch PypeIt pypeit_identify tool, display extracted Arc, and load '
+                        'linelist.',
+            width=width, default_log_file=True
+        )
         parser.add_argument('arc_file', type=str, default=None, help='PypeIt Arc file')
         parser.add_argument('slits_file', type=str, default=None, help='PypeIt Slits file')
         parser.add_argument("--lamps", type=str,
@@ -45,15 +48,12 @@ class Identify(scriptbase.ScriptBase):
                             help="Save the solutions, despite the RMS")
         parser.add_argument('--rescale_resid', default=False, action='store_true',
                             help="Rescale the residual plot to include all points?")
-        parser.add_argument('-v', '--verbosity', type=int, default=1,
-                            help='Verbosity level between 0 [none] and 2 [all]. Default: 1. '
-                                 'Level 2 writes a log with filename identify_YYYYMMDD-HHMM.log')
         parser.add_argument('--try_old', default=False, action='store_true',
                             help='Attempt to load old datamodel versions.  A crash may ensue..')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
 
         import os
         import json
@@ -70,11 +70,11 @@ class Identify(scriptbase.ScriptBase):
         from pypeit.core.wavecal import autoid
         from pypeit.utils import jsonify
 
+        # Initialize the log
+        cls.init_log(args)
 
+        # Set whether or not to check datamodel versions
         chk_version = not args.try_old
-
-        # Set the verbosity, and create a logfile if verbosity == 2
-#        log.set_logfile_and_verbosity('identify', args.verbosity)
 
         # Load the Arc file
         msarc = ArcImage.from_file(args.arc_file, chk_version=chk_version)

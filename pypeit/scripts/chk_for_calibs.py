@@ -30,8 +30,8 @@ class ChkForCalibs(scriptbase.ScriptBase):
                             help='If not toggled, remove setup_files/ folder and its files.')
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
         """
 
         Args:
@@ -58,6 +58,9 @@ class ChkForCalibs(scriptbase.ScriptBase):
         from pypeit.par import PypeItPar
 
         import shutil
+
+        # Initialize the log
+        cls.init_log(args)
 
         # Check that the spectrograph is provided if using a file root
         if args.root is not None:
