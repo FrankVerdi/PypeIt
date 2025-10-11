@@ -27,23 +27,23 @@ provide instrument-specific:
 """
 
 from abc import ABCMeta
-import pathlib
+from pathlib import Path
 
-import astropy.io.fits
+from IPython import embed
+
 import numpy as np
+from astropy.io import fits
 
-from pypeit import io
 from pypeit import msgs
-from pypeit.core import meta
+from pypeit import io
 from pypeit.core import parse
 from pypeit.core import procimg
+from pypeit.core import meta
 from pypeit.core import standard
 from pypeit.core.atmextinction import AtmosphericExtinction
 from pypeit.par import pypeitpar
 from pypeit.images.detector_container import DetectorContainer
 from pypeit.images.mosaic import Mosaic
-
-from IPython import embed
 
 
 # TODO: Create an EchelleSpectrograph derived class that holds all of
@@ -319,7 +319,7 @@ class Spectrograph:
                 Input raw fits filename
         """
         if self.allowed_extensions is not None:
-            _filename = pathlib.Path(filename).absolute()
+            _filename = Path(filename).absolute()
             # Perform the extensions check
             if not any([_filename.name.endswith(ext) for ext in self.allowed_extensions]):
                 msgs.error(f'The input file ({_filename.name}) does not have a recognized '
@@ -1402,11 +1402,11 @@ class Spectrograph:
             Value recovered for (each) keyword.  Can be None.
         """
         headarr = None
-        if isinstance(inp, (str, pathlib.Path, astropy.io.fits.HDUList)):
+        if isinstance(inp, (str, Path, fits.HDUList)):
             headarr = self.get_headarr(inp)
         elif inp is None or isinstance(inp, list):
             headarr = inp
-        elif isinstance(inp, astropy.io.fits.Header):
+        elif isinstance(inp, fits.Header):
             headarr = [inp]
         else:
             msgs.error(f'Unrecognized type for input: {type(inp)}')
@@ -1654,7 +1654,7 @@ class Spectrograph:
 
         # Faster to open the whole file and then assign the headers,
         # particularly for gzipped files (e.g., DEIMOS)
-        if isinstance(inp, (str, pathlib.Path)):
+        if isinstance(inp, (str, Path)):
             self._check_extensions(inp)
             try:
                 hdul = io.fits_open(inp)
@@ -1664,7 +1664,7 @@ class Spectrograph:
                 else:
                     msgs.warn(f'Cannot open {inp}.  Proceeding, but consider removing this file!')
                     return None
-        elif isinstance(inp, (list, astropy.io.fits.HDUList)):
+        elif isinstance(inp, (list, fits.HDUList)):
             # TODO: If a list, check that the list elements are HDUs?
             hdul = inp
         else:

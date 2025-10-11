@@ -45,20 +45,24 @@ class CoAdd2DSpec(scriptbase.ScriptBase):
         """ Executes 2d coadding
         """
 
+        from pathlib import Path
+        import os
+        import glob
         import copy
-        import pathlib
+        from collections import OrderedDict
 
-        import astropy.io.fits
+        from IPython import embed
+
         import numpy as np
+
+        from astropy.io import fits
 
         from pypeit import msgs
         from pypeit import coadd2d
         from pypeit import inputfiles
         from pypeit import specobjs
         from pypeit import spec2dobj
-
-        from IPython import embed
-
+        from pypeit.spectrographs.util import load_spectrograph
 
         # Set the verbosity, and create a logfile if verbosity == 2
         msgs.set_logfile_and_verbosity('coadd_2dspec', args.verbosity)
@@ -89,11 +93,11 @@ class CoAdd2DSpec(scriptbase.ScriptBase):
         spec2d_files = coadd2dFile.filenames
 
         # Get the paths
-        coadd_scidir, qa_path = map(lambda x : pathlib.Path(x).absolute(),
+        coadd_scidir, qa_path = map(lambda x : Path(x).absolute(),
                 coadd2d.CoAdd2D.output_paths(spec2d_files, par, coadd_dir=par['rdx']['redux_path']))
 
         # Get the output basename
-        head2d = astropy.io.fits.getheader(spec2d_files[0])
+        head2d = fits.getheader(spec2d_files[0])
         basename = coadd2d.CoAdd2D.default_basename(spec2d_files) \
                         if args.basename is None else args.basename
 
@@ -113,15 +117,16 @@ class CoAdd2DSpec(scriptbase.ScriptBase):
         msgs_string += f"Searching for objects that are {head2d['FINDOBJ']}" + msgs.newline()
         msgs_string += 'Combining frames in 2d coadd:' + msgs.newline()
         for f, file in enumerate(spec2d_files):
-            msgs_string += f'Exp {f}: {pathlib.Path(file).name}' + msgs.newline()
+            msgs_string += f'Exp {f}: {Path(file).name}' + msgs.newline()
         msgs.info(msgs_string)
 
         # Instantiate the sci_dict
         # TODO Why do we need this sci_dict at all?? JFH
-        sci_dict = {}
-        sci_dict['meta'] = {
-            'vel_corr': 0., 'bkg_redux': bkg_redux, 'find_negative': find_negative
-        }
+        sci_dict = OrderedDict()  # This needs to be ordered
+        sci_dict['meta'] = {}
+        sci_dict['meta']['vel_corr'] = 0.
+        sci_dict['meta']['bkg_redux'] = bkg_redux
+        sci_dict['meta']['find_negative'] = find_negative
 
         # Find the detectors to reduce
         detectors = spectrograph.select_detectors(subset=par['rdx']['detnum'] if par['coadd2d']['only_slits'] is None
