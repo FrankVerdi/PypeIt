@@ -447,6 +447,8 @@ def coadd(par, coaddfile, source):
 
     # Instantiate
     spectrograph = load_spectrograph(par['rdx']['spectrograph'])
+    if '.fits' not in spectrograph.allowed_extensions:
+        spectrograph.allowed_extensions.append('.fits')
     coAdd1d = coadd1d.CoAdd1D.get_instance(source.spec1d_file_list,
                                            [x.NAME for x in source.spec_obj_list],
                                            spectrograph=spectrograph, par=par['coadd1d'])
@@ -562,6 +564,8 @@ def build_parameters(args):
 
     # Get the spectrograph for these files and then create a ParSet. 
     spectrograph = load_spectrograph(spec1d_files[0])
+    if '.fits' not in spectrograph.allowed_extensions:
+        spectrograph.allowed_extensions.append('.fits')
     spectrograph_def_par = spectrograph.default_pypeit_par()
 
     if cfg_lines is not None:

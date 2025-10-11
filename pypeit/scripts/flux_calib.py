@@ -86,6 +86,8 @@ class FluxCalib(scriptbase.ScriptBase):
         # Read in spectrograph from spec1dfile header
         header = fits.getheader(fluxFile.filenames[0])
         spectrograph = load_spectrograph(header['PYP_SPEC'])
+        if '.fits' not in spectrograph.allowed_extensions:
+            spectrograph.allowed_extensions.append('.fits')
 
         # Parameters
         spectrograph_def_par = spectrograph.default_pypeit_par()

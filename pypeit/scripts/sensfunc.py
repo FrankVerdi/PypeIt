@@ -143,6 +143,8 @@ class SensFunc(scriptbase.ScriptBase):
         # Determine the spectrograph and generate the primary FITS header
         with io.fits_open(args.spec1dfile) as hdul:
             spectrograph = load_spectrograph(hdul[0].header['PYP_SPEC'])
+            if '.fits' not in spectrograph.allowed_extensions:
+                spectrograph.allowed_extensions.append('.fits')
             spectrograph_config_par = spectrograph.config_specific_par(hdul)
 
             # Construct a primary FITS header that includes the spectrograph's

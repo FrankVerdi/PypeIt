@@ -24,6 +24,8 @@ def match_spec1ds_to_sensfuncs(spectrograph_name, spec1dfiles, sensfiles):
     """
     result_map = {}
     spectrograph = load_spectrograph(spectrograph_name)
+    if '.fits' not in spectrograph.allowed_extensions:
+        spectrograph.allowed_extensions.append('.fits')
 
     # Read configurations of each sensfile
     sens_configs = []
