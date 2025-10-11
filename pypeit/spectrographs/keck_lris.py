@@ -147,7 +147,7 @@ class KeckLRISSpectrograph(spectrograph.Spectrograph):
         # Ignore PCA if longslit
         #  This is a little risky as a user could put long into their maskname
         #  But they would then need to over-ride in their PypeIt file
-        if scifile is None:
+        if inp is None:
             msgs.error("You have not included a standard or science file in your PypeIt file to determine the configuration")
         if 'long' in decker:
             par['calibrations']['slitedges']['sync_predict'] = 'nearest'
