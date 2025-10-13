@@ -28,7 +28,7 @@ def load_spectrograph(
         pypeit_fits (:obj:`bool`, optional):
             The spectrograph loader is being called from a post-processing
             script where the expected input files are PypeIt-written FITS files
-            only.  This has the effect of overriding the :attr:`allowed_extensions``
+            only.  This has the effect of overriding the :attr:`allowed_extensions`
             attribute to be ``[".fits"]``.
 
     Returns:
@@ -50,9 +50,13 @@ def load_spectrograph(
             spec.allowed_extensions = [".fits"]
         return spec
 
+    # The function was provided the name of a spectrograph; return the class
     classes = spectrographs.spectrograph_classes()
     if spec in classes.keys():
-        return classes[spec]()
+        spectrograph = classes[spec]()
+        if pypeit_fits:
+            spectrograph.allowed_extensions = [".fits"]
+        return spectrograph
 
     # Check if we were given a file, and if so try to read the spectrograph type from its header
     if pathlib.Path(spec).is_file():
