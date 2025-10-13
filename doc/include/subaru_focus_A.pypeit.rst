@@ -3,9 +3,12 @@
     # User-defined execution parameters
     [rdx]
         spectrograph = subaru_focas
-    setup read
+    [reduce]
+        [[findobj]]
+            maxnumber_sci = 2
 
     # Setup
+    setup read
     Setup A:
     decker: SCFCSLLC08
     detector: '2'

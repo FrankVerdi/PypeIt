@@ -93,6 +93,11 @@ Inspecting this file, we want to make sure that all the frame types were accurat
 :ref:`here<data_block>`. We can also remove any bad (or undesired) calibration
 or science frames from the list, by either deleting them altogether or commenting them out with a ``#``.
 
+In this case, we have restriced the reduction to 
+find only 2 objects in the science frames. 
+This is done by setting the parameter ``maxnumber_sci`` to 2
+under [reduce][[findobj]] in the :ref:`pypeit_file`.
+
 .. note::
 
     PypeIt has a long list of parameters that can be set by the user to customize the reduction. This
@@ -189,7 +194,7 @@ These are PNG files in the ``QA/PNG/`` folder.
 ::
 
 Here is an example of the 1D fits for one of the slit on the detector,
-written to the ``QA/PNGs/Arc_1dfit_A_0_DET01_S0212.png`` file:
+written to the ``QA/PNGs/Arc_1dfit_A_0_DET01_S0760.png`` file:
 
 .. image:: ../figures/subaru_focas_arc1d.png
 
@@ -230,9 +235,9 @@ Tilts
 
 Wavelength tilts are measured performing a 2D fit to the traced arc lines.
 There are several QA files written for the 2D fits. One example is
-``QA/PNGs/Arc_tilts_2d_A_0_DET01_S0212.png``:
+``QA/PNGs/Arc_tilts_2d_A_0_DET01_S0760.png``:
 
-.. image:: ../figures/lris_arc2d.png
+.. image:: ../figures/focas_arc2d.png
   :scale: 20%
   :align: center
 
@@ -243,20 +248,7 @@ the figure gives the RMS of the 2D wavelength solution, which should be less tha
 
 The 2D fit for the wavelength tilts can also be inspected using the script :ref:`pypeit_chk_tilts`,
 which shows a :ref:`tiltimg` image in a `ginga`_ or `matplotlib`_ window with the
-traced and 2D fitted tilts over-plotted. Here is an example:
-
-.. code-block:: bash
-
-    pypeit_chk_tilts Calibrations/Tilts_A_0_DET01.fits
-
-.. image:: ../figures/lris_tilts.png
-   :scale: 50%
-   :align: center
-
-This shows a zoom-in of a :ref:`tiltimg` image in a `ginga`_ window with overlaid
-the 2D fitted tilts (blue), the masked pixels (red), and the pixels rejected in the 2D fitting (yellow).
-The lines that are not overlaid with any colored tilts are the ones that were not detected for the purpose of the
-performing the 2D fitting.
+traced and 2D fitted tilts over-plotted. 
 
 See :ref:`tilts` for further details.
 
@@ -293,9 +285,9 @@ sources, perform global and local sky subtraction, and perform 1D spectral
 extractions.  This process is fully described here: :ref:`object_finding`.
 
 PypeIt produces QA files that allow you to assess the detection of the objects.
-One example is ``QA\PNGs\r230417_01033-frb22022_LRISr_20230417T082242.672_DET01_S0212_obj_prof.png``:
+One example is ``QA\PNGs\FCSA00216334-SN2019muj_FOCAS_20201121T083826.517_DET01_S0760_obj_prof.png``:
 
-.. image:: ../figures/lris_objfind.png
+.. image:: ../figures/focas_objfind.png
    :scale: 30%
    :align: center
 
@@ -303,7 +295,9 @@ This shows the spatial profile of the object's S/N collapsed along the spectral 
 The dashed red line is the S/N threshold set by the :ref:`findobjpar`, and the green circle
 marks the spatial position of the detected object. This plot is useful to assess if the object
 was correctly detected and if the S/N threshold (``snr_thresh``) set is appropriate for the
-observation. See :ref:`object_finding` for further details.
+observation.  You will note that there were 3 objects rejected because we restricted 
+the code to find only 2 objects in the science frame.
+See :ref:`object_finding` for further details.
 
 Flexure
 -------
@@ -319,12 +313,12 @@ extracted at the location of the science object.
 There are two QA files (two for the ``global`` and two for the ``local`` correction)
 that can be used to assess the flexure correction. Here is an example of two QA files
 for the ``global`` correction, called
-``QA/PNGs/r230417_01033-frb22022_LRISr_20230417T082242.672_global_DET01_S0212_spec_flex_corr.png`` and
-``QA/PNGs/r230417_01033-frb22022_LRISr_20230417T082242.672_global_DET01_S0212_spec_flex_sky.png``:
+``QA/PNGs/FCSA00216334-SN2019muj_FOCAS_20201121T083826.517_global_DET01_S0760_spec_flex_corr.png``
+``QA/PNGs/
 
-.. image:: ../figures/lris_flexure_qa2.png
+.. image:: ../figures/focas_flexure_qa2.png
    :scale: 90%
-.. image:: ../figures/lris_flexure_qa.png
+.. image:: ../figures/focas_flexure_qa.png
    :scale: 90%
 
 The first plot shows the polynomial fit (black line) between the top seven highest cross-correlation values
