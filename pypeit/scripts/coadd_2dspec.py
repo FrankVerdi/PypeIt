@@ -59,20 +59,13 @@ class CoAdd2DSpec(scriptbase.ScriptBase):
         from pypeit import inputfiles
         from pypeit import specobjs
         from pypeit import spec2dobj
-        from pypeit.par import pypeitpar
-        from pypeit.spectrographs.util import load_spectrograph
 
         # Set the verbosity, and create a logfile if verbosity == 2
         msgs.set_logfile_and_verbosity('coadd_2dspec', args.verbosity)
 
-        # Read in the relevant information from the .coadd2d file
+        # Load the file
         coadd2dFile = inputfiles.Coadd2DFile.from_file(args.coadd2d_file)
-        spectrograph = load_spectrograph(coadd2dFile.config['rdx']['spectrograph'], pypeit_fits=True)
-
-        # Parameters
-        spectrograph_def_par = spectrograph.default_pypeit_par()
-        par = pypeitpar.PypeItPar.from_cfg_lines(cfg_lines=spectrograph_def_par.to_config(),
-                                                 merge_with=(coadd2dFile.cfg_lines,))
+        spectrograph, par, _ = coadd2dFile.get_pypeitpar(pypeit_fits=True)
 
         # Check some of the parameters
         # TODO Heliocentric for coadd2d needs to be thought through. Currently turning it off.
