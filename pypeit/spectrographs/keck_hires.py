@@ -300,7 +300,7 @@ class KECKHIRESSpectrograph(spectrograph.Spectrograph):
                 if headarr[0].get('HATOPEN') and headarr[0].get('AUTOSHUT'):
                     return 'Object'
                 elif not headarr[0].get('HATOPEN'):
-                    return 'Bias' if not headarr[0].get('AUTOSHUT') else 'Dark'
+                    return 'Bias' if headarr[0].get('ELAPTIME') == 0 else 'Dark'
             elif xcovopen and collcoveropen and \
                     headarr[0].get('AUTOSHUT') and (headarr[0].get('LAMPCAT1') or headarr[0].get('LAMPCAT2')):
                 return 'Line'
