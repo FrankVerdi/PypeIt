@@ -94,6 +94,7 @@ class KECKHIRESSpectrograph(spectrograph.Spectrograph):
         # or use the overscan for standards but not for science frames
 
         # Set the default exposure time ranges for the frame typing
+        # HIRES cannot write out files with exp time < .5s, .001 for biases is arbitrary   
         par['calibrations']['biasframe']['exprng'] = [None, 0.001]
         #par['calibrations']['darkframe']['exprng'] = [999999, None]     # No dark frames
         par['calibrations']['pinholeframe']['exprng'] = [999999, None]  # No pinhole frames
