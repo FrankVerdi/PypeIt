@@ -1,9 +1,10 @@
 .. code-block:: console
 
     $ pypeit_sensfunc -h
-    usage: pypeit_sensfunc [-h] [--extr {OPT,BOX}] [--algorithm {UVIS,IR}]
-                           [--multi MULTI] [-o OUTFILE] [-s SENS_FILE] [-f]
-                           [--debug] [--par_outfile PAR_OUTFILE] [-v VERBOSITY]
+    usage: pypeit_sensfunc [-h] [-v VERBOSITY] [--log_file LOG_FILE]
+                           [--log_level LOG_LEVEL] [--extr {OPT,BOX}]
+                           [--algorithm {UVIS,IR}] [--multi MULTI] [-o OUTFILE]
+                           [-s SENS_FILE] [-f] [--debug] [--par_outfile PAR_OUTFILE]
                            spec1dfile
     
     Compute a sensitivity function
@@ -15,6 +16,17 @@
     
     options:
       -h, --help            show this help message and exit
+      -v, --verbosity VERBOSITY
+                            Verbosity level, which must be 0, 1, or 2. Level 0
+                            includes warning and error messages, level 1 adds
+                            informational messages, and level 2 adds debugging
+                            messages and the calling sequence.
+      --log_file LOG_FILE   Name for the log file. If set to "default", a default
+                            name is used. If None, a log file is not produced.
+      --log_level LOG_LEVEL
+                            Verbosity level for the log file. If a log file is
+                            produce and this is None, the file log will match the
+                            console stream log.
       --extr {OPT,BOX}      Override the default extraction method used for
                             computing the sensitivity function.  Note that it is not
                             possible to set --extr and simultaneously use a .sens
@@ -90,8 +102,4 @@
       --par_outfile PAR_OUTFILE
                             Name of output file to save the parameters used by the
                             fit
-      -v, --verbosity VERBOSITY
-                            Verbosity level between 0 [none] and 2 [all]. Default:
-                            1. Level 2 writes a log with filename sensfunc_YYYYMMDD-
-                            HHMM.log
     

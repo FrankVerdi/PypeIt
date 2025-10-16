@@ -1,11 +1,12 @@
 .. code-block:: console
 
     $ run_pypeit -h
-    usage: run_pypeit [-h] [-v VERBOSITY] [-r REDUX_PATH] [-m] [-s] [-o] [-c]
+    usage: run_pypeit [-h] [-v VERBOSITY] [--log_file LOG_FILE]
+                      [--log_level LOG_LEVEL] [-r REDUX_PATH] [-m] [-s] [-o] [-c]
                       pypeit_file
     
     PypeIt: The Python Spectroscopic Data Reduction Pipeline
-    Version 1.18.2.dev173+gcdaaa7636
+    Version 1.18.2.dev171+g808a323c9
     
     Available spectrographs include:
         aat_uhrf, apf_levy, bok_bc, gemini_flamingos1, gemini_flamingos2,
@@ -33,7 +34,16 @@
     options:
       -h, --help            show this help message and exit
       -v, --verbosity VERBOSITY
-                            Verbosity level between 0 [none] and 2 [all]
+                            Verbosity level, which must be 0, 1, or 2. Level 0
+                            includes warning and error messages, level 1 adds
+                            informational messages, and level 2 adds debugging
+                            messages and the calling sequence.
+      --log_file LOG_FILE   Name for the log file. If set to "default", a default
+                            name is used. If None, a log file is not produced.
+      --log_level LOG_LEVEL
+                            Verbosity level for the log file. If a log file is
+                            produce and this is None, the file log will match the
+                            console stream log.
       -r, --redux_path REDUX_PATH
                             Path to directory for the reduction. Only advised for
                             testing
