@@ -433,9 +433,9 @@ printed for long-slit observations.**
 
 To inspect the 1D spectrum, we can use the script :ref:`pypeit_show_1dspec`, with a call like this:
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        pypeit_show_1dspec Science/spec1d_FCSA00216334-SN2019muj_FOCAS_20201121T083826.517.fits --ginga
+    pypeit_show_1dspec Science/spec1d_FCSA00216334-SN2019muj_FOCAS_20201121T083826.517.fits --ginga
 
 which plots the spectrum in a tab of the `ginga`_ viewer and allows to select the different extracted spectra using a
 drop down menu, in addition to selecting other properties of the spectrum. Here is one exemple:
@@ -445,9 +445,12 @@ drop down menu, in addition to selecting other properties of the spectrum. Here 
    :align: center
 
 The black line is the flux and the red line is the estimated error. In the `ginga`_ window, the user can
-select the different extracted spectra, the extraction type (``OPT`` or ``BOX`), fluxed or not fluxed spectrum, and
-if showing masked data, by using the drop down menu on the right of the window. Line lists of common spectral features
-can be over-plotted by selecting an option in the ``Line lists``drop down menu and providing a redshift.
+select the different extracted spectra, the extraction type (``OPT`` or ``BOX``), fluxed or not fluxed spectrum, and
+if showing masked data, by using the drop down menu on the right of the window. Common spectral features
+can be over-plotted by selecting an option in the ``Line lists`` drop down menu and providing a redshift.
+
+See :ref:`spec-1d-output` for further details.
+
 
 ..  REMOVE?
     .. code-block:: bash
@@ -474,7 +477,8 @@ can be over-plotted by selecting an option in the ``Line lists``drop down menu a
     flux and the red line is the estimated error. In the window, the user can press ``?`` to open
     a webpage with the `XSpecGUI keystrokes`_ that help you navigate through the spectrum.
 
-See :ref:`spec-1d-output` for further details.
+
+
 
 
 
