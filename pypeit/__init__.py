@@ -5,11 +5,6 @@ The current main purpose of this is to provide package-level globals
 that can be imported by submodules.
 """
 
-# Imports for signal and log handling
-import os
-import sys
-import signal
-
 from .version import version
 
 # Set version
@@ -30,6 +25,9 @@ from pypeit.exceptions import *
 from pypeit import pypeitdata
 dataPaths = pypeitdata.PypeItDataPaths()
 
+## Imports for signal and log handling
+#import sys
+#import signal
 ## Send all signals to messages to be dealt with (i.e. someone hits ctrl+c)
 #def signal_handler(signalnum, handler):
 #    """

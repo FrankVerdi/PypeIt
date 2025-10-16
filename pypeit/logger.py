@@ -315,6 +315,18 @@ class PypeItLogger(logging.Logger):
             self, name, level, pathname, lineno, msg, args, exc_info, func=func, extra=extra,
             sinfo=sinfo
         )
+    
+    def close_file(self):
+        """
+        Explicitly close the log file.
+        """
+        if self.fh is None:
+            return
+        self.fh.close()
+        self.removeHandler(self.fh)
+        if self.fh in self.warnings_logger.handlers:
+            self.warnings_logger.removeHandler(self.fh)
+
 
 # NOTE: If we allow warning and exception capture to be optional, remember to
 # add them as parameters here as well.

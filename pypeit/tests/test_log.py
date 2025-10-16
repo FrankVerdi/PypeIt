@@ -93,7 +93,9 @@ def test_log_file():
     assert len(msg) == len(log_lines), 'Number of lines in file should match stream'
     assert all(['test_log.py:test_log_file' in l for l in log_lines]), \
         'Calling function should be included in all file logs'
-
+    
+    # Close the log so that we can delete the file
+    log.close_file()
     lf.unlink()
 
 
@@ -119,6 +121,8 @@ def test_log_file_info():
     assert not any(['test_log.py:test_log_file_levels' in m for m in msg]), \
         'Calling function should not be in stream messages when using INFO level'
 
+    # Close the log so that we can delete the file
+    log.close_file()
     lf.unlink()
 
 
@@ -141,6 +145,8 @@ def test_log_file_level_diff():
     assert len(msg) == 2 and len(log_lines) == 3, \
         'Log file should include all entries, but stream should skip DEBUG message'
 
+    # Close the log so that we can delete the file
+    log.close_file()
     lf.unlink()
 
 
@@ -161,4 +167,6 @@ def test_log_overwrite():
         log_lines = f.readlines()
     assert len(log_lines) == 1, 'reinitializing the log should overwrite the log file'
 
+    # Close the log so that we can delete the file
+    log.close_file()
     lf.unlink()
