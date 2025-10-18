@@ -91,7 +91,7 @@ Inspecting this file, we want to make sure that all the frame types were accurat
 :ref:`here<data_block>`. We can also remove any bad (or undesired) calibration
 or science frames from the list, by either deleting them altogether or commenting them out with a ``#``.
 
-In this case, we have restriced the reduction to 
+In this case, we have restricted the reduction to 
 find only 2 objects in the science frames. 
 This is done by setting the parameter ``maxnumber_sci`` to 2
 under [reduce][[findobj]] in the :ref:`pypeit_file`.
@@ -450,32 +450,6 @@ if showing masked data, by using the drop down menu on the right of the window. 
 can be over-plotted by selecting an option in the ``Line lists`` drop down menu and providing a redshift.
 
 See :ref:`spec-1d-output` for further details.
-
-
-..  REMOVE?
-    .. code-block:: bash
-
-        pypeit_show_1dspec Science/spec1d_FCSA00216334-SN2019muj_FOCAS_20201121T083826.517.fits --exten 1
-
-    Since ``spec1d*.fits`` is a multi-extension FITS file that contains all the 1D extracted spectra
-    (one per each extension), we need to specify which 1D spectrum (i.e., extension) we want to inspect
-    by passing ``--exten 1`` to the call.  This selects the supernova spectrum.
-    To help decide which 1D spectrum to visualize,
-    we can run beforehand the following:
-
-    .. code-block:: bash
-
-        pypeit_show_1dspec Science/spec1d_FCSA00216334-SN2019muj_FOCAS_20201121T083826.517.fits  --list
-
-    which lists all the extensions with the associated 1D spectrum PypeIt name and a few other information.
-
-    This is a screenshot from the GUI showing the 1D spectrum:
-
-    .. image:: ../figures/focas_spec1d.png
-
-    This uses the `XSpecGUI`_ from the `linetools`_ package.  The black line is the
-    flux and the red line is the estimated error. In the window, the user can press ``?`` to open
-    a webpage with the `XSpecGUI keystrokes`_ that help you navigate through the spectrum.
 
 
 
