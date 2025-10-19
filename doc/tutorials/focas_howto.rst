@@ -452,7 +452,49 @@ can be over-plotted by selecting an option in the ``Line lists`` drop down menu 
 See :ref:`spec-1d-output` for further details.
 
 
+Noise
+-----
+
+Another important QA is to inspect the noise properties of the 
+reduced 1D and 2D spectra.
+
+2D 
+++
+
+Use the script :ref:`pypeit_chk_noise_2dspec` to inspect the
+noise properties of the 2D spectra:
+
+.. code-block:: bash
+
+    pypeit_chk_noise_2dspec spec2d_FCSA00216334-SN2019muj_FOCAS_20201121T083826.517.fits
 
 
+This launches a GUI on your screen. Here is an example screenshot:
+
+.. figure:: ../figures/focas_noise_2d.png
+   :scale: 60%
+   :align: center
+
+Here, we see the residuals are well centered around zero, and the histogram of
+the S/N values is well matched to the expected Gaussian distribution 
+with unit variance.
+
+1D 
+++
+
+Use the script :ref:`pypeit_chk_noise_1dspec` to inspect the 
+noise properties of the 1D spectra.
 
 
+.. code-block:: bash
+
+    pypeit_chk_noise_1dspec spec1d_FCSA00216334-SN2019muj_FOCAS_20201121T083826.517.fits  --ploterr
+
+This launches a GUI on your screen. Here is an example screenshot:
+
+.. figure:: ../figures/focas_noise_1d.png
+   :scale: 60%
+   :align: center
+
+At present, the noise model for Subaru-FOCAS appears to be 
+under-estimated by about 50%.  This needs to be improved.
