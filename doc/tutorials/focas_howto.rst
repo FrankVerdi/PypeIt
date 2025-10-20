@@ -496,5 +496,8 @@ This launches a GUI on your screen. Here is an example screenshot:
    :scale: 60%
    :align: center
 
-At present, the noise model for Subaru-FOCAS appears to be 
-under-estimated by about 50%.  This needs to be improved.
+The plot on the right is showing the distribution of Flux/Noise of 
+the extracted spectrum. In this example there is clearly flux coming 
+from the object that biases the Flux/Noise diagnostic plot. 
+However, this script provides the possibility to select a region in 
+the spectrum without emission to be used for the diagnostic plot.
