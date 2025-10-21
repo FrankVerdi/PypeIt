@@ -76,8 +76,10 @@ def set_qa_filename(root, method, det=None, slit=None, prefix=None, out_dir=None
     elif method == 'plot_orderfits_Blaze':  # This is root for multiple PNGs
         outfile = 'QA/PNGs/Blaze_{:s}_'.format(root)
     elif method == 'obj_trace_qa':
+        print(f"For method {method}, types: root: {type(root)}  det: {type(det)}  slit: {type(slit)}")
         outfile = 'PNGs/{:s}_{:s}_S{:04d}_obj_trace.png'.format(root, det, slit)
     elif method == 'obj_profile_qa':
+        print(f"For method {method}, types: root: {type(root)}  det: {type(det)}  slit: {type(slit)}")
         outfile = 'PNGs/{:s}_{:s}_S{:04d}_obj_prof.png'.format(root, det, slit)
     elif method == 'spat_flexure_qa_corr':
         outfile = 'QA/PNGs/{:s}_spat_flex_corr.png'.format(root)
@@ -336,9 +338,8 @@ def html_exp_pngs(exp_name, det):
                                   href='flex_sky', label='Flexure Sky')
 
     # Generate HTML
-    from pypeit import msgs
-    for key in ['prof', 'trace', 'flex_corr', 'flex_sky']:
-        msgs.test(f"{key} {exp_name} {html_dict[key]['fname']} {det} {9999}")
+    for key in ['trace', 'prof', 'flex_corr', 'flex_sky']:
+        print(f"**TEST**: {key} {exp_name} {html_dict[key]['fname']} {det} {9999}")
         png_root = set_qa_filename(exp_name, html_dict[key]['fname'], det=det, slit=9999)
         if html_dict[key]['slit']:  # Kludge to handle multiple slits
             png_root = png_root.replace('S9999', 'S*')

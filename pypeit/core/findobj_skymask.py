@@ -1498,7 +1498,7 @@ def objtrace_QA(trace_fit, traceset, cen, msk, trace_cen, trace_bpm, idx:list=No
         axis.plot(trace_coo[i,:], _trace_cen[:,i], color='C2', linewidth=1.5,
                     linestyle='--', label='Input Trace Data')
 
-        # *** Plot all input trace locations as a line
+        # *** Plot all output fit trace locations as a line
         axis.plot(trace_coo[i,:], trace_fit[:,i], color='r', linewidth=2.0,
                     linestyle='--', label='Fit')
 
@@ -2033,7 +2033,7 @@ def objs_in_slit(image, ivar, thismask, slit_left, slit_righ,
                                  trace_bpm=np.invert(trc_inmask), fwhm=fwhm, maxdev=maxdev,
                                  idx=sobjs.NAME, debug=show_fits)[0]
         xinit_gweight = np.copy(xfit_fweight)
-        xfit_gweight, cen, err, msk, traceset = fit_trace(image, xinit_gweight, ncoeff, bpm=np.invert(inmask), maxshift=maxshift, niter=numiterfit,
+        xfit_gweight, cen, _, msk, traceset = fit_trace(image, xinit_gweight, ncoeff, bpm=np.invert(inmask), maxshift=maxshift, niter=numiterfit,
                                  trace_bpm=np.invert(trc_inmask), fwhm=fwhm, maxdev=maxdev,
                                  weighting='gaussian', idx=sobjs.NAME, debug=show_fits)
 
@@ -2045,7 +2045,8 @@ def objs_in_slit(image, ivar, thismask, slit_left, slit_righ,
             sobjs[iobj].set_name()
 
         # TODO: Create a QA plot for the object traces based on plots in ``fit_trace``
-        objtrace_QA(xfit_gweight, traceset, cen, msk, xinit_fweight, np.invert(trc_inmask), idx=sobjs.NAME,objtraceQA_filename=objfindQA_filename.replace("prof","trace"))
+        objtrace_QA(xfit_gweight, traceset, cen, msk, xinit_fweight, np.invert(trc_inmask),
+                    idx=sobjs.NAME,objtraceQA_filename=objfindQA_filename.replace("prof","trace"))
 
     # Now deal with the hand apertures if a hand_extract_dict was passed in. Add these to the SpecObj objects
     if hand_extract_dict is not None:

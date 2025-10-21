@@ -4357,7 +4357,8 @@ class FindObjPar(ParSet):
 
         defaults['find_maxshift'] = 1.0
         dtypes['find_maxshift'] = [int, float]
-        descr['find_maxshift'] = 'Maximum shift allowed between the input and recalculated centroid in trace fitting'
+        descr['find_maxshift'] = 'Maximum shift allowed between the input and recalculated centroid in trace fitting.  This parameter may be increased to ' \
+                                 'allow the fiter to follow curved traces (*e.g.*, for wide spectral ranges at high airmass).'
 
         defaults['find_maxdev'] = 2.0
         dtypes['find_maxdev'] = [int, float]
