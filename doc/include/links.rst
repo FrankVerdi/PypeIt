@@ -128,7 +128,7 @@
 .. _pip: https://pip.pypa.io/en/stable/
 .. _anaconda: https://www.anaconda.com/products/individual
 .. _conda: https://docs.conda.io/projects/conda/en/latest/index.html
-.. _virtualenv: https://virtualenv.pypa.io/en/latest/
+.. _venv: https://docs.python.org/3/library/venv.html
 .. _pdb: https://docs.python.org/3/library/pdb.html
 .. _IPython.embed: https://ipython.readthedocs.io/en/stable/api/generated/IPython.terminal.embed.html#function
 .. _pytest: https://docs.pytest.org/en/latest/
@@ -136,7 +136,7 @@
 .. _scikit-image: https://scikit-image.org/
 .. _bottleneck: https://bottleneck.readthedocs.io/en/latest/
 .. _specutils: https://specutils.readthedocs.io/en/stable/
-.. _specutils.Spectrum1D: https://specutils.readthedocs.io/en/stable/api/specutils.Spectrum1D.html
+.. _specutils.Spectrum: https://specutils.readthedocs.io/en/stable/api/specutils.Spectrum.html
 .. _specutils.SpectrumList: https://specutils.readthedocs.io/en/stable/api/specutils.SpectrumList.html
 .. _jdaviz: https://jdaviz.readthedocs.io/en/latest/
 .. _jupyter notebook: https://jupyter.org/
@@ -155,6 +155,8 @@
 .. _Submit an issue: https://github.com/pypeit/PypeIt/issues
 .. _PypeIt dev-suite Google Drive: https://drive.google.com/drive/folders/1oh19siB1-F0jjmY-F_jr73eA-TQYEiFW?usp=sharing
 .. _pypeit.data.filters: https://github.com/pypeit/PypeIt/tree/release/pypeit/data/filters
+.. the invite link below needs to be changed here and in README.rst
+.. _invite: https://join.slack.com/t/pypeit-users/shared_invite/zt-36uxx7isk-pY19si5JzFW4wA7gOaYBBA
 
 .. emails
 .. _Joe Hennawi: joe@physics.ucsb.edu
