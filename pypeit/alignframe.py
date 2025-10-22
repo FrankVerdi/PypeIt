@@ -316,8 +316,7 @@ def show_alignment(alignframe, align_traces=None, slits=None, clear=False):
                 if slt%2 == 0:
                     color = 'magenta'
                 # Display the trace
-                display.show_trace(viewer, channel, align_traces[:, bar, slt], trc_name="",
-                                   color=color)
+                display.show_trace(viewer, channel, align_traces[:, bar, slt], color=color)
 
 
 class AlignmentSplines:
@@ -398,7 +397,7 @@ class AlignmentSplines:
             xcoord = np.arange(np.floor(np.min(xlr)), np.ceil(np.max(xlr))+1, 1.0)
             out_transform = np.zeros((self.nspec, xcoord.size))
             for sp in range(self.nspec):
-                out_transform[sp,:] = (self.spl_loc[sl][sp](xcoord) - 0.5) * self.spl_slen[sl](sp)
+                out_transform[sp,:] = self.spl_loc[sl][sp](xcoord) * self.spl_slen[sl](sp)
             self.spl_transform[sl] = RegularGridInterpolator((ycoord, xcoord), out_transform, method='linear',
                                                              bounds_error=False, fill_value=None) # This will extrapolate
             # TODO :: Remove these notes...

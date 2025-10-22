@@ -22,9 +22,10 @@ class CombineImage:
     Process and combine detector images. 
 
     Args:
-        rawImages (:obj:`list`, :class:`~pypeit.images.pypeitimage.PypeItImage):  
-            Either a single :class:`~pypeit.images.pypeitimage.PypeItImage` object or a list of one or more 
-            of these objects to be combined into a an image.
+        rawImages (:obj:`list`, :class:`~pypeit.images.pypeitimage.PypeItImage`):
+            Either a single :class:`~pypeit.images.pypeitimage.PypeItImage`
+            object or a list of one or more of these objects to be combined into
+            an image.
         par (:class:`~pypeit.par.pypeitpar.ProcessImagesPar`):
             Parameters that dictate the processing of the images.
 
@@ -36,7 +37,6 @@ class CombineImage:
         rawImages (:obj:`list`):
             A list of one or more :class:`~pypeit.images.rawimage.RawImage` objects 
             to be combined.             
-
     """
     def __init__(self, rawImages, par):
         if not isinstance(par, pypeitpar.ProcessImagesPar):
@@ -160,9 +160,12 @@ class CombineImage:
                 basev_stack = np.zeros(shape, dtype=float)
                 gpm_stack = np.zeros(shape, dtype=bool)
                 exptime = np.zeros(self.nimgs, dtype=float)
+                spat_flex = np.zeros(self.nimgs, dtype=float)
 
             # Save the exposure time to check if it's consistent for all images.
             exptime[kk] = rawImage.exptime
+            # Save the spatial flexure to check if it's consistent for all images and propagate it to the combined image
+            spat_flex[kk] = rawImage.spat_flexure
             # Processed image
             img_stack[kk] = rawImage.image
             # Get the count scaling
@@ -193,6 +196,46 @@ class CombineImage:
             comb_texp = np.mean(exptime)
         else:
             comb_texp = exptime[0]
+
+        # Check that all spatial flexure values are consistent
+        comb_spat_flex = None
+        # remove nan (None) values. Since spat_flex is a float array,
+        # if rawImage.spat_flexure is None, it will be converted to nan
+        no_nan = np.logical_not(np.isnan(spat_flex))
+        if np.sum(no_nan) > 0:
+            if np.any(np.absolute(np.diff(spat_flex[no_nan])) > 0.1):
+                msgs.warn(f'Spatial flexure is not consistent for all images being combined: {spat_flex}.')
+                comb_spat_flex = np.round(np.mean(spat_flex[no_nan]),3)
+                msgs.warn(f'Using the average: {comb_spat_flex}.')
+            else:
+                comb_spat_flex = spat_flex[no_nan][0]
+
+        # scale the images to their mean, if requested, before combining
+        if self.par['scale_to_mean']:
+            msgs.info("Scaling images to have the same mean before combining")
+            # calculate the mean of the images
+            [mean_img], _, mean_gpm, _ = combine.weighted_combine(np.ones(self.nimgs, dtype=float)/self.nimgs,
+                                                                  [img_stack],
+                                                                  [rn2img_stack],
+                                                                  # var_list is added because it is
+                                                                  # required by the function but not used
+                                                                  gpm_stack, sigma_clip=self.par['clip'],
+                                                                  sigma_clip_stack=img_stack,
+                                                                  sigrej=self.par['comb_sigrej'], maxiters=maxiters)
+
+            # scale factor
+            # TODO: Chose the median over the whole frame to avoid outliers.  Is this the right choice?
+            _mscale = np.nanmedian(mean_img[None, mean_gpm]/img_stack[:, mean_gpm], axis=1)
+            # reshape the scale factor
+            mscale = _mscale[:, None, None]
+            # scale the images
+            img_stack *= mscale
+            # scale the scales
+            scl_stack *= mscale
+
+            # scale the variances
+            rn2img_stack *= mscale**2
+            basev_stack *= mscale**2
 
         # Coadd them
         if self.par['combine'] == 'mean':
@@ -247,6 +290,7 @@ class CombineImage:
                                        # NOTE: The detector is needed here so
                                        # that we can get the dark current later.
                                        detector=rawImage.detector,
+                                       spat_flexure=comb_spat_flex,
                                        PYP_SPEC=rawImage.PYP_SPEC,
                                        units='e-' if self.par['apply_gain'] else 'ADU',
                                        exptime=comb_texp, noise_floor=self.par['noise_floor'],

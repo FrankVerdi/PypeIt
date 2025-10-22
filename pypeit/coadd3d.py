@@ -242,7 +242,8 @@ class DataCube(datamodel.DataContainer):
         sobjs = datacube.extract_point_source(self.wave, self.flux.T, self.ivar.T, self.bpm.T, self._wcs,
                                               exptime=exptime, pypeline=self.spectrograph.pypeline,
                                               fluxed=self.fluxed, boxcar_radius=boxcar_radius,
-                                              optfwhm=fwhm, whitelight_range=parset['cube']['whitelight_range'])
+                                              optfwhm=fwhm, min_frac_use=parset['extraction']['min_frac_prof'],
+                                              whitelight_range=parset['cube']['whitelight_range'])
 
         # Save the extracted spectrum
         spec1d_filename = 'spec1d_' + self.filename if outname is None else outname
@@ -261,7 +262,7 @@ class DARcorrection:
             parangle (:obj:`float`):
                 The parallactic angle of the observations (units=radians, relative to North, towards East is postive)
             pressure (:obj:`float`):
-                The atmospheric pressure during the observations in Pascal. Valid range is from 10kPa - 140 kPa.
+                The atmospheric pressure during the observations in mbar. Valid range is from 100 mbar - 1400 mbar.
             temperature (:obj:`float`):
                 Temperature in degree Celsius. Valid temperate range is -40 to
                 100 degree Celsius.
@@ -1116,11 +1117,11 @@ class SlicerIFUCoAdd3D(CoAdd3D):
             dwav_ext = dwaveimg[onslit_gpm]
 
             # For now, work in sorted wavelengths
-            wvsrt = np.argsort(wave_ext)
+            wvsrt = np.argsort(wave_ext, kind='stable')
             wave_sort = wave_ext[wvsrt]
             dwav_sort = dwav_ext[wvsrt]
             # Here's an array to get back to the original ordering
-            resrt = np.argsort(wvsrt)
+            resrt = np.argsort(wvsrt, kind='stable')
 
             # Compute the DAR correction
             cosdec = np.cos(self.ifu_dec[ff] * np.pi / 180.0)

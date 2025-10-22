@@ -15,7 +15,6 @@ from abc import ABCMeta
 
 from pypeit import specobjs
 from pypeit import msgs, utils
-from pypeit import flatfield
 from pypeit.display import display
 from pypeit.core import skysub, qa, parse, flat, flexure
 from pypeit.core import procimg
@@ -326,8 +325,13 @@ class FindObjects:
 
         Parameters
         ----------
-        std_trace : `numpy.ndarray`_, optional
-            Trace of the standard star
+        std_trace : `astropy.table.Table`_, optional
+            Table with the trace of the standard star on the input detector,
+            which is used as a crutch for tracing. For MultiSlit reduction,
+            the table has a single column: `TRACE_SPAT`.
+            For Echelle reduction, the table has two columns: `ECH_ORDER` and `TRACE_SPAT`.
+            The shape of each row must be (nspec,). For SlicerIFU reduction, std_trace is None.
+            If None, the slit boundaries are used as the crutch.
         show_peaks : :obj:`bool`, optional
             Show peaks in find_objects methods
         show_skysub_fit : :obj:`bool`, optional
@@ -400,11 +404,13 @@ class FindObjects:
             Image to search for objects from. This floating-point image has shape
             (nspec, nspat) where the first dimension (nspec) is
             spectral, and second dimension (nspat) is spatial.
-        std_trace : `numpy.ndarray`_, optional
-            This is a one dimensional float array with shape = (nspec,) containing the standard star
-            trace which is used as a crutch for tracing. If the no
-            standard star is provided the code uses the the slit
-            boundaries as the crutch.
+        std_trace : `astropy.table.Table`_, optional
+            Table with the trace of the standard star on the input detector,
+            which is used as a crutch for tracing. For MultiSlit reduction,
+            the table has a single column: `TRACE_SPAT`.
+            For Echelle reduction, the table has two columns: `ECH_ORDER` and `TRACE_SPAT`.
+            The shape of each row must be (nspec,). For SlicerIFU reduction, std_trace is None.
+            If None, the slit boundaries are used as the crutch.
         show_peaks : :obj:`bool`, optional
             Generate QA showing peaks identified by object finding
         show_fits : :obj:`bool`, optional
@@ -724,11 +730,12 @@ class MultiSlitFindObjects(FindObjects):
             Image to search for objects from. This floating-point image has shape
             (nspec, nspat) where the first dimension (nspec) is
             spectral, and second dimension (nspat) is spatial.
-        std_trace : `numpy.ndarray`_, optional
-            This is a one dimensional float array with shape = (nspec,) containing the standard star
-            trace which is used as a crutch for tracing. If the no
-            standard star is provided the code uses the the slit
-            boundaries as the crutch.
+        std_trace : `astropy.table.Table`_, optional
+            Table with the trace of the standard star on the input detector,
+            which is used as a crutch for tracing. For MultiSlit reduction,
+            the table has a single column: `TRACE_SPAT`.
+            The shape of each row must be (nspec,). If None,
+            the slit boundaries are used as the crutch.
         manual_extract_dict : :obj:`dict`, optional
             Dict guiding the manual extraction
         show_peaks : :obj:`bool`, optional
@@ -792,13 +799,17 @@ class MultiSlitFindObjects(FindObjects):
 
             maxnumber =  self.par['reduce']['findobj']['maxnumber_std'] if self.std_redux \
                 else self.par['reduce']['findobj']['maxnumber_sci']
+            # standard star
+            std_in = std_trace[0]['TRACE_SPAT'] if std_trace is not None else None
+
+            # Find objects
             sobjs_slit = \
                     findobj_skymask.objs_in_slit(image, ivar, thismask,
                                 self.slits_left[:,slit_idx],
                                 self.slits_right[:,slit_idx],
                                 inmask=inmask,
                                 ncoeff=self.par['reduce']['findobj']['trace_npoly'],
-                                std_trace=std_trace,
+                                std_trace=std_in,
                                 snr_thresh=snr_thresh,
                                 hand_extract_dict=manual_extract_dict,
                                 specobj_dict=specobj_dict, show_peaks=show_peaks,
@@ -808,6 +819,7 @@ class MultiSlitFindObjects(FindObjects):
                                 use_user_fwhm=self.par['reduce']['extraction']['use_user_fwhm'],
                                 boxcar_rad=self.par['reduce']['extraction']['boxcar_radius'] / self.get_platescale(),  #pixels
                                 maxdev=self.par['reduce']['findobj']['find_maxdev'],
+                                numiterfit=self.par['reduce']['findobj']['find_numiterfit'],
                                 find_min_max=self.par['reduce']['findobj']['find_min_max'],
                                 extract_maskwidth=self.par['reduce']['skysub']['local_maskwidth'],
                                 qa_title=qa_title, nperslit=maxnumber,
@@ -874,11 +886,12 @@ class EchelleFindObjects(FindObjects):
             Image to search for objects from. This floating-point image has shape
             (nspec, nspat) where the first dimension (nspec) is
             spectral, and second dimension (nspat) is spatial.
-        std_trace : `numpy.ndarray`_, optional
-            This is a one dimensional float array with shape = (nspec,) containing the standard star
-            trace which is used as a crutch for tracing. If the no
-            standard star is provided the code uses the the slit
-            boundaries as the crutch.
+        std_trace : `astropy.table.Table`_, optional
+            Table with the trace of the standard star on the input detector,
+            which is used as a crutch for tracing. For Echelle reduction,
+            the table has two columns: `ECH_ORDER` and `TRACE_SPAT`.
+            The shape of each row must be (nspec,). If None,
+            the slit boundaries are used as the crutch.
         manual_extract_dict : :obj:`dict`, optional
             Dict guiding the manual extraction
         show_peaks : :obj:`bool`, optional
@@ -947,6 +960,7 @@ class EchelleFindObjects(FindObjects):
             use_user_fwhm=self.par['reduce']['extraction']['use_user_fwhm'],
             fof_link = self.par['reduce']['findobj']['fof_link'],
             maxdev=self.par['reduce']['findobj']['find_maxdev'],
+            numiterfit=self.par['reduce']['findobj']['find_numiterfit'],
             nperorder=nperorder,
             max_snr=self.par['reduce']['findobj']['ech_find_max_snr'],
             min_snr=self.par['reduce']['findobj']['ech_find_min_snr'],
@@ -1172,7 +1186,7 @@ class SlicerIFUFindObjects(MultiSlitFindObjects):
             The flexure in pixels
         """
         sl_ref = self.par['calibrations']['flatfield']['slit_illum_ref_idx']
-        box_rad = self.par['reduce']['extraction']['boxcar_radius']
+        box_rad = self.par['reduce']['extraction']['boxcar_radius']/ self.get_platescale()
         trace_spat = 0.5 * (self.slits_left + self.slits_right)
         iwv = np.where(self.wv_calib.spat_ids == self.slits.spat_id[sl_ref])[0][0]
         ref_fwhm_pix = self.wv_calib.wv_fits[iwv].fwhm
