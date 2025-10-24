@@ -3,21 +3,21 @@ Module for LBT/MODS specific methods.
 
 .. include:: ../include/links.rst
 """
-import pathlib
+from pathlib import Path
 
-import astropy.io.fits
-import astropy.table
 import numpy as np
+from astropy.io import fits
+from astropy.table import Table
 
-from pypeit import io
 from pypeit import msgs
 from pypeit import telescopes
 from pypeit import utils
+from pypeit import io
 from pypeit.core import framematch
-from pypeit.core import parse
-from pypeit.images.detector_container import DetectorContainer
 from pypeit.par import parset
 from pypeit.spectrographs import spectrograph
+from pypeit.core import parse
+from pypeit.images.detector_container import DetectorContainer
 
 
 # TODO: FW: test MODS1B and MODS2B
@@ -410,9 +410,9 @@ class LBTMODS1RSpectrograph(LBTMODSSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -579,9 +579,9 @@ class LBTMODS1BSpectrograph(LBTMODSSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -750,9 +750,9 @@ class LBTMODS2RSpectrograph(LBTMODSSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -918,9 +918,9 @@ class LBTMODS2BSpectrograph(LBTMODSSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -1111,9 +1111,9 @@ class LBTMODS1RSpectrographProc(LBTMODSSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -1230,9 +1230,9 @@ class LBTMODS1BSpectrographProc(LBTMODSSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -1362,9 +1362,9 @@ class LBTMODS2RSpectrographProc(LBTMODSSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -1480,9 +1480,9 @@ class LBTMODS2BSpectrographProc(LBTMODSSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.

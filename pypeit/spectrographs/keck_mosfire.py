@@ -4,23 +4,22 @@ Module for Keck/MOSFIRE specific methods.
 .. include:: ../include/links.rst
 """
 import copy
-import os
-import pathlib
+from pathlib import Path
 
-import astropy.io.fits
-import astropy.table
 import numpy as np
+
+from astropy.io import fits
+from astropy.table import Table
 
 from pypeit import msgs
 from pypeit import telescopes
-from pypeit.core import framematch
-from pypeit.core import meta
+from pypeit.core import framematch, meta
+from pypeit import utils
 from pypeit import io
 from pypeit.spectrographs import spectrograph
 from pypeit.images import detector_container
 from pypeit.par import parset
 from pypeit.spectrographs.slitmask import SlitMask
-from pypeit import utils
 
 from IPython import embed
 
@@ -146,13 +145,13 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
 
         """
         mosfire_filter = self.get_meta_value(file, 'filter1')
-        return os.path.join(self.name, mosfire_filter)
+        return str(Path(self.name) / mosfire_filter)
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -776,7 +775,7 @@ class KeckMOSFIRESpectrograph(spectrograph.Spectrograph):
         dither_pattern = []
         dither_id = []
         for ifile, file in enumerate(file_list):
-            hdr = astropy.io.fits.getheader(file, self.primary_hdrext if ext is None else ext)
+            hdr = fits.getheader(file, self.primary_hdrext if ext is None else ext)
             dither_pattern.append(hdr['PATTERN'])
             dither_id.append(hdr['FRAMEID'])
             offset_arcsec[ifile] = hdr['YOFFSET']

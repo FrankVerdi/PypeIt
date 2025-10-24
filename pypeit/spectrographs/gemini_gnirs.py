@@ -3,20 +3,18 @@ Module for Gemini/GNIRS specific methods.
 
 .. include:: ../include/links.rst
 """
-import pathlib
+from pathlib import Path
 
-import astropy.coordinates
-import astropy.io.fits
-import astropy.table
-import astropy.time
-from astropy import units
-import astropy.wcs
 import numpy as np
+from astropy import wcs, units
+from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astropy.table import Table
+from astropy.time import Time
 
 from pypeit import msgs
 from pypeit import telescopes
-from pypeit.core import framematch
-from pypeit.core import parse
+from pypeit.core import framematch, parse
 from pypeit.images import detector_container
 from pypeit.par import parset
 from pypeit.spectrographs import spectrograph
@@ -146,7 +144,7 @@ class GeminiGNIRSSpectrograph(spectrograph.Spectrograph):
                 return None
         elif meta_key == 'obstime':
             try:
-                return astropy.time.Time(headarr[0]['DATE-OBS'] + "T" + headarr[0]['TIME-OBS'])
+                return Time(headarr[0]['DATE-OBS'] + "T" + headarr[0]['TIME-OBS'])
             except KeyError:
                 msgs.warn("Time of observation is not in header")
                 return 0.0
@@ -319,9 +317,9 @@ class GeminiGNIRSSpectrograph(spectrograph.Spectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -464,9 +462,9 @@ class GeminiGNIRSEchelleSpectrograph(GeminiGNIRSSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -683,9 +681,9 @@ class GNIRSIFUSpectrograph(GeminiGNIRSSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -771,7 +769,7 @@ class GNIRSIFUSpectrograph(GeminiGNIRSSpectrograph):
         decval = self.get_meta_value([hdr], 'dec')
 
         # Create a coordinate
-        coord = astropy.coordinates.SkyCoord(raval, decval, unit=(units.deg, units.deg))
+        coord = SkyCoord(raval, decval, unit=(units.deg, units.deg))
 
         # Get rotator position
         msgs.warn("CURRENTLY A HACK --- NEED TO FIGURE OUT RPOS and RREF FOR HRIFU FROM HEADER INFO")
@@ -818,7 +816,7 @@ class GNIRSIFUSpectrograph(GeminiGNIRSSpectrograph):
 
         # Create a new WCS object.
         msgs.info("Generating GNIRS IFU WCS")
-        w = astropy.wcs.WCS(naxis=3)
+        w = wcs.WCS(naxis=3)
         w.wcs.equinox = hdr['EQUINOX']
         w.wcs.name = 'GNIRS IFU'
         w.wcs.radesys = 'FK5'

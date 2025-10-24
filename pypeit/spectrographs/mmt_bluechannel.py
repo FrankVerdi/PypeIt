@@ -3,12 +3,12 @@ Module for MMT/Blue Channel specific methods.
 
 .. include:: ../include/links.rst
 """
-import pathlib
+from pathlib import Path
 
-import astropy.io.fits
-import astropy.table
-import astropy.time
 import numpy as np
+from astropy.io import fits
+from astropy.table import Table
+from astropy.time import Time
 
 from pypeit import msgs
 from pypeit import telescopes
@@ -166,7 +166,7 @@ class MMTBlueChannelSpectrograph(spectrograph.Spectrograph):
             """
             date = headarr[0]['DATE-OBS']
             ut = headarr[0]['UT']
-            ttime = astropy.time.Time(f"{date}T{ut}", format='isot')
+            ttime = Time(f"{date}T{ut}", format='isot')
             return ttime.mjd
         elif meta_key == 'lampstat01':
             """
@@ -282,9 +282,9 @@ class MMTBlueChannelSpectrograph(spectrograph.Spectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -507,7 +507,7 @@ class MMTBlueChannelSpectrograph(spectrograph.Spectrograph):
 
         # Read FITS image
         msgs.info(f'Reading MMT Blue Channel file: {fil}')
-        hdu = astropy.io.fits.open(fil)
+        hdu = fits.open(fil)
         hdr = hdu[0].header
 
         # we're flipping FITS x/y to pypeit y/x here. pypeit wants blue on the

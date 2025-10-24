@@ -3,14 +3,15 @@ Module for MMT MMIRS
 
 .. include:: ../include/links.rst
 """
-import pathlib
+from pathlib import Path
 
-import astropy.io.fits
-import astropy.table
-import astropy.time
-import astropy.stats
 import numpy as np
-import scipy.signal
+from scipy.signal import savgol_filter
+
+from astropy.table import Table
+from astropy.time import Time
+from astropy.io import fits
+from astropy.stats import sigma_clipped_stats
 
 from pypeit import msgs
 from pypeit import telescopes
@@ -19,8 +20,8 @@ from pypeit import io
 from pypeit.core import parse
 from pypeit.core import framematch
 from pypeit.images import detector_container
-from pypeit.par import parset
 from pypeit.spectrographs import spectrograph
+from pypeit.par import parset
 
 
 class MMTMMIRSSpectrograph(spectrograph.Spectrograph):
@@ -77,7 +78,7 @@ class MMTMMIRSSpectrograph(spectrograph.Spectrograph):
         # we doing that for all the relevant spectrographs?
         if meta_key == 'mjd':
             time = headarr[1]['DATE-OBS']
-            ttime = astropy.time.Time(time, format='isot')
+            ttime = Time(time, format='isot')
             return ttime.mjd
         msgs.error("Not ready for this compound meta")
 
@@ -211,9 +212,9 @@ class MMTMMIRSSpectrograph(spectrograph.Spectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -365,7 +366,7 @@ class MMTMMIRSSpectrograph(spectrograph.Spectrograph):
         # Read
         msgs.info(f'Reading MMIRS file: {fil}')
         hdu = io.fits_open(fil)
-        head1 = astropy.io.fits.getheader(fil,1)
+        head1 = fits.getheader(fil,1)
 
         detector_par = self.get_detector_par(det if det is not None else 1, hdu=hdu)
 
@@ -419,18 +420,18 @@ def mmirs_read_amp(img, namps=32):
     refpix2 = np.arange(4) + data_shape[0] - 4
     refpix_all = np.hstack([[0, 1, 2, 3], np.arange(4) + data_shape[0] - 4])
     refvec = np.sum(img[:, refpix_all], axis=1) / np.size(refpix_all)
-    svec = scipy.signal.savgol_filter(refvec, 11, polyorder=5)
+    svec = savgol_filter(refvec, 11, polyorder=5)
 
     refvec_2d = np.reshape(np.repeat(svec, data_shape[0], axis=0), data_shape)
     img_out = img - refvec_2d
 
     for amp in range(namps):
         img_out_ref = img_out[np.hstack([refpix1, refpix2]), :]
-        ref1, med1, std1 = astropy.stats.sigma_clipped_stats(
+        ref1, med1, std1 = sigma_clipped_stats(
             img_out_ref[:, amp * ampsize + 2 * np.arange(int(ampsize / 2))],
             sigma=3
         )
-        ref2, med2, std2 = astropy.stats.sigma_clipped_stats(
+        ref2, med2, std2 = sigma_clipped_stats(
             img_out_ref[:, amp * ampsize + 2 * np.arange(int(ampsize / 2)) + 1],
             sigma=3
         )

@@ -3,21 +3,22 @@ Module for Shane/Kast specific methods.
 
 .. include:: ../include/links.rst
 """
-import pathlib
+from IPython import embed
 
-import astropy.io.fits
-import astropy.table
-import astropy.time
+from pathlib import Path
+
 import numpy as np
+
+from astropy.io import fits
+from astropy.table import Table
+from astropy.time import Time
 
 from pypeit import msgs
 from pypeit import telescopes
 from pypeit.core import framematch
+from pypeit.spectrographs import spectrograph
 from pypeit.images import detector_container
 from pypeit.par import parset
-from pypeit.spectrographs import spectrograph
-
-from IPython import embed
 
 
 class ShaneKastSpectrograph(spectrograph.Spectrograph):
@@ -102,7 +103,7 @@ class ShaneKastSpectrograph(spectrograph.Spectrograph):
         """
         if meta_key == 'mjd':
             time = headarr[0]['DATE']
-            ttime = astropy.time.Time(time, format='isot')
+            ttime = Time(time, format='isot')
             return ttime.mjd
         msgs.error("Not ready for this compound meta")
 
@@ -276,9 +277,9 @@ class ShaneKastBlueSpectrograph(ShaneKastSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -528,9 +529,9 @@ class ShaneKastRedSpectrograph(ShaneKastSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.

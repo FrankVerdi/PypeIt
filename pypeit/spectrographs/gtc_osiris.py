@@ -3,23 +3,23 @@ Module for GTC OSIRIS specific methods.
 
 .. include:: ../include/links.rst
 """
-import pathlib
+from pathlib import Path
 
-import astropy.coordinates
-import astropy.io.fits
-import astropy.table
-import astropy.time
-from astropy import units
-import astropy.wcs
 import numpy as np
+
+from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astropy.table import Table
+from astropy.time import Time
+from astropy import units, wcs
 
 from pypeit import msgs
 from pypeit import telescopes
 from pypeit.core import parse
 from pypeit.core import framematch
+from pypeit.spectrographs import spectrograph
 from pypeit.images import detector_container
 from pypeit.par import parset
-from pypeit.spectrographs import spectrograph
 
 from IPython import embed
 
@@ -216,7 +216,7 @@ class GTCOSIRISPlusSpectrograph(spectrograph.Spectrograph):
             except KeyError:
                 msgs.error("Parallactic angle is not in header")
         elif meta_key == 'obstime':
-            return astropy.time.Time(headarr[0]['DATE-END'])
+            return Time(headarr[0]['DATE-END'])
         elif meta_key == 'gain':
             return headarr[0]['GAIN']
         elif meta_key == 'slitwid':
@@ -329,9 +329,9 @@ class GTCOSIRISPlusSpectrograph(spectrograph.Spectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -462,7 +462,7 @@ class GTCOSIRISPlusSpectrograph(spectrograph.Spectrograph):
         bpm_img = super().bpm(filename, det, shape=shape, msbias=None)
 
         # Extract some header info
-        head0 = astropy.io.fits.getheader(filename, ext=0)
+        head0 = fits.getheader(filename, ext=0)
         binning = self.get_meta_value([head0], 'binning')
 
         msgs.warn("Bad pixel mask is not available for det={0:d} binning={1:s}".format(det, binning))
@@ -683,7 +683,7 @@ class GTCMAATSpectrograph(GTCOSIRISPlusSpectrograph):
         decval = self.get_meta_value([hdr], 'dec')
 
         # Create a coordinate
-        coord = astropy.coordinates.SkyCoord(raval, decval, unit=(units.deg, units.deg))
+        coord = SkyCoord(raval, decval, unit=(units.deg, units.deg))
 
         # Get rotator position
         msgs.warn("HACK FOR MAAT SIMS --- NEED TO FIGURE OUT RPOS and RREF FOR MAAT FROM HEADER INFO")
@@ -730,7 +730,7 @@ class GTCMAATSpectrograph(GTCOSIRISPlusSpectrograph):
 
         # Create a new WCS object.
         msgs.info("Generating MAAT WCS")
-        w = astropy.wcs.WCS(naxis=3)
+        w = wcs.WCS(naxis=3)
         w.wcs.equinox = hdr['EQUINOX']
         w.wcs.name = 'MAAT'
         w.wcs.radesys = 'FK5'
@@ -953,7 +953,7 @@ class GTCOSIRISSpectrograph(spectrograph.Spectrograph):
             binning = parse.binning2string(binspec, binspatial)
             return binning
         elif meta_key == 'obstime':
-            return astropy.time.Time(headarr[0]['DATE-END'])
+            return Time(headarr[0]['DATE-END'])
 
     def configuration_keys(self):
         """
@@ -1060,9 +1060,9 @@ class GTCOSIRISSpectrograph(spectrograph.Spectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -1176,7 +1176,7 @@ class GTCOSIRISSpectrograph(spectrograph.Spectrograph):
         bpm_img = super().bpm(filename, det, shape=shape, msbias=None)
 
         # Extract some header info
-        head0 = astropy.io.fits.getheader(filename, ext=0)
+        head0 = fits.getheader(filename, ext=0)
         binning = head0['CCDSUM']
 
         # Construct a list of the bad columns

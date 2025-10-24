@@ -4,15 +4,17 @@ Implements KCWI-specific functions.
 .. include common links, assuming primary doc root is up one directory
 .. include:: ../include/links.rst
 """
-import pathlib
+from IPython import embed
 
-import astropy.io.fits
-import astropy.table
-import astropy.time
-from astropy import units
-import astropy.wcs
+from pathlib import Path
+
 import numpy as np
-import scipy.optimize
+
+from astropy import wcs, units
+from astropy.io import fits
+from astropy.table import Table
+from astropy.time import Time
+from scipy.optimize import curve_fit
 
 from pypeit import msgs
 from pypeit import telescopes
@@ -21,11 +23,9 @@ from pypeit import io
 from pypeit.core import parse
 from pypeit.core import procimg
 from pypeit.core import framematch
+from pypeit.spectrographs import spectrograph
 from pypeit.images import detector_container
 from pypeit.par import parset
-from pypeit.spectrographs import spectrograph
-
-from IPython import embed
 
 
 class KeckKCWIKCRMSpectrograph(spectrograph.Spectrograph):
@@ -108,9 +108,9 @@ class KeckKCWIKCRMSpectrograph(spectrograph.Spectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -254,7 +254,7 @@ class KeckKCWIKCRMSpectrograph(spectrograph.Spectrograph):
             except KeyError:
                 msgs.error("Parallactic angle is not in header")
         elif meta_key == 'obstime':
-            return astropy.time.Time(headarr[0]['DATE-END'])
+            return Time(headarr[0]['DATE-END'])
         elif meta_key == 'posang':
             hdr = headarr[0]
             # Get rotator position
@@ -689,7 +689,7 @@ class KeckKCWIKCRMSpectrograph(spectrograph.Spectrograph):
             crpix2 += off2
 
         # Create a new WCS object.
-        w = astropy.wcs.WCS(naxis=3)
+        w = wcs.WCS(naxis=3)
         w.wcs.equinox = hdr['EQUINOX']
         w.wcs.name = self.camera
         w.wcs.radesys = 'FK5'
@@ -763,7 +763,7 @@ class KeckKCWIKCRMSpectrograph(spectrograph.Spectrograph):
         bpm_img = super().bpm(filename, det, shape=shape, msbias=None)
 
         # Extract some header info
-        head0 = astropy.io.fits.getheader(filename, ext=0)
+        head0 = fits.getheader(filename, ext=0)
         ampmode = head0['AMPMODE']
         binning = head0['BINNING']
 
@@ -1213,7 +1213,7 @@ class KeckKCWISpectrograph(KeckKCWIKCRMSpectrograph):
         phase, angle = 0.0, -45.34  # No phase, and a decent guess at the angle
         p0 = [amp, scale, quad, phase, wavelength, angle]
         this_bpm = gpmask & (np.abs(det_resp-1) < 0.1)  # Only expect this to be a 5% effect
-        popt, _ = scipy.optimize.curve_fit(sinfunc2d, (xx[this_bpm], yy[this_bpm]), det_resp[this_bpm], p0=p0)
+        popt, _ = curve_fit(sinfunc2d, (xx[this_bpm], yy[this_bpm]), det_resp[this_bpm], p0=p0)
         return sinfunc2d((xx, yy), *popt)
 
 

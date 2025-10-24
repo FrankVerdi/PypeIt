@@ -3,19 +3,20 @@ Module for TNG/Dolores
 
 .. include:: ../include/links.rst
 """
-import pathlib
+from pathlib import Path
 
-import astropy.io.fits
-import astropy.table
-import astropy.time
 import numpy as np
+
+from astropy.io import fits
+from astropy.table import Table
+from astropy.time import Time
 
 from pypeit import msgs
 from pypeit import telescopes
 from pypeit.core import framematch
+from pypeit.spectrographs import spectrograph
 from pypeit.images import detector_container
 from pypeit.par import parset
-from pypeit.spectrographs import spectrograph
 
 
 class TNGDoloresSpectrograph(spectrograph.Spectrograph):
@@ -98,9 +99,9 @@ class TNGDoloresSpectrograph(spectrograph.Spectrograph):
     
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -183,7 +184,7 @@ class TNGDoloresSpectrograph(spectrograph.Spectrograph):
         """
         if meta_key == 'mjd':
             time = headarr[0]['DATE-OBS']
-            ttime = astropy.time.Time(time, format='isot')
+            ttime = Time(time, format='isot')
             return ttime.mjd
         elif meta_key == 'ra':
             radeg = headarr[0]['RA-RAD']*180.0/np.pi  # Convert radians to decimal degrees

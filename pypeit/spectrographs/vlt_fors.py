@@ -3,22 +3,22 @@ Module for VLT FORS (1 and 2)
 
 .. include:: ../include/links.rst
 """
-import pathlib
+from pathlib import Path
 
-import astropy.coordinates
-import astropy.io.fits
-import astropy.table
-from astropy import units
 import numpy as np
+from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astropy.table import Table
+from astropy import units
 
 from pypeit import msgs
 from pypeit import telescopes
 from pypeit.core import parse
 from pypeit.core import framematch
 from pypeit.core import meta
+from pypeit.spectrographs import spectrograph
 from pypeit.images import detector_container
 from pypeit.par import parset
-from pypeit.spectrographs import spectrograph
 
 from IPython import embed
 
@@ -309,9 +309,9 @@ class VLTFORS2Spectrograph(VLTFORSSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -447,7 +447,7 @@ class VLTFORS2Spectrograph(VLTFORSSpectrograph):
         dither_pattern = None
         dither_id = None
         for ifile, file in enumerate(file_list):
-            hdr = astropy.io.fits.getheader(file, self.primary_hdrext if ext is None else ext)
+            hdr = fits.getheader(file, self.primary_hdrext if ext is None else ext)
             try:
                 ra, dec = meta.convert_radec(self.get_meta_value(hdr, 'ra', no_fussing=True),
                                     self.get_meta_value(hdr, 'dec', no_fussing=True))
@@ -455,7 +455,7 @@ class VLTFORS2Spectrograph(VLTFORSSpectrograph):
                 msgs.warn('Encounter invalid value of your coordinates. Give zeros for both RA and DEC. Check that this does not cause problems with the offsets')
                 ra, dec = 0.0, 0.0
             if ifile == 0:
-                coord_ref = astropy.coordinates.SkyCoord(ra*units.deg, dec*units.deg)
+                coord_ref = SkyCoord(ra*units.deg, dec*units.deg)
                 offset_arcsec[ifile] = 0.0
                 # ESOs position angle appears to be the negative of the canonical astronomical convention
                 posang_ref = -(hdr['HIERARCH ESO INS SLIT POSANG']*units.deg)
@@ -463,7 +463,7 @@ class VLTFORS2Spectrograph(VLTFORSSpectrograph):
                 # Unit vector pointing in direction of slit PA
                 u_hat_slit = np.array([np.sin(posang_ref), np.cos(posang_ref)]) # [u_hat_ra, u_hat_dec]
             else:
-                coord_this = astropy.coordinates.SkyCoord(ra*units.deg, dec*units.deg)
+                coord_this = SkyCoord(ra*units.deg, dec*units.deg)
                 posang_this = coord_ref.position_angle(coord_this).to('deg')
                 separation  = coord_ref.separation(coord_this).to('arcsec').value
                 ra_off, dec_off = coord_ref.spherical_offsets_to(coord_this)

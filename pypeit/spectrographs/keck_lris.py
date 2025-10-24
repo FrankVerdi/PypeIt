@@ -3,15 +3,19 @@ Module for LRIS specific methods.
 
 .. include:: ../include/links.rst
 """
-import os
-import pathlib
+from pathlib import Path
 
-import astropy.coordinates
-import astropy.io.fits
-import astropy.table
-import astropy.time
-from astropy import units
+from IPython import embed
+
 import numpy as np
+
+from astropy.io import fits
+from astropy.table import Table
+from astropy.time import Time
+from astropy.coordinates import SkyCoord 
+from astropy import units
+
+import linetools.utils
 
 from pypeit import msgs
 from pypeit import telescopes
@@ -20,15 +24,11 @@ from pypeit import io
 from pypeit.core import parse
 from pypeit.core import framematch
 from pypeit.core import standard
-from pypeit.images import detector_container
-from pypeit.par import parset
 from pypeit.spectrographs import spectrograph
 from pypeit.spectrographs import slitmask
+from pypeit.images import detector_container
 from pypeit import dataPaths
-
-import linetools.utils
-
-from IPython import embed
+from pypeit.par import parset
 
 
 class KeckLRISSpectrograph(spectrograph.Spectrograph):
@@ -117,9 +117,9 @@ class KeckLRISSpectrograph(spectrograph.Spectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -244,7 +244,7 @@ class KeckLRISSpectrograph(spectrograph.Spectrograph):
             elif headarr[0].get('UTC') is not None or headarr[0].get('UT') is not None:
                 ut = headarr[0].get('UTC') if headarr[0].get('UTC') is not None else headarr[0].get('UT')
                 if headarr[0].get('DATE-OBS') is not None:
-                    return astropy.time.Time('{}T{}'.format(headarr[0]['DATE-OBS'], ut)).mjd
+                    return Time('{}T{}'.format(headarr[0]['DATE-OBS'], ut)).mjd
                 elif headarr[0].get('DATE') is not None:
                     # LRIS sometime has a duplicate DATE card. The first one is the date of the
                     # file creation and the second one is the date of the observation.
@@ -253,11 +253,11 @@ class KeckLRISSpectrograph(spectrograph.Spectrograph):
                                    for i in range(len(headarr[0].cards))])[0]
                     if dd.size > 0:
                         date = headarr[0].cards[dd[0]][1]
-                        return astropy.time.Time('{}T{}'.format(date, ut)).mjd
+                        return Time('{}T{}'.format(date, ut)).mjd
                     else:
                         # this is most likely not the obs date+time, but the date+time the file
                         # was created, which should be very close to the obs time
-                        return astropy.time.Time(headarr[0]['DATE']).mjd
+                        return Time(headarr[0]['DATE']).mjd
         elif meta_key == 'dateobs':
             if headarr[0].get('DATE-OBS') is not None:
                 return headarr[0]['DATE-OBS']
@@ -768,14 +768,14 @@ class KeckLRISSpectrograph(spectrograph.Spectrograph):
         platescale = self.get_detector_par(det=1)['platescale']
 
 
-        hdu = astropy.io.fits.open(filename)
+        hdu = fits.open(filename)
         binning = self.get_meta_value(self.get_headarr(hdu), 'binning')
         _, bin_spat = parse.parse_binning(binning)
 
         # Slit center
-        slit_coords = astropy.coordinates.SkyCoord(ra=self.slitmask.onsky[:,0], 
+        slit_coords = SkyCoord(ra=self.slitmask.onsky[:,0], 
                                dec=self.slitmask.onsky[:,1], unit='deg')
-        mask_coord = astropy.coordinates.SkyCoord(ra=self.slitmask.mask_radec[0],
+        mask_coord = SkyCoord(ra=self.slitmask.mask_radec[0],
                               dec=self.slitmask.mask_radec[1], unit='deg')
 
         # build an array of values containing the bottom (right) edge of the slits
@@ -946,9 +946,9 @@ class KeckLRISBSpectrograph(KeckLRISSpectrograph):
         super().check_spectrograph(filename)
 
         # check that we are using the right spectrograph (keck_lris_blue or keck_lris_blue_orig)
-        _dateobs = astropy.time.Time(self.get_meta_value(filename, 'dateobs'), format='iso')
+        _dateobs = Time(self.get_meta_value(filename, 'dateobs'), format='iso')
         # last day of keck_lris_blue_orig
-        date_orig = astropy.time.Time('2009-04-30', format='iso')
+        date_orig = Time('2009-04-30', format='iso')
         if _dateobs <= date_orig and self.name in ['keck_lris_blue']:
             msgs.error('This is not the correct spectrograph. Use keck_lris_blue_orig instead.')
         elif _dateobs > date_orig and self.name in ['keck_lris_blue_orig']:
@@ -982,9 +982,9 @@ class KeckLRISBSpectrograph(KeckLRISSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -1295,11 +1295,11 @@ class KeckLRISRSpectrograph(KeckLRISSpectrograph):
 
         if hdu is not None:
             # Allow for post COVID detector issues
-            t2020_1 = astropy.time.Time("2020-06-30", format='isot')  # First run
-            t2020_2 = astropy.time.Time("2020-07-29", format='isot')  # Second run
+            t2020_1 = Time("2020-06-30", format='isot')  # First run
+            t2020_2 = Time("2020-07-29", format='isot')  # Second run
             # Check for the new detector (Mark4) upgrade
-            t2021_upgrade = astropy.time.Time("2021-04-22", format='isot')
-            date = astropy.time.Time(self.get_meta_value(self.get_headarr(hdu), 'mjd'), 
+            t2021_upgrade = Time("2021-04-22", format='isot')
+            date = Time(self.get_meta_value(self.get_headarr(hdu), 'mjd'), 
                              format='mjd')
 
             if date < t2020_1:
@@ -1360,11 +1360,11 @@ class KeckLRISRSpectrograph(KeckLRISSpectrograph):
         super().check_spectrograph(filename)
 
         # check that we are using the right spectrograph (keck_lris_red, keck_lris_red_orig, or keck_lris_red_mark4)
-        _dateobs = astropy.time.Time(self.get_meta_value(filename, 'dateobs'), format='iso')
+        _dateobs = Time(self.get_meta_value(filename, 'dateobs'), format='iso')
         # starting date for keck_lris_red_mark4
-        date_mark4 = astropy.time.Time('2021-04-22', format='iso')
+        date_mark4 = Time('2021-04-22', format='iso')
         # last day of keck_lris_red_orig
-        date_orig = astropy.time.Time('2009-05-02', format='iso')
+        date_orig = Time('2009-05-02', format='iso')
         if _dateobs <= date_orig and self.name in ['keck_lris_red_mark4', 'keck_lris_red']:
             msgs.error('This is not the correct spectrograph. Use keck_lris_red_orig instead.')
         elif _dateobs >= date_mark4 and self.name in ['keck_lris_red_orig', 'keck_lris_red']:
@@ -1424,13 +1424,13 @@ class KeckLRISRSpectrograph(KeckLRISSpectrograph):
         lris_grating = self.get_meta_value(file, 'dispname')
         lris_dichroic = self.get_meta_value(file, 'dichroic')
         setup_path = lris_grating.replace('/','_') + '_d' + lris_dichroic
-        return os.path.join(self.name, setup_path)
+        return str(Path(self.name) / setup_path)
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -1658,10 +1658,10 @@ class KeckLRISRMark4Spectrograph(KeckLRISRSpectrograph):
             return detector_container.DetectorContainer(**detector_dict1)
 
         # Date of Mark4 installation
-        t2021_upgrade = astropy.time.Time("2021-04-22", format='isot')
+        t2021_upgrade = Time("2021-04-22", format='isot')
         # TODO -- Update with the date we transitioned to the correct ones
-        t_gdhead = astropy.time.Time("2029-01-01", format='isot')
-        date = astropy.time.Time(hdu[0].header['MJD'], format='mjd')
+        t_gdhead = Time("2029-01-01", format='isot')
+        date = Time(hdu[0].header['MJD'], format='mjd')
 
         if date < t2021_upgrade:
             msgs.error("This is not the Mark4 detector.  Use a different keck_lris_red spectrograph")
@@ -1680,7 +1680,7 @@ class KeckLRISRMark4Spectrograph(KeckLRISRSpectrograph):
             swap_binning = f"{binning[-1]}_{binning[0]}" # LRIS convention is oppopsite ours
             header_file = dataPaths.spectrographs.get_file_path(
                     f'keck_lris_red_mark4/header{_amp}_{swap_binning}.fits')
-            correct_header = astropy.io.fits.getheader(header_file)
+            correct_header = fits.getheader(header_file)
         else:
             correct_header = hdu[0].header
 
@@ -1812,9 +1812,9 @@ class KeckLRISROrigSpectrograph(KeckLRISRSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -2090,7 +2090,7 @@ def convert_lowredux_pixelflat(infil, outfil, specflip=False, separate_extension
     data = hdu0[0].data
 
     #
-    prihdu = astropy.io.fits.PrimaryHDU()
+    prihdu = fits.PrimaryHDU()
     hdus = [prihdu]
     prihdu.header['CALIBTYP'] = ('Flat', 'PypeIt: Calibration frame type')
 
@@ -2101,7 +2101,7 @@ def convert_lowredux_pixelflat(infil, outfil, specflip=False, separate_extension
         img1 = data[:, :data.shape[1] // 2]
     if specflip:
         img1 = np.flip(img1, axis=0)
-    hdu = astropy.io.fits.ImageHDU(img1)
+    hdu = fits.ImageHDU(img1)
     hdu.name = 'DET01-PIXELFLAT_NORM'
     prihdu.header['EXT0001'] = hdu.name
     hdus.append(hdu)
@@ -2113,13 +2113,13 @@ def convert_lowredux_pixelflat(infil, outfil, specflip=False, separate_extension
         img2 = data[:, data.shape[1] // 2:]
     if specflip:
         img2 = np.flip(img2, axis=0)
-    hdu = astropy.io.fits.ImageHDU(img2)
+    hdu = fits.ImageHDU(img2)
     hdu.name = 'DET02-PIXELFLAT_NORM'
     prihdu.header['EXT0002'] = hdu.name
     hdus.append(hdu)
 
     # Finish
-    hdulist = astropy.io.fits.HDUList(hdus)
+    hdulist = fits.HDUList(hdus)
     hdulist.writeto(outfil, overwrite=True)
     print('Wrote {:s}'.format(outfil))
 

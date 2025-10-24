@@ -4,23 +4,22 @@ Implements APF-specific functions
 .. include common links, assuming primary doc root is up one directory
 .. include:: ../include/links.rst
 """
-import os
-import pathlib
+from pathlib import Path
 
-import astropy.io.fits
-import astropy.table
-import astropy.time
 import numpy as np
+from astropy.io import fits
+from astropy.table import Table
+from astropy.time import Time
+from IPython import embed
 
 from pypeit import msgs
 from pypeit import telescopes
 from pypeit import io
 from pypeit.core import framematch
 from pypeit.par import parset
-from pypeit.images import detector_container
 from pypeit.spectrographs import spectrograph
+from pypeit.images import detector_container
 
-from IPython import embed
 
 
 class APFLevySpectrograph(spectrograph.Spectrograph):
@@ -178,7 +177,7 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         """
         if meta_key == 'mjd':
             time = headarr[0]['DATE-BEG']
-            ttime = astropy.time.Time(time, format='isot')
+            ttime = Time(time, format='isot')
             return ttime.mjd
 
         if meta_key == 'decker':
@@ -344,9 +343,9 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -435,7 +434,7 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         """ Read the image
         """
         # Check for file; allow for extra .gz, etc. suffix
-        if not os.path.isfile(raw_file):
+        if not Path(raw_file).is_file():
             msgs.error(f'{raw_file} not found!')
         hdu = io.fits_open(raw_file)
 

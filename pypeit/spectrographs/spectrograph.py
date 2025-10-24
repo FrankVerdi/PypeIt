@@ -27,25 +27,25 @@ provide instrument-specific:
 """
 
 from abc import ABCMeta
-import pathlib
+from pathlib import Path
 
-import astropy.io.fits
-import astropy.table
+from IPython import embed
+
 import numpy as np
+from astropy.io import fits
+from astropy.table import Table
 
-from pypeit import io
 from pypeit import msgs
-from pypeit.core import meta
+from pypeit import io
 from pypeit.core import parse
 from pypeit.core import procimg
+from pypeit.core import meta
 from pypeit.core import standard
 from pypeit.core.atmextinction import AtmosphericExtinction
 from pypeit.par import parset
 from pypeit.par import pypeitpar
 from pypeit.images.detector_container import DetectorContainer
 from pypeit.images.mosaic import Mosaic
-
-from IPython import embed
 
 
 # TODO: Create an EchelleSpectrograph derived class that holds all of
@@ -191,30 +191,31 @@ class Spectrograph:
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
 
         This method may be called with either a row from the metadata table
-        (usually from the PypeIt Reduction File) or a filename/Header (used
-        in certain scripts to populate configuration parameters).  The
-        boilerplate below should be included at the start of all subclassing
-        spectrograph class methods:
+        (sent as a single-row Table, usually from the PypeIt Reduction File)
+        or a filename/Header (used in certain scripts to populate configuration
+        parameters).  The boilerplate below should be included at the start of
+        all subclassing spectrograph class methods:
 
         ::
 
-            # Start with instrument-wide parameters (does not actually use `scifile`)
-            par = super().config_specific_par(scifile, inp_par=inp_par)
+            # Start with instrument-wide parameters (does not actually use `inp`)
+            par = super().config_specific_par(inp, inp_par=inp_par)
 
             # Adjust parameters based on settings used
-            grating = self.get_meta_value(scifile, 'dispname')
-            binning = self.get_meta_value(scifile, 'binning')
+            grating = self.get_meta_value(inp, 'dispname')
+            binning = self.get_meta_value(inp, 'binning')
 
         where the specific metadata keys are those needed by the specific
-        method (``grating`` and ``binning`` used here as examples only).
+        instantiation of this method (``grating`` and ``binning`` used here as
+        examples only).
 
         Args:
             inp (:obj:`str`, :obj:`list`, `Path`_, `astropy.io.fits.Header`_, `astropy.table.Table`_):
@@ -344,12 +345,12 @@ class Spectrograph:
                 Input raw fits filename
         """
         if self.allowed_extensions is not None:
-            _filename = pathlib.Path(filename).absolute()
+            _filename = Path(filename).absolute()
             # Don't check PypeIt spec2d files
             if _filename.name.startswith("spec2d_"):
                 # Double check that it is a PypeIt spec2d file
                 try:
-                    tsthdr = astropy.io.fits.getheader(_filename, ext=0)
+                    tsthdr = fits.getheader(_filename, ext=0)
                 except IOError:
                     msgs.error("Cannot open the file: {0}".format(_filename))
                 if 'PIPELINE' in tsthdr and tsthdr['PIPELINE'] == 'PYPEIT':
@@ -1454,7 +1455,7 @@ class Spectrograph:
         headarr = None
 
         # If the input is a metadata table, return the desired value
-        if isinstance(inp, astropy.table.Table):
+        if isinstance(inp, Table):
             try:
                 return inp[meta_key][0]
             except KeyError:
@@ -1465,11 +1466,11 @@ class Spectrograph:
 
         # Otherwise, this set of statements pulls the Header array for the file in question
         else:
-            if isinstance(inp, (str, pathlib.Path, astropy.io.fits.HDUList)):
+            if isinstance(inp, (str, Path, fits.HDUList)):
                 headarr = self.get_headarr(inp)
             elif inp is None or isinstance(inp, list):
                 headarr = inp
-            elif isinstance(inp, astropy.io.fits.Header):
+            elif isinstance(inp, fits.Header):
                 headarr = [inp]
             else:
                 msgs.error(f'Unrecognized type for input: {type(inp)}')
@@ -1723,7 +1724,7 @@ class Spectrograph:
 
         # Faster to open the whole file and then assign the headers,
         # particularly for gzipped files (e.g., DEIMOS)
-        if isinstance(inp, (str, pathlib.Path)):
+        if isinstance(inp, (str, Path)):
             self._check_extensions(inp)
             try:
                 hdul = io.fits_open(inp)
@@ -1733,7 +1734,7 @@ class Spectrograph:
                 else:
                     msgs.warn(f'Cannot open {inp}.  Proceeding, but consider removing this file!')
                     return None
-        elif isinstance(inp, (list, astropy.io.fits.HDUList)):
+        elif isinstance(inp, (list, fits.HDUList)):
             # TODO: If a list, check that the list elements are HDUs?
             hdul = inp
         else:

@@ -3,23 +3,24 @@ Module for P200/DBSP specific methods.
 
 .. include:: ../include/links.rst
 """
-import pathlib
+from pathlib import Path
 
-import astropy.io.fits
-import astropy.coordinates
-import astropy.table
-import astropy.time
-import astropy.units as u
 import numpy as np
+
+from astropy.io import fits
+from astropy.coordinates import Angle
+import astropy.units as u
+from astropy.table import Table
+from astropy.time import Time
 
 from pypeit import msgs
 from pypeit import io
 from pypeit import telescopes
 from pypeit.core import framematch
+from pypeit.spectrographs import spectrograph
 from pypeit.core import parse
 from pypeit.images import detector_container
 from pypeit.par import parset
-from pypeit.spectrographs import spectrograph
 
 
 
@@ -61,7 +62,7 @@ class P200DBSPSpectrograph(spectrograph.Spectrograph):
         # Lamps
         self.meta['lampstat01'] = dict(ext=0, card='LAMPS')
 
-    def compound_meta(self, headarr: list[astropy.io.fits.Header], meta_key: str):
+    def compound_meta(self, headarr: list[fits.Header], meta_key: str):
         """
         Methods to generate metadata requiring interpretation of the header
         data, instead of simply reading the value of a header card.
@@ -76,10 +77,10 @@ class P200DBSPSpectrograph(spectrograph.Spectrograph):
             object: Metadata value read from the header(s).
         """
         if meta_key == 'mjd':
-            return astropy.time.Time(headarr[0]['UTSHUT']).mjd
+            return Time(headarr[0]['UTSHUT']).mjd
         elif meta_key == 'dispangle':
             try:
-                return astropy.coordinates.Angle(headarr[0]['ANGLE'].lower()).deg
+                return Angle(headarr[0]['ANGLE'].lower()).deg
             except Exception as e:
                 msgs.warn("Could not read dispangle from header:" + msgs.newline() + str(headarr[0]['ANGLE']))
                 raise e
@@ -192,7 +193,7 @@ class P200DBSPBlueSpectrograph(P200DBSPSpectrograph):
     supported = True
     comment = 'Blue camera'
     
-    def compound_meta(self, headarr: list[astropy.io.fits.Header], meta_key: str):
+    def compound_meta(self, headarr: list[fits.Header], meta_key: str):
         """
         Methods to generate metadata requiring interpretation of the header
         data, instead of simply reading the value of a header card.
@@ -217,7 +218,7 @@ class P200DBSPBlueSpectrograph(P200DBSPSpectrograph):
             return parse.binning2string(binspec, binspatial)
         msgs.error(f"Not ready for this compound meta: {meta_key}")
 
-    def get_detector_par(self, det: int, hdu: astropy.io.fits.HDUList = None):
+    def get_detector_par(self, det: int, hdu: fits.HDUList = None):
         """
         Return metadata for the selected detector.
 
@@ -318,9 +319,9 @@ class P200DBSPBlueSpectrograph(P200DBSPSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -347,7 +348,7 @@ class P200DBSPBlueSpectrograph(P200DBSPSpectrograph):
         slitwidth = self.get_meta_value(inp, 'slitwid') * u.arcsec
         dispangle = self.get_meta_value(inp, 'dispangle')
 
-        angle = astropy.coordinates.Angle(dispangle, unit=u.deg).rad
+        angle = Angle(dispangle, unit=u.deg).rad
         lines_mm = float(grating.split('/')[0]) / u.mm
 
         theta_m = 38.5 * 2*np.pi / 360. - angle
@@ -422,7 +423,7 @@ class P200DBSPRedSpectrograph(P200DBSPSpectrograph):
     supported = True
     comment = 'Red camera'
     
-    def compound_meta(self, headarr: list[astropy.io.fits.Header], meta_key: str):
+    def compound_meta(self, headarr: list[fits.Header], meta_key: str):
         """
         Methods to generate metadata requiring interpretation of the header
         data, instead of simply reading the value of a header card.
@@ -448,7 +449,7 @@ class P200DBSPRedSpectrograph(P200DBSPSpectrograph):
         else:
             msgs.error(f"Not ready for this compound meta: {meta_key}")
 
-    def get_detector_par(self, det: int, hdu: astropy.io.fits.HDUList = None):
+    def get_detector_par(self, det: int, hdu: fits.HDUList = None):
         """
         Return metadata for the selected detector.
 
@@ -549,9 +550,9 @@ class P200DBSPRedSpectrograph(P200DBSPSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -578,7 +579,7 @@ class P200DBSPRedSpectrograph(P200DBSPSpectrograph):
         slitwidth = self.get_meta_value(inp, 'slitwid') * u.arcsec
         dispangle = self.get_meta_value(inp, 'dispangle')
 
-        angle = astropy.coordinates.Angle(dispangle, unit=u.deg).rad
+        angle = Angle(dispangle, unit=u.deg).rad
         lines_mm = float(grating.split('/')[0]) / u.mm
 
         theta_m = 35.0 * 2*np.pi / 360. - angle
@@ -671,11 +672,11 @@ class P200DBSPRedSpectrograph(P200DBSPSpectrograph):
 
         # Red CCD detector defect is present in data taken 2020-05-22
         # and absent in data taken 2020-04-21
-        DEFECT_DATE = astropy.time.Time('2020-05-21')
+        DEFECT_DATE = Time('2020-05-21')
         # TODO: Model the growth of the detector defect with time.
         # TODO: Get more precise date range for detector.
         with io.fits_open(filename) as hdul:
-            if astropy.time.Time(hdul[0].header['UTSHUT']) > DEFECT_DATE:
+            if Time(hdul[0].header['UTSHUT']) > DEFECT_DATE:
                 spec_binning = int(self.get_meta_value([hdul[0].header], 'binning').split(',')[0])
                 bpm_img[464 // spec_binning : 723 // spec_binning, :] = 1
 

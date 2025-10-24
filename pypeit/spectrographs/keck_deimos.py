@@ -5,17 +5,23 @@ files.
 .. include:: ../include/links.rst
 """
 import datetime
-import pathlib
+from pathlib import Path
 import re
 import warnings
 
-import astropy.io.fits
-import astropy.coordinates
-import astropy.table
-import astropy.time
-from astropy import units
+from IPython import embed
+
 import numpy as np
-import scipy.interpolate
+
+from scipy import interpolate
+
+from astropy.io import fits
+from astropy.coordinates import SkyCoord, Angle
+from astropy.table import Table
+from astropy.time import Time
+from astropy import units
+
+import linetools
 
 from pypeit import msgs
 from pypeit import telescopes
@@ -23,8 +29,7 @@ from pypeit import io
 from pypeit.core import parse
 from pypeit.core import framematch
 from pypeit.core import wave
-from pypeit import specobj
-from pypeit import specobjs
+from pypeit import specobj, specobjs
 from pypeit.spectrographs import spectrograph
 from pypeit.images.detector_container import DetectorContainer
 from pypeit import dataPaths
@@ -33,10 +38,6 @@ from pypeit.core.mosaic import build_image_mosaic_transform
 from pypeit.par import parset
 from pypeit.spectrographs import slitmask 
 from pypeit.spectrographs.opticalmodel import ReflectionGrating, OpticalModel, DetectorMap
-
-import linetools
-
-from IPython import embed
 
 
 class DEIMOSMosaicLookUp:
@@ -215,7 +216,7 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
                 msgs.error('PypeIt can only reduce images with AMPMODE == SINGLE:B or AMPMODE == SINGLE:A.')
             amp_folder = "ampA" if amp == 'SINGLE:A' else "ampB"
             # raw frame date in mjd
-            date = astropy.time.Time(self.get_meta_value(self.get_headarr(hdu), 'mjd'), format='mjd').value
+            date = Time(self.get_meta_value(self.get_headarr(hdu), 'mjd'), format='mjd').value
             # get the measurements files
             # NOTE: The use of ``glob`` here *requires* that the files be on disk
             measure_files = sorted((dataPaths.spectrographs / "keck_deimos" / "gain_ronoise" / amp_folder).glob("*"))
@@ -224,11 +225,11 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
             # convert into datetime format
             dtime = np.array([datetime.datetime.strptime(mm, '%Y-%b-%d') for mm in measure_dates])
             # convert to mjd
-            mjd_measured = astropy.time.Time(dtime, scale='utc').to_value('mjd')
+            mjd_measured = Time(dtime, scale='utc').to_value('mjd')
             # find the closest in time to the raw frame date
             close_idx = np.argmin(np.absolute(mjd_measured - date))
             # get measurements
-            tab_measure = astropy.table.Table.read(measure_files[close_idx], format='ascii')
+            tab_measure = Table.read(measure_files[close_idx], format='ascii')
             measured_det = tab_measure['col3']
             measured_amptype = tab_measure['col4']
             measured_gain = tab_measure['col5']  # [e-/DN]
@@ -326,9 +327,9 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -521,7 +522,7 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
             if headarr[0].get('MJD-OBS', None) is not None:
                 return headarr[0]['MJD-OBS']
             else:
-                return astropy.time.Time('{}T{}'.format(headarr[0]['DATE-OBS'], headarr[0]['UTC'])).mjd
+                return Time('{}T{}'.format(headarr[0]['DATE-OBS'], headarr[0]['UTC'])).mjd
         else:
             msgs.error("Not ready for this compound meta")
 
@@ -1017,7 +1018,7 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
         # precision: RA=0.15", Dec=0.1"
         ras = np.array([self.get_meta_value(aa, 'ra') for aa in hdrs], dtype=object)[sorted_by_mjd]
         decs = np.array([self.get_meta_value(aa, 'dec') for aa in hdrs], dtype=object)[sorted_by_mjd]
-        coords = astropy.coordinates.SkyCoord(ra=ras, dec=decs, frame='fk5', unit='deg')
+        coords = SkyCoord(ra=ras, dec=decs, frame='fk5', unit='deg')
 
         # compute telescope offsets with respect to the first frame
         tel_off = []
@@ -1025,7 +1026,7 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
             offset = coords[0].separation(coords[i])
             pa = coords[0].position_angle(coords[i])
             # ROTPOSN take into account small changes in the mask PA
-            maskpa = astropy.coordinates.Angle((hdrs[i][0]['ROTPOSN'] + 90.) * units.deg)
+            maskpa = Angle((hdrs[i][0]['ROTPOSN'] + 90.) * units.deg)
             # tetha = PA in the slitmask reference frame
             theta = pa - maskpa
             # telescope offset
@@ -1211,9 +1212,9 @@ class KeckDEIMOSSpectrograph(spectrograph.Spectrograph):
         slider = hdu[0].header['GRATEPOS']
 
         if slider in [3,4]:
-            self.amap = astropy.io.fits.getdata(dataPaths.static_calibs.get_file_path(
+            self.amap = fits.getdata(dataPaths.static_calibs.get_file_path(
                                         f'keck_deimos/amap.s{slider}.2003mar04.fits'))
-            self.bmap = astropy.io.fits.getdata(dataPaths.static_calibs.get_file_path(
+            self.bmap = fits.getdata(dataPaths.static_calibs.get_file_path(
                                         f'keck_deimos/bmap.s{slider}.2003mar04.fits'))
         else:
             msgs.error(f'No amap/bmap available for slider {slider}. Set `use_maskdesign = False`')
@@ -1685,7 +1686,7 @@ class DEIMOSCameraDistortion:
     
         x = np.linspace(-0.6, 0.6, 1000)
         y = self.remove_distortion(x)
-        self.interpolator = scipy.interpolate.interp1d(y, x)
+        self.interpolator = interpolate.interp1d(y, x)
 
     def remove_distortion(self, x):
         x2 = np.square(x)
@@ -1923,9 +1924,9 @@ def load_wmko_std_spectrum(fits_file:str, outfile=None, pad = False, split=True)
     """
 
     # Open up
-    hdul = astropy.io.fits.open(fits_file)
-    meta = astropy.table.Table(hdul[1].data)
-    idl_spec = astropy.table.Table(hdul[2].data)
+    hdul = fits.open(fits_file)
+    meta = Table(hdul[1].data)
+    idl_spec = Table(hdul[2].data)
 
     # Hope this always works..
     if split:

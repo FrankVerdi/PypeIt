@@ -3,14 +3,15 @@ Module for Keck/HIRES
 
 .. include:: ../include/links.rst
 """
-import os
-import pathlib
+from pathlib import Path
 
-import astropy.io.fits
-import astropy.table
-import astropy.time
-from astropy import units
+from IPython import embed
+
 import numpy as np
+
+from astropy.io import fits
+from astropy.table import Table
+from astropy.time import Time
 
 from pypeit import msgs
 from pypeit import telescopes
@@ -23,8 +24,6 @@ from pypeit.images import detector_container
 from pypeit.par import parset
 from pypeit.images.mosaic import Mosaic
 from pypeit.core.mosaic import build_image_mosaic_transform
-
-from IPython import embed
 
 
 class HIRESMosaicLookUp:
@@ -190,9 +189,9 @@ class KECKHIRESSpectrograph(spectrograph.Spectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -283,7 +282,7 @@ class KECKHIRESSpectrograph(spectrograph.Spectrograph):
             if headarr[0].get('MJD', None) is not None:
                 return headarr[0]['MJD']
             else:
-                return astropy.time.Time('{}T{}'.format(headarr[0]['DATE-OBS'], headarr[0]['UTC'])).mjd
+                return Time('{}T{}'.format(headarr[0]['DATE-OBS'], headarr[0]['UTC'])).mjd
         elif meta_key == 'lampstat01':
             if headarr[0].get('LAMPCAT1') or headarr[0].get('LAMPCAT2'):
                 return 'ThAr1' if headarr[0].get('LAMPCAT1') else 'ThAr2'
@@ -586,7 +585,7 @@ class KECKHIRESSpectrograph(spectrograph.Spectrograph):
 
 
         # Check for file; allow for extra .gz, etc. suffix
-        if not os.path.isfile(raw_file):
+        if not Path(raw_file).is_file():
             msgs.error(f'{raw_file} not found!')
         hdu = io.fits_open(raw_file)
 

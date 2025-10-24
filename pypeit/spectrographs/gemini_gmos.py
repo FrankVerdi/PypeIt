@@ -3,28 +3,28 @@ Module for Gemini GMOS specific methods.
 
 .. include:: ../include/links.rst
 """
-import os
-import pathlib
+from pathlib import Path
 
-import astropy.coordinates
-import astropy.io.fits
-import astropy.table
-import astropy.time
-from astropy import units
-import astropy.wcs
 import numpy as np
 
+from astropy.table import Table
+from astropy.coordinates import SkyCoord
+from astropy import units
+from astropy.time import Time
+from astropy.wcs import wcs
+from astropy.io import fits
+
 from pypeit import msgs
+from pypeit.spectrographs import spectrograph
 from pypeit import telescopes
 from pypeit import io
 from pypeit.core import framematch
-from pypeit.core.mosaic import build_image_mosaic_transform
 from pypeit.core import parse
 from pypeit.images import detector_container
 from pypeit.images.mosaic import Mosaic
-from pypeit.par import parset
-from pypeit.spectrographs import spectrograph
+from pypeit.core.mosaic import build_image_mosaic_transform
 from pypeit.spectrographs.slitmask import SlitMask
+from pypeit.par import parset
 
 from IPython import embed
 
@@ -189,10 +189,10 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
         if meta_key == 'mjd':
             obsepoch = headarr[0].get('OBSEPOCH')
             if obsepoch is not None:
-                return astropy.time.Time(obsepoch, format='jyear').mjd
+                return Time(obsepoch, format='jyear').mjd
             else:
                 msgs.warn('OBSEPOCH header keyword not found. Using today as the date.')
-                return astropy.time.Time.now().mjd
+                return Time.now().mjd
 
     def config_independent_frames(self):
         """
@@ -352,9 +352,9 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -612,7 +612,7 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
             :attr:`slitmask`.
         """
         # Open the file
-        mask_tbl = astropy.table.Table.read(filename, format='fits')
+        mask_tbl = Table.read(filename, format='fits')
 
         # Projected distance (in arcsec) of the object from the left and right (top and bot) edges of the slit
         slit_length = mask_tbl['slitsize_y'].to('arcsec').value # arcsec
@@ -640,7 +640,7 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
                            topdist,
                            botdist]).T
         # Mask pointing
-        mask_coord = astropy.coordinates.SkyCoord(mask_tbl.meta['RA_IMAG'], mask_tbl.meta['DEC_IMAG'],
+        mask_coord = SkyCoord(mask_tbl.meta['RA_IMAG'], mask_tbl.meta['DEC_IMAG'],
                               unit=("hourangle", "deg"))
 
         # PA corresponding to positive x on detector (spatial)
@@ -649,7 +649,7 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
             posx_pa += 360.
 
         # Slit positions
-        obj_coord = astropy.coordinates.SkyCoord(ra=obj_ra, dec=obj_dec, unit='deg')
+        obj_coord = SkyCoord(ra=obj_ra, dec=obj_dec, unit='deg')
         offsets = np.sqrt(
                 mask_tbl['slitpos_x'].to('arcsec').value**2 +
                 mask_tbl['slitpos_y'].to('arcsec').value**2)
@@ -718,10 +718,10 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
         maskfile = filename[0]
         wcs_file = filename[1]
         # Add path?
-        if not os.path.isfile(maskfile):
-            maskfile = os.path.join(trc_path, maskfile)
-        if not os.path.isfile(wcs_file):
-            wcs_file = os.path.join(trc_path, wcs_file)
+        if not Path(maskfile).is_file():
+            maskfile = Path(trc_path) / maskfile
+        if not Path(wcs_file):
+            wcs_file = Path(trc_path) / wcs_file
 
         # Slurp in the slitmask info
         self.get_slitmask(maskfile)
@@ -730,16 +730,16 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
         _, bin_spat = parse.parse_binning(binning)
 
         # Slit center
-        slit_coords = astropy.coordinates.SkyCoord(ra=self.slitmask.onsky[:,0],
+        slit_coords = SkyCoord(ra=self.slitmask.onsky[:,0],
                                dec=self.slitmask.onsky[:,1], unit='deg')
-        mask_coord = astropy.coordinates.SkyCoord(ra=self.slitmask.mask_radec[0],
+        mask_coord = SkyCoord(ra=self.slitmask.mask_radec[0],
                               dec=self.slitmask.mask_radec[1], unit='deg')
 
         # Load up the acquisition image (usually a sciframe)
-        hdul_acq = astropy.io.fits.open(wcs_file)
+        hdul_acq = fits.open(wcs_file)
         acq_binning = self.get_meta_value(self.get_headarr(hdul_acq), 'binning')
         _, bin_spat_acq = parse.parse_binning(acq_binning)
-        wcss = [astropy.wcs.WCS(hdul_acq[i].header) for i in range(1, len(hdul_acq))]
+        wcss = [wcs.WCS(hdul_acq[i].header) for i in range(1, len(hdul_acq))]
 
         left_edges = []
         right_edges = []
@@ -880,8 +880,8 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
         # account for the CCD upgrade happened on 2023-12-14
         if hdu is not None:
             # date upgrade
-            t_upgrade = astropy.time.Time("2023-12-14", format='isot')
-            obs_date = astropy.time.Time(self.get_meta_value(self.get_headarr(hdu), 'mjd'), format='mjd')
+            t_upgrade = Time("2023-12-14", format='isot')
+            obs_date = Time(self.get_meta_value(self.get_headarr(hdu), 'mjd'), format='mjd')
 
             if obs_date >= t_upgrade:
                 # These values are taken from
@@ -932,8 +932,8 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
         if hdu is not None:
             # account for the CCD upgrade happened on 2023-12-14
             # date upgrade
-            t_upgrade = astropy.time.Time("2023-12-14", format='isot')
-            obs_date = astropy.time.Time(self.get_meta_value(self.get_headarr(hdu), 'mjd'), format='mjd')
+            t_upgrade = Time("2023-12-14", format='isot')
+            obs_date = Time(self.get_meta_value(self.get_headarr(hdu), 'mjd'), format='mjd')
 
             if obs_date >= t_upgrade:
                 self.detid = 'BI11-41-4k-2,BI13-19-4k-3,BI12-34-4k-1'
@@ -1003,7 +1003,7 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
         # TODO: We're opening the file too many times...
         hdrs = self.get_headarr(filename)
         binning = self.get_meta_value(hdrs, 'binning')
-        obs_epoch = astropy.time.Time(self.get_meta_value(hdrs, 'mjd'), format='mjd').jyear
+        obs_epoch = Time(self.get_meta_value(hdrs, 'mjd'), format='mjd').jyear
         bin_spec, _ = parse.parse_binning(binning)
 
         # Add the detector-specific, hard-coded bad columns
@@ -1025,7 +1025,7 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
             _bpm_img[i,badr,:] = 1
             # Bad amp as of January 28, 2022
             # https://gemini.edu/sciops/instruments/gmos/GMOS-S_badamp5_ops_3.pdf
-            if 2022.07 < obs_epoch < astropy.time.Time("2023-12-14", format='isot').jyear:
+            if 2022.07 < obs_epoch < Time("2023-12-14", format='isot').jyear:
                 badr = (768*2)//bin_spec
                 _bpm_img[i,badr:,:] = 1
         if 3 in _det:
@@ -1039,9 +1039,9 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -1080,9 +1080,9 @@ class GeminiGMOSSHamSpectrograph(GeminiGMOSSpectrograph):
                 par['calibrations']['wavelengths']['reid_arxiv'] = 'gemini_gmos_r150_ham.fits'
 
         # The bad amp needs a larger follow_span for slit edge tracing
-        obs_epoch = astropy.time.Time(mjd, format='mjd').jyear
+        obs_epoch = Time(mjd, format='mjd').jyear
         bin_spec, _ = parse.parse_binning(binning)
-        if 2022.07 < obs_epoch < astropy.time.Time("2023-12-14", format='isot').jyear:
+        if 2022.07 < obs_epoch < Time("2023-12-14", format='isot').jyear:
             par['calibrations']['slitedges']['follow_span'] = 290*bin_spec
 
         return par
@@ -1229,9 +1229,9 @@ class GeminiGMOSNHamSpectrograph(GeminiGMOSNSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -1287,9 +1287,9 @@ class GeminiGMOSNHamNSSpectrograph(GeminiGMOSNHamSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
@@ -1548,9 +1548,9 @@ class GeminiGMOSNE2VSpectrograph(GeminiGMOSNSpectrograph):
 
     def config_specific_par(
             self,
-            inp:str|list|pathlib.Path|astropy.io.fits.Header|astropy.table.Table,
-            inp_par:parset.ParSet=None
-        ):
+            inp:str|list|Path|fits.Header|Table,
+            inp_par:parset.ParSet|None=None
+        ) -> parset.ParSet:
         """
         Modify the PypeIt parameters to hard-wired values used for
         specific instrument configurations.
