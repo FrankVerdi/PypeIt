@@ -355,6 +355,14 @@ class VLTFORS2Spectrograph(VLTFORSSpectrograph):
                 # Since we are using the sky to fit the wavelengths don't correct for flexure
                 par['flexure']['spec_method'] = 'skip'
                 #par['reduce']['skysub']['bspline_spacing'] = 0.6
+            case 'GRIS_1200B':
+                par['calibrations']['wavelengths']['lamps'] = ['HeI', 'ArI','HgI','CdI']
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'vlt_fors2_1200B.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
+            case 'GRIS_1400V':
+                par['calibrations']['wavelengths']['lamps'] = ['HeI','NeI','ArI','HgI','CdI']
+                par['calibrations']['wavelengths']['reid_arxiv'] = 'vlt_fors2_1400V.fits'
+                par['calibrations']['wavelengths']['method'] = 'full_template'
 
         if 'lSlit' in decker or 'LSS' in decker:
             par['calibrations']['slitedges']['sync_predict'] = 'nearest'
