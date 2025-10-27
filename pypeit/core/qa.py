@@ -55,8 +55,8 @@ def set_qa_filename(
             outfile = 'PNGs/Slit_Trace_{:s}.png'.format(root)
 
         case 'slit_profile_qa':
-            # outfile = 'QA/PNGs/Slit_Profile_{:s}_'.format(root)
-            outfile = 'PNGs/Slit_Profile_{:s}_'.format(root)
+            outfile = 'QA/PNGs/Slit_Profile_{:s}_'.format(root)
+            # outfile = 'PNGs/Slit_Profile_{:s}_'.format(root)
 
         case 'arc_fit_qa':
             # outfile = 'QA/PNGs/Arc_1dfit_{:s}_S{:04d}.png'.format(root, slit)
@@ -66,8 +66,8 @@ def set_qa_filename(
             outfile = 'PNGs/Arc_FWHMfit_{:s}_S{:04d}.png'.format(root, slit)
 
         case 'plot_orderfits_Arc':  # This is root for multiple PNGs
-            # outfile = 'QA/PNGs/Arc_lines_{:s}_S{:04d}_'.format(root, slit)
-            outfile = 'PNGs/Arc_lines_{:s}_S{:04d}_'.format(root, slit)
+            outfile = 'QA/PNGs/Arc_lines_{:s}_S{:04d}_'.format(root, slit)
+            # outfile = 'PNGs/Arc_lines_{:s}_S{:04d}_'.format(root, slit)
 
         case 'arc_fit2d_global_qa':
             # outfile = 'QA/PNGs/Arc_2dfit_global_{:s}'.format(root)
@@ -90,16 +90,16 @@ def set_qa_filename(
             outfile = 'PNGs/Arc_tilts_2d_{:s}_S{:04d}.png'.format(root, slit)
 
         case 'pca_plot':  # This is root for multiple PNGs
-            # outfile = 'QA/PNGs/{:s}_pca_{:s}_'.format(prefix, root)
-            outfile = 'PNGs/{:s}_pca_{:s}_'.format(prefix, root)
+            outfile = 'QA/PNGs/{:s}_pca_{:s}_'.format(prefix, root)
+            # outfile = 'PNGs/{:s}_pca_{:s}_'.format(prefix, root)
 
         case 'pca_arctilt':  # This is root for multiple PNGs
-            # outfile = 'QA/PNGs/Arc_pca_{:s}_'.format(root)
-            outfile = 'PNGs/Arc_pca_{:s}_'.format(root)
+            outfile = 'QA/PNGs/Arc_pca_{:s}_'.format(root)
+            # outfile = 'PNGs/Arc_pca_{:s}_'.format(root)
 
         case 'plot_orderfits_Blaze':  # This is root for multiple PNGs
-            # outfile = 'QA/PNGs/Blaze_{:s}_'.format(root)
-            outfile = 'PNGs/Blaze_{:s}_'.format(root)
+            outfile = 'QA/PNGs/Blaze_{:s}_'.format(root)
+            # outfile = 'PNGs/Blaze_{:s}_'.format(root)
 
         case 'obj_trace_qa':
             outfile = 'PNGs/{:s}_{:s}_S{:04d}_obj_trace.png'.format(root, det, slit)
@@ -108,8 +108,8 @@ def set_qa_filename(
             outfile = 'PNGs/{:s}_{:s}_S{:04d}_obj_prof.png'.format(root, det, slit)
 
         case 'spat_flexure_qa_corr':
-            # outfile = 'QA/PNGs/{:s}_spat_flex_corr.png'.format(root)
-            outfile = 'PNGs/{:s}_spat_flex_corr.png'.format(root)
+            outfile = 'QA/PNGs/{:s}_spat_flex_corr.png'.format(root)
+            # outfile = 'PNGs/{:s}_spat_flex_corr.png'.format(root)
 
         case 'spec_flexure_qa_corr':
             # outfile = 'QA/PNGs/{:s}_D{:02d}_S{:04d}_spec_flex_corr.png'.format(root, det, slit)
