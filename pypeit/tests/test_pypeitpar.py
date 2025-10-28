@@ -7,17 +7,46 @@ from IPython import embed
 
 import pytest
 
+from pypeit.pypmsgs import PypeItError
 from pypeit.par import pypeitpar
 from pypeit.par import parset
 from pypeit.par import util
 from pypeit.spectrographs.util import load_spectrograph
 
 
+def test_eval_int_float():
+    assert util.eval_int_float('1') == 1, 'Bad int evaluation'
+    assert util.eval_int_float('1.0') == 1.0, 'Bad int evaluation'
+    assert util.eval_int_float('test') == 'test', 'Should just return input'
+
 def test_eval_tuple():
+    # one tuple
     t = ['(1', '2', '3)']
     assert util.eval_tuple(t) == [(1,2,3)], 'Bad tuple evaluation'
+    # two tuples
     t = ['(1', '2)', '(3', '4)']
     assert util.eval_tuple(t) == [(1,2),(3,4)], 'Bad tuple evaluation'
+    # a tuple with a mix of int and float types
+    t = ['(1', '2.3)', '(3', '4)']
+    assert util.eval_tuple(t) == [(1,2.3),(3,4)], 'Bad tuple evaluation'
+    # a tuple with a string
+    t = ['(1', '2.3)', '(test', '4)']
+    assert util.eval_tuple(t) == [(1, 2.3), ('test', 4)], 'Bad tuple evaluation'
+
+
+def test_eval_list():
+    # one list
+    t = ['[1', '2', '3]']
+    assert util.eval_list(t) == [[1,2,3]], 'Bad list evaluation'
+    # two lists
+    t = ['[1', '2]', '[3', '4]']
+    assert util.eval_list(t) == [[1,2],[3,4]], 'Bad list evaluation'
+    # a list with a mix of int and float types
+    t = ['[1', '2.3]', '[3', '4]']
+    assert util.eval_list(t) == [[1,2.3],[3,4]], 'Bad list evaluation'
+    # a list with a string
+    t = ['[1', '2.3]', '[test', '4]']
+    assert util.eval_list(t) == [[1, 2.3], ['test', 4]], 'Bad list evaluation'
 
 
 def test_framegroup():

@@ -1058,8 +1058,10 @@ class DataContainer:
                 for key in keys[indx]:
                     if key in _d.keys() and _d[key] is not None:
                         continue
-                    _d[key] = _hdu[e].header[key.upper()] if cls.datamodel[key]['otype'] != tuple \
-                                else eval(_hdu[e].header[key.upper()])
+                    if cls.datamodel[key]['otype'] == tuple:
+                        _d[key] = util.eval_tuple(_hdu[e].header[key.upper()])
+                    else:
+                        _d[key] = _hdu[e].header[key.upper()]
             if isinstance(e, (str, np.str_)) and e in prefkeys:
                 # Already parsed this above
                 continue

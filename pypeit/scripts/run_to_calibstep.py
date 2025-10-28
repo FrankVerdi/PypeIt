@@ -44,13 +44,15 @@ class RunToCalibStep(scriptbase.ScriptBase):
     @staticmethod
     def main(args):
 
-        import ast
+#        import ast
         import numpy as np
         from IPython import embed
         from pathlib import Path
 
         from pypeit import pypeit
         from pypeit import msgs
+        from pypeit.pypmsgs import PypeItError
+        from pypeit.par.util import eval_tuple
 
         # Load options from command line
         _pypeit_file = Path(args.pypeit_file).absolute()
@@ -71,7 +73,24 @@ class RunToCalibStep(scriptbase.ScriptBase):
         pypeIt.reuse_calibs = True
 
         # Find the detectors to reduce
-        dets = pypeIt.par['rdx']['detnum'] if args.det is None else ast.literal_eval(args.det)
+#        dets = pypeIt.par['rdx']['detnum'] if args.det is None else ast.literal_eval(args.det)
+        if args.det is None:
+            dets = pypeIt.par['rdx']['detnum']
+        else:
+            # TODO: We need a eval_detectors function
+            dets = None
+            try:
+                dets = int(args.det)
+            except:
+                pass
+            if dets is None:
+                try:
+                    dets = eval_tuple(args.det)
+                except:
+                    pass
+            if dets is None:
+                raise PypeItError('Could not parse detectors')
+
         detectors = pypeIt.select_detectors(
             pypeIt.spectrograph, dets,
             slitspatnum=pypeIt.par['rdx']['slitspatnum'])
