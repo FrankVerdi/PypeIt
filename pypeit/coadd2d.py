@@ -318,7 +318,7 @@ class CoAdd2D:
             msgs.error(f'Missing TARGET keyword in {spec2d_files[0]}.  Set the basename '
                         'using the command-line option.')
         return f"{frsthdr['FILENAME'].split('.fits')[0]}-" \
-                f"{lasthdr['FILENAME'].split('.fits')[0]}-{frsthdr['TARGET']}"
+                f"{lasthdr['FILENAME'].split('.fits')[0]}-{frsthdr['TARGET'].replace(' ','')}"
 
     @staticmethod
     def output_paths(spec2d_files, par, coadd_dir=None):
@@ -1496,7 +1496,7 @@ class MultiSlitCoAdd2D(CoAdd2D):
         # adjustment for multislit to case 3) Bright object exists and parset `weights` is equal to 'auto'
         if (self.obj_id_bri is not None) and (self.par['coadd2d']['weights'] == 'auto'):
             # compute weights using bright object
-            # TODO add option for weigth_method in optimal_weights
+            # TODO add a parset for weight_method in optimal_weights. The default is currently 'auto'
             _, self.use_weights = self.optimal_weights(self.obj_id_bri)
             if self.par['coadd2d']['user_obj_ids'] is not None:
                 msgs.info(f'Weights computed using a unique reference object in slit={self.spatid_bri} provided by the user')
