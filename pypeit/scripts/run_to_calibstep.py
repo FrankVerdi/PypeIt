@@ -72,7 +72,6 @@ class RunToCalibStep(scriptbase.ScriptBase):
         pypeIt.reuse_calibs = True
 
         # Find the detectors to reduce
-#        dets = pypeIt.par['rdx']['detnum'] if args.det is None else ast.literal_eval(args.det)
         if args.det is None:
             dets = pypeIt.par['rdx']['detnum']
         else:

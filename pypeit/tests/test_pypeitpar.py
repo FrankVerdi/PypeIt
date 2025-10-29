@@ -7,17 +7,11 @@ from IPython import embed
 
 import pytest
 
-from pypeit.pypmsgs import PypeItError
 from pypeit.par import pypeitpar
 from pypeit.par import parset
 from pypeit.par import util
 from pypeit.spectrographs.util import load_spectrograph
 
-
-def test_eval_int_float():
-    assert util.eval_int_float('1') == 1, 'Bad int evaluation'
-    assert util.eval_int_float('1.0') == 1.0, 'Bad int evaluation'
-    assert util.eval_int_float('test') == 'test', 'Should just return input'
 
 def test_eval_tuple():
     # one tuple

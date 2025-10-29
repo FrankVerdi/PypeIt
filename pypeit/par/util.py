@@ -4,6 +4,7 @@ Utility functions for PypeIt parameter sets
 
 .. include:: ../include/links.rst
 """
+import ast
 import itertools
 from typing import Type
 
@@ -20,31 +21,15 @@ def _eval_ignore():
     return [ 'open', 'file', 'dict', 'list', 'tuple' ]
 
 
-def eval_int_float(inp: str) -> int | float:
+def ast_literal_eval(inp):
     """
-    Attempt to convert the input string into either an integer or floating point
-    value.  If the input cannot be converted, it is returned.
-
-    Parameters
-    ----------
-    inp
-        String to convert
-
-    Returns
-    -------
-        Converted value
+    A wrapper for :func:`ast.literal_eval` that returns the input if it raises a
+    ValueError.
     """
     try:
-        return int(inp)
+        return ast.literal_eval(inp)
     except ValueError:
-        pass
-
-    try:
-        return float(inp)
-    except ValueError:
-        pass
-
-    return inp
+        return inp
 
 
 def _eval_iter(inp:list[str], left:str, right:str, otype:Type) -> list:
@@ -72,7 +57,7 @@ def _eval_iter(inp:list[str], left:str, right:str, otype:Type) -> list:
         i for i in list(itertools.chain(*[s.split(right) for s in ','.join(inp).split(left)]))
         if len(i) > 1
     ]
-    return list(otype(map(eval_int_float, g.split(','))) for g in grps)
+    return list(otype(map(ast_literal_eval, g.split(','))) for g in grps)
 
 
 def eval_tuple(inp:list[str]) -> list[tuple]:
@@ -140,7 +125,7 @@ def recursive_dict_evaluate(d):
     those listed above in the :func:`_eval_ignore` function.  Any value
     in this list or where::
 
-        eval_int_float(d[k]) for k in d.keys()
+        ast_literal_eval(d[k]) for k in d.keys()
 
     raises an exception is returned as the original string.
 
@@ -181,14 +166,14 @@ def recursive_dict_evaluate(d):
                     replacement += [ v ]
                 else:
                     try:
-                        replacement += [ eval_int_float(v) ]
+                        replacement += [ ast_literal_eval(v) ]
                     except:
                         replacement += [ v ]
             d[k] = replacement
             continue
 
         try:
-            d[k] = eval_int_float(d[k]) if d[k] not in ignore else d[k]
+            d[k] = ast_literal_eval(d[k]) if d[k] not in ignore else d[k]
         except:
             pass
 

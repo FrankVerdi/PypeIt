@@ -469,6 +469,7 @@ from astropy.table import Table
 
 from pypeit import io
 from pypeit import msgs
+from pypeit.par.util import eval_tuple
 
 # TODO: There are methods in, e.g., doc/scripts/build_specobj_rst.py that output
 # datamodels for specific datacontainers.  It would be useful if we had
@@ -1059,7 +1060,7 @@ class DataContainer:
                     if key in _d.keys() and _d[key] is not None:
                         continue
                     if cls.datamodel[key]['otype'] == tuple:
-                        _d[key] = util.eval_tuple(_hdu[e].header[key.upper()])
+                        _d[key] = eval_tuple(_hdu[e].header[key.upper()].split(','))[0]
                     else:
                         _d[key] = _hdu[e].header[key.upper()]
             if isinstance(e, (str, np.str_)) and e in prefkeys:

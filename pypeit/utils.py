@@ -1070,7 +1070,7 @@ def smooth(x, window_len, window='flat'):
     s = np.r_[x[window_len - 1:0:-1], x, x[-2:-window_len - 1:-1]]
 
     match window:
-        case 'flag':
+        case 'flat':
             # moving average
             w = np.ones(window_len, 'd')
         case 'hanning':

@@ -40,4 +40,3 @@ def test_io():
     Path(ofile).unlink()
     Path(_ofile).unlink()
 
-test_io()
