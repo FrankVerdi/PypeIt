@@ -1204,6 +1204,9 @@ def spec_flexure_corrQA(ax:plt.Axes, this_flex_dict:dict, cntr:int, name:str):
         ax.set_xlabel('Lag')
 
 
+# TODO: With Python 3.14's deferred evaluation of annotations, may be able
+#       to annotate `specobjs`; however, should really remove PypeIt-specific
+#       objects from `core`.
 def spec_flexure_qa(slitords:np.ndarray, bpm:np.ndarray, basename:str,
                     flex_list:list[dict], specobjs=None,
                     out_dir:str|None=None):
