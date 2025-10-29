@@ -39,4 +39,3 @@ def test_io():
     # Remove files
     Path(ofile).unlink()
     Path(_ofile).unlink()
-
