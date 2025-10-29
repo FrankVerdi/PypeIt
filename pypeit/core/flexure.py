@@ -1235,7 +1235,7 @@ def spec_flexure_qa(slitords:np.ndarray, bpm:np.ndarray, basename:str,
     plt.rcParams['font.family'] = 'serif'
 
     # What type of QA are we doing
-    slit_cen = True if specobjs is None else False
+    slit_cen = specobjs is None
 
     # Grab the named of the method
     method = inspect.stack()[0][3]
