@@ -214,14 +214,13 @@ def test_config_specific_par(fitstbl):
     par = spectrograph.config_specific_par(sci_file)
 
     # Load the parameters based on the fitstbl object
-    csf_idx = fitstbl['filename'] == pathlib.Path(sci_file).name
-    _ = spectrograph.config_specific_par(fitstbl[csf_idx])
+    _ = spectrograph.config_specific_par(fitstbl.get_row_for_filename(sci_file))
     
     # Check the value of configuration-dependent `reid_arxiv`
     assert par['calibrations']['wavelengths']['reid_arxiv'] == 'shane_kast_blue_600.fits'
 
     # Change the ``dispname`` value in the fitstbl, and make sure the par changed
-    ft2 = fitstbl.table.copy()
-    ft2['dispname'][csf_idx] = '452/3306'
-    par = spectrograph.config_specific_par(ft2[csf_idx])
+    ft2 = fitstbl.get_row_for_filename(sci_file)
+    ft2['dispname'] = '452/3306'
+    par = spectrograph.config_specific_par(ft2)
     assert par['calibrations']['wavelengths']['reid_arxiv'] == 'shane_kast_blue_452.fits'
