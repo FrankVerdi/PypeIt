@@ -1441,24 +1441,25 @@ def objtrace_QA(
     ----------
     trace_fit
         Gaussian-weighed best-fitting positions of each trace determined by the
-        polynomial fit.  This should be a (npix, ntrace) float array.
+        polynomial fit.  This should be a (npix, ntrace) :obj:`float` array.
     trace_fit_gpm
         Good-pixel mask from the trace fitting. This should be a (npix, ntrace)
-        boolean array.
+        :obj:`bool` array.
     peak_cen
         Measured spatial pixel centroids of the trace peak as a function of
-        spectral pixel.  This should be a (npix, ntrace) float array.
+        spectral pixel.  This should be a (npix, ntrace) :obj:`float` array.
     peak_cen_gpm
         Good pixel mask resulting from the attempt to fit ``peak_cen`` spatial
-        centroids.  This should be a (npix, ntrace) boolean array.
+        centroids.  This should be a (npix, ntrace) :obj:`bool` array.
     trace_input
         Input trace spatial pixel positions as a function of spectral pixel.
         This array is used as the starting point for fitting a polynomial to
-        each ``peak_cen`` array.  This should be a (npix, ntrace) float array.
+        each ``peak_cen`` array.  This should be a (npix, ntrace) :obj:`float`
+        array.
     trace_input_bpm
         Tracing input bad picel mask indicating which pixels in ``peak_cen``
         (in addition to those not in ``peak_cen_gpm``) were not included in the
-        fitting.  This should be a (npix, ntrace) boolean array.
+        fitting.  This should be a (npix, ntrace) :obj:`bool` array.
     trace_names
         List of trace names for plot titles.  This should be ntrace items long.
     objtraceQA_filename
