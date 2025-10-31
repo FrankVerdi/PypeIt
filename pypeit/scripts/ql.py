@@ -1022,7 +1022,7 @@ class QL(scriptbase.ScriptBase):
         else:
             # Grab the spec2d file (or at least the first one)
             frame = pypeIt.fitstbl.find_frames('science', index=True)[0]
-            spec2d_file = pypeIt.spec_output_file(frame, twod=True)
+            spec2d_file = outputfiles.spec_output_file(pypeIt.fitstbl, pypeIt.par, frame, twod=True)
 
         if not args.skip_display:
             # TODO: Need to parse detector here?

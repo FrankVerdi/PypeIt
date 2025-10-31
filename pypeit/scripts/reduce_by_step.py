@@ -88,6 +88,7 @@ class ReducebyStep(scriptbase.ScriptBase):
             det = pypeIt.spectrograph.select_detectors(subset=args.det)
             if len(det) > 1:
                 msgs.error("The input --det must be a single detector or mosaic.")
+            det = det[0]
         # detector name
         det_name = pypeIt.spectrograph.get_det_name(det)
 
