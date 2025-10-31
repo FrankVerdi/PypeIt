@@ -14,6 +14,7 @@ from pypeit.spectrographs.util import load_spectrograph
 from pypeit.scripts.setup import Setup
 from pypeit.inputfiles import PypeItFile
 from astropy.table import Table
+from pypeit.pypmsgs import PypeItError
 
 
 def test_read_combid():
@@ -203,3 +204,7 @@ def test_get_row_for_filename():
     assert isinstance(row, Table), 'Returned object is not a table'
     assert len(row) == 1, 'Returned object should be a table with one row'
     assert row['filename'] == 'b27.fits.gz'
+
+    # Try to get a non-existent row
+    with pytest.raises(PypeItError):
+        row = pmd.get_row_for_filename('not_a_kast_file.fits')
