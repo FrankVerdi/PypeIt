@@ -682,7 +682,7 @@ class SlitTraceSet(calibframe.CalibFrame):
             bpm = self.bitmask.flagged(self.mask, and_not=exclude_flag)
 #            bpm = self.mask.astype(bool)
 #            if exclude_flag:
-#                bpm &= np.invert(self.bitmask.flagged(self.mask, flag=exclude_flag))
+#                bpm &= np.logical_not(self.bitmask.flagged(self.mask, flag=exclude_flag))
             slitidx = np.where(np.logical_not(bpm))[0]
 
         # TODO: When specific slits are chosen, need to check that the

@@ -177,7 +177,7 @@ class FindObjects:
         # make sure any of the `exclude_for_reducing` flags are not on.  This
         # previous code may also have included slits that were flagged as
         # SHORTSLIT.  Was that on purpose?
-#        self.reduce_bpm = (self.slits.mask > 2) & (np.invert(self.slits.bitmask.flagged(
+#        self.reduce_bpm = (self.slits.mask > 2) & (np.logical_not(self.slits.bitmask.flagged(
 #                        self.slits.mask, flag=self.slits.bitmask.exclude_for_reducing)))
         self.reduce_bpm_init = self.reduce_bpm.copy()
 
@@ -302,7 +302,7 @@ class FindObjects:
         # to return a new slits object with the desired selection criteria which would remove the ambiguity
         # about whether the slits and the slitmask are in sync.
         #bpm = self.slits.mask.astype(bool)
-        #bpm &= np.invert(self.slits.bitmask.flagged(self.slits.mask, flag=self.slits.bitmask.exclude_for_reducing + ['BOXSLIT']))
+        #bpm &= np.logical_not(self.slits.bitmask.flagged(self.slits.mask, flag=self.slits.bitmask.exclude_for_reducing + ['BOXSLIT']))
         #gpm = np.logical_not(bpm)
         #self.slits_left = slits_left[:, gpm]
         #self.slits_right = slits_right[:, gpm]
@@ -762,7 +762,7 @@ class MultiSlitFindObjects(FindObjects):
         nobj : :obj:`int`
             Number of objects identified
         """
-        gdslits = np.where(np.invert(self.reduce_bpm))[0]
+        gdslits = np.where(np.logical_not(self.reduce_bpm))[0]
 
         # Instantiate the specobjs container
         sobjs = specobjs.SpecObjs()

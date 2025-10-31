@@ -1536,7 +1536,7 @@ def standard_zeropoint(wave, Nlam, Nlam_ivar, Nlam_gpm, flam_true, mask_recomb=N
 
     zeropoint_poly = pypeitFit.eval(wave)
     # Robustly characterize the standard deviation for the b-spline fitting.
-    zp_dev_mean, zp_dev_median, zp_std = stats.sigma_clipped_stats(zeropoint_data - zeropoint_poly, np.invert(zeropoint_fitmask),
+    zp_dev_mean, zp_dev_median, zp_std = stats.sigma_clipped_stats(zeropoint_data - zeropoint_poly, np.logical_not(zeropoint_fitmask),
                                                                    cenfunc='median', stdfunc=utils.nan_mad_std,
                                                                    maxiters=10, sigma_lower=lower, sigma_upper=upper)
     zeropoint_ivar = np.ones_like(zeropoint_data)/zp_std**2
@@ -1612,9 +1612,9 @@ def standard_zeropoint(wave, Nlam, Nlam_ivar, Nlam_gpm, flam_true, mask_recomb=N
         plt.plot(wave, zeropoint_data, drawstyle='steps-mid', color='black', label='Zeropoint Data', zorder=1)
         plt.plot(wave, zeropoint_bspl, color='cornflowerblue', label='Bspline fit', linewidth=1.0, zorder=2)
         plt.plot(wave, zeropoint_poly, color='orchid', label='PolyFit for masking', linewidth=2.0, zorder=0)
-        plt.plot(wave[np.invert(zeropoint_fitmask)], zeropoint_data[np.invert(zeropoint_fitmask)], '+', color='red', markersize=5.0,
+        plt.plot(wave[np.logical_not(zeropoint_fitmask)], zeropoint_data[np.logical_not(zeropoint_fitmask)], '+', color='red', markersize=5.0,
                  label='masked zeropoint_fitmask', zorder=4)
-        plt.plot(wave[np.invert(zeropoint_fit_gpm)], zeropoint_bspl[np.invert(zeropoint_fit_gpm)], 'x', color='pink', markersize=5.0,
+        plt.plot(wave[np.logical_not(zeropoint_fit_gpm)], zeropoint_bspl[np.logical_not(zeropoint_fit_gpm)], 'x', color='pink', markersize=5.0,
                  label='masked zeropoint_bspl_fit', zorder=3)
         plt.plot(init_breakpoints, zeropoint_bspl_bkpt, '.', color='cyan', markersize=8.0, label='breakpoints', zorder=10)
         plt.plot(init_breakpoints, np.interp(init_breakpoints, wave, zeropoint_data), '.', color='green', zorder=15,
