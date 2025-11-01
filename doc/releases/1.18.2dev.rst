@@ -23,6 +23,16 @@ Functionality/Performance Improvements and Additions
   the OneSpec datamodel.  Note that this is only possible for non-echelle data.
 - Added a new class to interface with the atmospheric extinction data.
 - Significant refactor of interface with flux-calibration standards.
+- Added the possibility to use the maskdesign information to set `specmin` and
+  `specmax` in the edge tracing process for each slit (only if this information is
+  available). Currently implemented only for Gemini/GMOS.
+- When creating a sensitivity function from a standard star reduced using the mosaic
+  approach, the code now splits the standard star spec1d into the single detectors and,
+  after the sensitivity function for each detector is computed, it splices them into
+  a single sensfunc covering the full wavelength range.
+- Add the possibility to use more than one standard star spec1d to create the
+  sensitivity function. This can be helpful in case of spectrally dithered observations.
+
 
 Instrument-specific Updates
 ---------------------------
@@ -31,6 +41,8 @@ Instrument-specific Updates
   for the N3.75 camera, wavelength solutions for the G200 grating, and a basic
   non-linearity correction. Edge finding parameters have been better optimized,
   and spatial flexure correction has now been turned on.
+- Updated the `gain` and `ronoise` values for Gemini/GMOS spectrographs to account
+  for the different values measured in each amplifier.
 
 Script Changes
 --------------

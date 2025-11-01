@@ -21,7 +21,7 @@ class SensFunc(scriptbase.ScriptBase):
         parser.add_argument("spec1dfiles", type=str, nargs='+',
                             help='file(s) of the reduced standard star spectrum.  These '
                                  'can be either spec1d*.fits files or the output of '
-                                 '`pypeit_coadd_1dspec` (this only for non Echelle data).'
+                                 '`pypeit_coadd_1dspec` (except for cross-dispersed echelle data).'
                                  ' Multiple files can be provided, but they are helpful only'
                                  'if they cover different wavelength ranges, since this'
                                  'script will splice (not combine) them together.')
