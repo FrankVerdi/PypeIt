@@ -16,14 +16,12 @@ import numpy as np
 
 
 from pypeit import inputfiles
-from pypeit import outputfiles
-from pypeit.core import parse, wave, qa
+from pypeit.core import qa
 from pypeit import msgs
 from pypeit import calibrations
 from pypeit import utils
 from pypeit.history import History
 from pypeit.metadata import PypeItMetaData
-#from pypeit import state
 from pypeit import outputfiles
 from pypeit import exposure
 

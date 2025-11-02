@@ -563,7 +563,7 @@ class PypeItMetaData:
 
         return (setups, indx) if return_index else setups
 
-    def get_frames_from_combid(self, comb_id, exclude_bkg=False):
+    def get_frames_from_combid(self, comb_id):
         """
         Return the indices of all frames with the provided combination
         group ID.
@@ -571,8 +571,6 @@ class PypeItMetaData:
         Args:
             comb_id (:obj:`int`):
                 The combination group ID to search for.
-            exclude_bkg (:obj:`bool`, optional):
-                Exclude background frames from the returned indices.
 
         Returns:
             `numpy.ndarray`_: The indices of all frames with the

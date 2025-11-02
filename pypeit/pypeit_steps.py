@@ -20,6 +20,11 @@ from pypeit.manual_extract import ManualExtractionObj
 from pypeit import spec2dobj
 from pypeit.core import wave
 
+# local_skyregions
+from pypeit.core import skysub
+from pypeit.core import io
+from pypeit.core.findobj import instantiate_objfind
+
 from pypeit import slittrace
 from pypeit import calibrations
 
@@ -442,7 +447,8 @@ def load_calibrations_for_frame(spectrograph, fitstbl, par, frame, det,
     return caliBrate
 
 
-def load_skyregions(initial_slits=False, scifile=None, frame=None):
+def load_skyregions(spectrograph, fitstbl, par, frame, det, caliBrate,
+                    calirations_path:str, scifile:str=None, initial_slits=False):
     """
     Generate or load sky regions, if defined by the user.
 
@@ -473,14 +479,6 @@ def load_skyregions(initial_slits=False, scifile=None, frame=None):
         Flag to use the initial slits before any tweaking based on the
         slit-illumination profile; see
         :func:`~pypeit.slittrace.SlitTraceSet.select_edges`.
-    scifile : :obj:`str`, optional
-        The file name used to define the user-based sky regions.  Only used
-        if ``user_regions = user``.
-    frame : :obj:`int`, optional
-        The index of the frame used to construct the calibration key.  Only
-        used if ``user_regions = user``.
-    spat_flexure : :obj:`float`, None, optional
-        The spatial flexure (measured in pixels) of the science frame relative to the trace frame.
 
     Returns
     -------
@@ -494,39 +492,17 @@ def load_skyregions(initial_slits=False, scifile=None, frame=None):
 
     # Flexure
     spat_flexure = None
-    # use the flexure correction in the "shift" column
-    manual_flexure = self.fitstbl[frames[0]]['shift']
-    if (self.objtype == 'science' and self.par['scienceframe']['process']['spat_flexure_correct']) or \
-            (self.objtype == 'standard' and self.par['calibrations']['standardframe']['process']['spat_flexure_correct']) or \
-                manual_flexure:
-        if (manual_flexure or manual_flexure == 0) and not (np.issubdtype(self.fitstbl[frames[0]]["shift"], np.integer)):
-            msgs.info(f'Implementing manual flexure of {manual_flexure}')
-            spat_flexure = np.float64(manual_flexure)
-            sciImg.spat_flexure = spat_flexure
-        else:
-            msgs.info(f'Using auto-computed flexure')
-            spat_flexure = sciImg.spat_flexure
-    msgs.info(f'Flexure being used is: {spat_flexure}')
-    # Build the initial sky mask
-    initial_skymask = self.load_skyregions(initial_slits=self.spectrograph.pypeline != 'SlicerIFU',
-                                            scifile=sciImg.files[0], frame=frames[0], spat_flexure=spat_flexure)
-
-    # Deal with manual extraction
-    row = self.fitstbl[frames[0]]
-    manual_obj = ManualExtractionObj.by_fitstbl_input(
-        row['filename'], row['manual'], self.spectrograph) if len(row['manual'].strip()) > 0 else None
-
 
     # First priority given to user_regions first
-    if self.par['reduce']['skysub']['user_regions'] == 'user':
+    if par['reduce']['skysub']['user_regions'] == 'user':
         # Build the file name
         calib_key = CalibFrame.construct_calib_key(
-                            self.fitstbl['setup'][frame],
-                            CalibFrame.ingest_calib_id(self.fitstbl['calib'][frame]),
-                            self.spectrograph.get_det_name(self.det))
-        regfile = buildimage.SkyRegions.construct_file_name(calib_key,
-                                                            calib_dir=self.calibrations_path,
-                                                            basename=io.remove_suffix(scifile))
+                            fitstbl['setup'][frame],
+                            CalibFrame.ingest_calib_id(fitstbl['calib'][frame]),
+                            spectrograph.get_det_name(det))
+        regfile = buildimage.SkyRegions.construct_file_name(
+            calib_key, calib_dir=calibrations_path, 
+            basename=io.remove_suffix(scifile))
         regfile = Path(regfile).absolute()
         if not regfile.exists():
             msgs.error(f'Unable to find SkyRegions file: {regfile} . Create a SkyRegions '
@@ -535,24 +511,24 @@ def load_skyregions(initial_slits=False, scifile=None, frame=None):
         msgs.info(f'Loading SkyRegions file: {regfile}')
         return buildimage.SkyRegions.from_file(regfile).image.astype(bool)
 
-    skyregtxt = self.par['reduce']['skysub']['user_regions']
+    skyregtxt = par['reduce']['skysub']['user_regions']
     if isinstance(skyregtxt, list):
         skyregtxt = ",".join(skyregtxt)
     msgs.info(f'Generating skysub mask based on the user defined regions: {skyregtxt}')
     # NOTE : Do not include spatial flexure here!
     #        It is included when generating the mask in the return statement below
     slits_left, slits_right, _ \
-        = self.caliBrate.slits.select_edges(initial=initial_slits, flexure=None)
+        = caliBrate.slits.select_edges(initial=initial_slits, flexure=None)
 
     maxslitlength = np.max(slits_right-slits_left)
     # Get the regions
-    status, regions = skysub.read_userregions(skyregtxt, self.caliBrate.slits.nslits, maxslitlength)
+    status, regions = skysub.read_userregions(skyregtxt, caliBrate.slits.nslits, maxslitlength)
     if status == 1:
         msgs.error("Unknown error in sky regions definition. Please check the value:" + msgs.newline() + skyregtxt)
     elif status == 2:
         msgs.error("Sky regions definition must contain a percentage range, and therefore must contain a ':'")
     # Generate and return image
-    return skysub.generate_mask(self.spectrograph.pypeline, regions, self.caliBrate.slits,
+    return skysub.generate_mask(spectrograph.pypeline, regions, caliBrate.slits,
                                 slits_left, slits_right, spat_flexure=spat_flexure)
 
 
@@ -833,8 +809,10 @@ def instantiate_objfind(sciImg, spectrograph, fitstbl, par, frames, det,
     else:
         # Build the initial sky mask
         initial_skymask = load_skyregions(
-            initial_slits=spectrograph.pypeline != 'SlicerIFU',
-            scifile=sciImg.files[0], frame=frames[0])
+            spectrograph, fitstbl, par, frames[0], det, sciImg,
+            caliBrate, initial_slits=spectrograph.pypeline != 'SlicerIFU',
+            scifile=fitstbl.frame_paths(frames[0]))
+            
 
     objFind = find_objects.FindObjects.get_instance(
         sciImg, caliBrate.slits,

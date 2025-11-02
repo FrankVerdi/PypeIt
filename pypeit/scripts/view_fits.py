@@ -74,6 +74,7 @@ class ViewFits(scriptbase.ScriptBase):
 
         # Intermediate file?
         if args.inter:
+            hdu = io.fits_open(args.file)
             sciImg = pypeitimage.PypeItImage.from_file(args.file)
             img = sciImg.image
         elif args.exten is not None:

@@ -49,8 +49,10 @@ def adjust_for_slitmask(sciImg_dict:dict, spectrograph, fitstbl, par,
             slitmask calibration data for all detectors.
 
     Returns:
-        list: Updated list of SlitTraceSet objects with adjusted slitmask 
-        information, including object positions and offsets.
+        tuple: 
+            list: Updated list of SlitTraceSet objects with adjusted slitmask 
+            information, including object positions and offsets.
+            SpecObjs: Updated SpecObjs object with matched and added objects
     """
     # get object positions from slitmask design and slitmask offsets for all the detectors
     spat_flexure = np.array([sciImg_dict[ss].spat_flexure for ss in sciImg_dict])
@@ -75,7 +77,7 @@ def adjust_for_slitmask(sciImg_dict:dict, spectrograph, fitstbl, par,
         all_specobjs_objfind, calib_slits, spat_flexure, platescale,
         par['reduce']['slitmask'], par['reduce']['findobj']['find_fwhm'])
 
-    return calib_slits
+    return calib_slits, all_specobjs_objfind
     
                             
 
@@ -252,8 +254,6 @@ def extract_exposure(sciImg_dict:dict, bkg_redux_sciimg_dict:dict,
     # Extract
     for i,det in enumerate(detectors):
         # Load calibrations
-        caliBrate = pypeit_steps.load_calibrations_for_frame(
-            spectrograph, fitstbl, par, frames[0], det, calib_ID, calibrations_path)
         if calib_slits is not None:
             this_calib_slits = calib_slits[i]
             #caliBrate.slits = calib_slits[i]
@@ -406,7 +406,7 @@ def reduce_exposure(spectrograph, fitstbl, par, frames, calib_ID,
     # slitmask stuff
     if par['reduce']['slitmask']['assign_obj']:
         frame0 = frames[0]
-        calib_slits = adjust_for_slitmask(
+        calib_slits, all_specobjs_find = adjust_for_slitmask(
             sciImg_dict, 
             spectrograph, 
             fitstbl, 
