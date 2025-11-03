@@ -1643,7 +1643,7 @@ class Spectrograph:
 
         # Check core
         core_keys = np.array(list(core_meta.keys()))
-        indx = np.invert(np.isin(core_keys, list(self.meta.keys())))
+        indx = np.logical_not(np.isin(core_keys, list(self.meta.keys())))
         if np.any(indx):
             msgs.error('Required keys {0} not defined by spectrograph!'.format(core_keys[indx]))
 
@@ -1656,7 +1656,7 @@ class Spectrograph:
 
         # Now confirm all meta are in the data model
         meta_keys = np.array(list(self.meta.keys()))
-        indx = np.invert(np.isin(meta_keys, list(self.meta_data_model.keys())))
+        indx = np.logical_not(np.isin(meta_keys, list(self.meta_data_model.keys())))
         if np.any(indx):
             msgs.error('Meta data keys {0} not in metadata model'.format(meta_keys[indx]))
 

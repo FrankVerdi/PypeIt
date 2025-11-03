@@ -1256,7 +1256,7 @@ class FlatField:
                 # image
                 resid = twod_flat_data - twod_flat_fit
                 goodpix = twod_gpm_fit & twod_gpm_data
-                badpix = np.invert(twod_gpm_fit) & twod_gpm_data
+                badpix = np.logical_not(twod_gpm_fit) & twod_gpm_data
 
                 plt.clf()
                 ax = plt.gca()
@@ -1403,7 +1403,7 @@ class FlatField:
             gpm[spat_gpm] &= (spat_gpm & _spat_gpm)[spat_gpm]
 
         # Make sure that the normalized and filtered flat is finite!
-        if np.any(np.invert(np.isfinite(spat_flat_data))):
+        if np.any(np.logical_not(np.isfinite(spat_flat_data))):
             msgs.error('Inifinities in slit illumination function computation!')
 
         # Determine the breakpoint spacing from the sampling of the
