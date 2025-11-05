@@ -22,8 +22,7 @@ from pypeit.core import wave
 
 # local_skyregions
 from pypeit.core import skysub
-from pypeit.core import io
-from pypeit.core.findobj import instantiate_objfind
+from pypeit import io
 
 from pypeit import slittrace
 from pypeit import calibrations
