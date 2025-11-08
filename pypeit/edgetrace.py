@@ -4465,7 +4465,7 @@ class EdgeTraceSet(calibframe.CalibFrame):
                 ccdnum=self.traceimg.detector.det, 
                 binning=self.traceimg.detector.binning, 
                 filename=maskfiles, 
-                trc_path = os.path.dirname(self.traceimg.files[0]),
+                trc_path=str(Path(self.traceimg.files[0]).parent),
                 debug=debug)
 
         if omodel_bspat[omodel_bspat!=-1].size < 3:
@@ -5743,6 +5743,7 @@ class EdgeTraceSet(calibframe.CalibFrame):
                 specmin, specmax = self.spectrograph.maskdef_spec_minmax(maskfile=_maskfile,
                                                                          maskdef_ids=_maskdef_id,
                                                                          nspec=self.nspec,
+                                                                         binning=self.traceimg.detector.binning,
                                                                          shift=self.par['maskdesign_trim_shift'])
         else:
             _maskdef_id = None

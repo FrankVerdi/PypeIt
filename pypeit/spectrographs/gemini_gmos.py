@@ -4,7 +4,7 @@ Module for Gemini GMOS specific methods.
 .. include:: ../include/links.rst
 """
 import numpy as np
-import os
+from pathlib import Path
 
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
@@ -781,19 +781,18 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
 
     # DP: THIS SEEMS THE EASIEST WAY TO GET THE SLIT EDGES FROM THE MASKFILE. DOES ANYBODY DISAGREE?
     def get_maskdef_slitedges(self, ccdnum=None, filename=None, debug=None,
-                              trc_path: str = None, binning=None):
+                              trc_path:str=None, binning=None):
         """ Determine the slit edges from the mask file
 
         Here, we take advantage of the WCS solution from the input
         `wcs_file`, which should be an alighment image from the observations.
 
         Args:
-            binning (_type_, optional): _description_. Defaults to None.
             binning(str, optional): spec,spat binning of the flat field image
-            filename (:obj:`list`, optional): Names
-                the mask design info and wcs_file in that order
+            filename (:obj:`list`, optional): Name the mask design info
             debug (:obj:`bool`, optional): Debug
             ccdnum (:obj:`int`, optional): detector number
+            trc_path (:obj:`str`, optional): path to location of the mask design file
 
         Returns:
             :obj:`tuple`: Three `numpy.ndarray`_ and a :class:`~pypeit.spectrographs.slitmask.SlitMask`.
@@ -801,21 +800,58 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
             one contains the indices to order the slits from left to right in the PypeIt orientation
         """
 
-        # Get the left and right edges of the slits
-        tab = Table.read(filename, format='fits')
-        left_edges = tab['specbottom'].data
-        right_edges = tab['spectop'].data
+        # check if the binning is provided, even if optional, it's needed for this spectrograph
+        if binning is None:
+            msgs.error('Binning must be provided to get the slit edges from the mask definition file.')
+
+        # Parse the binning
+        _, bin_spat = parse.parse_binning(binning)
+        # get the platescale
+        pscale = self.get_detector_par(det=1)['platescale']
+        # combine them
+        obs_pscale_bin = pscale * bin_spat  # arcsec/pixel
+
+        # get the full path to the mask design file
+        _maskfile = str(Path(trc_path) / filename) if not Path(filename).exists() else filename
+
+        # check if the mask design file exists
+        if not Path(_maskfile).exists():
+            msgs.error(f'The mask design file {_maskfile} does not exist.')
+
+        # read the mask design file
+        mask_tbl = Table.read(_maskfile, format='fits')
+
+        # Pixel scale (which includes binning) used in the mask design is not necessary
+        # the same as the one used in the observations, so we need to account for it here.
+        # Get the maskdef pixel scale + binning
+        msk_pscale_bin = mask_tbl.meta['PIXSCALE']  # arcsec/pixel
+
+        # spatial coordinate of object position
+        # see https://gmmps-documentation.readthedocs.io/en/latest/OTformat.html
+        # converted it to arcsec
+        objpos_arcsec = mask_tbl['y_ccd'] * msk_pscale_bin  # arcsec
+        # slit center position in arcsec (taken from the Note here:
+        # https://gmmps-documentation.readthedocs.io/en/latest/createODF.html)
+        slitcen_pix = (objpos_arcsec + mask_tbl['slitpos_y'].to('arcsec').value)/obs_pscale_bin
+        # left and right edges of the slit in arcsec
+        left_edges = slitcen_pix - (mask_tbl['slitsize_y'].to('arcsec').value / 2.)/obs_pscale_bin
+        right_edges = slitcen_pix + (mask_tbl['slitsize_y'].to('arcsec').value / 2.)/obs_pscale_bin
+
         # make sure that the order of the edges arrays is the same as the slitmask
-        ids = np.array(tab['ID'].data, dtype=int)
+        # First load the slitmask info
+        self.get_slitmask(_maskfile)
+        # get the IDs from the mask file
+        ids = np.array(mask_tbl['ID'].data, dtype=int)
+        # match the ids to get the ones from the slitmask
         idx = utils.index_of_x_eq_y(ids, self.slitmask.slitid, strict=True)
+        # reorder the edges arrays
         left_edges = left_edges[idx]
         right_edges = right_edges[idx]
         sortindx = np.argsort(left_edges)
 
-        return left_edges, right_edges, sortindx, self.get_slitmask(filename)
+        return left_edges, right_edges, sortindx, self.slitmask
 
-    @staticmethod
-    def maskdef_spec_minmax(maskfile=None, maskdef_ids=None, nspec=None, shift=150):
+    def maskdef_spec_minmax(self, maskfile=None, maskdef_ids=None, nspec=None, binning=None, shift=150):
         """
         Get the spectral min and max values of each slit from the mask definition file.
 
@@ -826,6 +862,8 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
                 The list of maskdef IDs to match to the maskfile values.
             nspec (:obj:`int`, optional):
                 The number of spectral pixels in the image.
+            binning (str, optional):
+                The binning of the trace image in the format 'spec,spat'.
             shift (:obj:`int`, optional):
                 The shift to apply to the spec minmax. Default is 150.
                 This is used to shift the spec minmax to account for the
@@ -841,12 +879,30 @@ class GeminiGMOSSpectrograph(spectrograph.Spectrograph):
             msgs.warn('maskfile, maskdef_id, and nspec must be provided to get the maskdef spec minmax. '
                        'The whole spectral length will be used instead.')
             return None, None
-        # Get the maskdef spec minmax
-        tab = Table.read(maskfile, format='fits')
-        ids = np.array(tab['ID'].data, dtype=int)
+
+        # check if the binning is provided, even if optional, it's needed for this spectrograph
+        if binning is None:
+            msgs.error('Binning must be provided to get the slit edges from the mask definition file.')
+
+        # Parse the binning
+        bin_spec, _ = parse.parse_binning(binning)
+
+        # read the mask design file
+        mask_tbl = Table.read(maskfile, format='fits')
+
+        # The binning used in the mask design is not necessary
+        # the same as the one used in the observations, so we need to account for it here.
+        # Get maskdef binning
+        msk_bin = mask_tbl.meta['PIXSCALE']/self.get_detector_par(det=1)['platescale']
+        # scale factor to go from maskdef to observed binning
+        bin_scale = msk_bin / bin_spec
+
+        # Get the maskdef specmin specmax
+        ids = np.array(mask_tbl['ID'].data, dtype=int)
         idx = utils.index_of_x_eq_y(ids,maskdef_ids, strict=True)
-        specmin =  nspec - tab['specright'].data[idx]
-        specmax = nspec - tab['specleft'].data[idx]
+        specmin =  nspec - mask_tbl['specright'].data[idx] * bin_scale
+        specmax = nspec - mask_tbl['specleft'].data[idx] * bin_scale
+
         # Add the shift
         # if the tabulated value of specmin is less than 10 (i.e., very close to the edge of the detector),
         # we do not apply the positive shift
