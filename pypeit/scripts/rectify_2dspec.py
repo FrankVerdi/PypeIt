@@ -54,7 +54,6 @@ class Rectify2DSpec(scriptbase.ScriptBase):
             for detname in detnames:
                 msgs.info(f'DETECTOR: {detname}')
                 spec2d = spec2dobj.Spec2DObj.from_file(spec2file, detname, chk_version=chk_version)
-                #flux = (spec2d.sciimg - spec2d.skymodel) * np.sqrt(spec2d.ivarmodel) * (spec2d.bpmmask.mask == 0)
                 pad = 10  # pixels to pad on each side
                 slitmask = spec2d.slits.slit_img(pad=pad, flexure=spec2d.sci_spat_flexure)
                 slit_ids = spec2d.slits.spat_id
@@ -96,7 +95,9 @@ class Rectify2DSpec(scriptbase.ScriptBase):
                     msgs.warn(f'There is a problem with the wavelengths on det {detname}. '
                               f'The RECTIFIED 2D spectral image will not be created.')
                     continue
-                wave_grid, wave_grid_mid, dsamp = wvutils.get_wave_grid(waves=waves, gpms=gpms)
+                wmax, wmin = np.ceil(spec2d.waveimg[spec2d.waveimg>0].max()), np.floor(spec2d.waveimg[spec2d.waveimg>0].min())
+                wave_grid, wave_grid_mid, dsamp = wvutils.get_wave_grid(waves=waves, gpms=gpms,
+                                                                        wave_grid_min=wmin, wave_grid_max=wmax)
 
                 imgrect_list = []
                 for slitidx, slit_id in enumerate(slit_ids):
