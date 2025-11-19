@@ -3012,7 +3012,7 @@ def get_spat_bins(thismask_stack, trace_stack, spat_samp_fact=1.0):
 def compute_coadd2d(ref_trace_stack, sciimg_stack, sciivar_stack, skymodel_stack,
                     inmask_stack, thismask_stack, waveimg_stack,
                     wave_grid, spat_samp_fact=1.0, maskdef_dict=None,
-                    weights=None, interp_dspat=True):
+                    weights=None, interp_dspat=True, single_frame=False):
     """
     Construct a 2d co-add of a stack of PypeIt spec2d reduction outputs.
 
@@ -3086,6 +3086,8 @@ def compute_coadd2d(ref_trace_stack, sciimg_stack, sciivar_stack, skymodel_stack
         interp_dspat (bool, optional):
            Interpolate in the spatial coordinate image to faciliate running
            through core.extract.local_skysub_extract. This can be slow.   Default=True.
+        single_frame (bool, optional):
+            If there is only a single frame, only the rectification is performed.
 
 
 
@@ -3133,7 +3135,8 @@ def compute_coadd2d(ref_trace_stack, sciimg_stack, sciivar_stack, skymodel_stack
 
     nimgs =len(sciimg_stack)
     if weights is None:
-        msgs.info('No weights were provided. Using uniform weights.')
+        if not single_frame:
+            msgs.info('No weights were provided. Using uniform weights.')
         weights = (np.ones(nimgs)/float(nimgs)).tolist()
 
     shape_list = [sciimg.shape for sciimg in sciimg_stack]
@@ -3165,7 +3168,7 @@ def compute_coadd2d(ref_trace_stack, sciimg_stack, sciivar_stack, skymodel_stack
             = combine.weighted_combine(sci_list_rebin[0], sci_list_rebin[1:], var_list_rebin,
                                norm_rebin_stack != 0, sigma_clip=True,
                                sigma_clip_stack=sci_list_rebin[2], sigrej=sigrej,
-                               maxiters=maxiters)
+                               maxiters=maxiters, single_frame=single_frame)
     sciimg, imgminsky, waveimg, dspat = sci_list_out
     sciivar = utils.inverse(var_list_out[0])
 

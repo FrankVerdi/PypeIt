@@ -1,5 +1,5 @@
 """
-Create an ALLSLITS file with rectified 2D spectra for all slits.
+Create an FITS file with rectified 2D spectra for all slits/orders.
 
 .. include common links, assuming primary doc root is up one directory
 .. include:: ../include/links.rst
@@ -25,12 +25,12 @@ spec2file = 'Science/spec2d_d0225_0054-16045h_DEIMOS_20190225T145727.158.fits'
 detname = None
 
 
-class AllSlits2D(scriptbase.ScriptBase):
+class Rectify2DSpec(scriptbase.ScriptBase):
 
     @classmethod
     def get_parser(cls, width=None):
-        parser = super().get_parser(description='Create an ALLSLITS file with rectified '
-                                                '2D spectra for all slits.', width=width)
+        parser = super().get_parser(description='Create an FITS file with rectified '
+                                                '2D spectra for all slits/orders.', width=width)
 
         parser.add_argument('files', type = str, nargs='*', help = 'PypeIt spec2d file(s)')
         parser.add_argument('--try_old', default=False, action='store_true',
@@ -94,7 +94,7 @@ class AllSlits2D(scriptbase.ScriptBase):
 
                 if len(waves) == 0:
                     msgs.warn(f'There is a problem with the wavelengths on det {detname}. '
-                              f'The ALLSLITS image will not be created.')
+                              f'The RECTIFIED 2D spectral image will not be created.')
                     continue
                 wave_grid, wave_grid_mid, dsamp = wvutils.get_wave_grid(waves=waves, gpms=gpms)
 
@@ -107,7 +107,7 @@ class AllSlits2D(scriptbase.ScriptBase):
                     imgrect_dict = coadd.compute_coadd2d([slit_cen], [spec2d.sciimg],
                                                          [spec2d.ivarmodel],[spec2d.skymodel],
                                                          [mask],[this_mask],
-                                                         [spec2d.waveimg], wave_grid)
+                                                         [spec2d.waveimg], wave_grid, single_frame=True)
                     imgrect_list.append(imgrect_dict)
 
 
@@ -164,13 +164,14 @@ class AllSlits2D(scriptbase.ScriptBase):
 
                 # Create HDU with WCS header
                 hdu = fits.ImageHDU(image_rect, name=detname)
-                hdu.header['CTYPE1'] = 'WAVE    '
+                hdu.header['CTYPE1'] = 'LAMBDA   '
                 hdu.header['CUNIT1'] = 'Angstrom'
                 hdu.header['CDELT1'] = dsamp
                 hdu.header['CRPIX1'] = 0
                 hdu.header['CRVAL1'] = wave_grid[0]
                 hdu.header['CTYPE2'] = 'LINEAR  '
-                hdu.header['CDELT2'] = 0.
+                hdu.header['CUNIT2'] = 'pixel'
+                hdu.header['CDELT2'] = 1.
                 hdu.header['CRPIX2'] = 0
                 hdu.header['CRVAL2'] = 0.
                 hdu.header['NSPEC'] = nspec_rect
@@ -185,7 +186,7 @@ class AllSlits2D(scriptbase.ScriptBase):
                 hdu_list.append(hdu)
 
             # Write to file
-            out_file = spec2file.replace('.fits', f'_ALLSLITS.fits')
+            out_file = spec2file.replace('spec2d', 'rectified_spec2d')
             hdulist = fits.HDUList(hdu_list)
             hdulist.writeto(out_file, overwrite=True)
             print(f'Rectified images saved to {out_file}')
