@@ -50,7 +50,7 @@ def _eval_iter(inp:list[str], left:str, right:str, otype:Type) -> list:
 
     Returns
     -------
-        A list of objects with type ``otype`` as converted from the provide
+        A list of objects with type ``otype`` as converted from the provided
         strings.
     """
     grps = [
@@ -153,9 +153,13 @@ def recursive_dict_evaluate(d):
             # NOTE: This enables syntax for constructing one or more tuples.
             try:
                 d[k] = eval_tuple(d[k])
-            except PypeItError as e:
+            except (PypeItError, SyntaxError) as e:
                 # The tuple evaluation failed.  Assume that this can be handled
                 # later in the code and leave the dictionary element unaltered.
+                # 
+                # SyntaxError is raised for entries that include a tuple for the
+                # mosaic and a series of locations in the mosaiced image, like
+                # add_slits, rm_slits, and manual.
                 pass
             continue
 
