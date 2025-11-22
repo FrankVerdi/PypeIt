@@ -65,7 +65,7 @@ class Rectify2DSpec(scriptbase.ScriptBase):
                 # Do we have the spec1d file?
                 spec1dfile = spec2file.replace('spec2d', 'spec1d')
                 if Path(spec1dfile).is_file():
-                    sobjs = specobjs.SpecObjs.from_fitsfile(spec1dfile, chk_version=chk_version)
+                    sobjs = specobjs.SpecObjs.from_fitsfile(spec1dfile, chk_version=False)
                     on_det = sobjs.DET == detname
                     waves, gpms = [], []
                     for sobj in sobjs[on_det]:
@@ -137,19 +137,18 @@ class Rectify2DSpec(scriptbase.ScriptBase):
                     wave_slit = imgrect_dict['wave_mid']
                     nspec_slit = len(wave_slit)
 
-                    # Interpolate onto common wavelength grid
+                    # Interpolate onto a common wavelength grid
                     for ispat_slit in range(nspat_vec[islit]):
                         # Get data for this spatial pixel
                         flux = imgrect_dict['imgminsky'][:nspec_slit, ispat_slit]
                         ivar = imgrect_dict['sciivar'][:nspec_slit, ispat_slit]
-                        #mask = imgrect_dict['outmask'][:nspec_slit, ispat_slit]
 
-                        # Interpolate onto common wavelength grid
+                        # Interpolate onto a common wavelength grid
                         flux_interp = np.interp(wave_grid, wave_slit, flux,
                                                left=0., right=0.)
                         ivar_interp = np.interp(wave_grid, wave_slit, ivar,
                                                 left=0., right=0.)
-                        # Determine valid wavelength range for this slit
+                        # Determine a valid wavelength range for this slit
                         valid = (wave_grid >= wave_slit.min()) & \
                                 (wave_grid <= wave_slit.max())
 
@@ -158,7 +157,7 @@ class Rectify2DSpec(scriptbase.ScriptBase):
                         ivar_rect[:, spat_left + ispat_slit] = ivar_interp
                         mask_rect[:, spat_left + ispat_slit] = np.logical_not(valid)
 
-                    # Create wavelength image for this slit
+                    # Create a wavelength image for this slit
                     waveimg_rect[:, ispat] = np.repeat(wave_grid[:, np.newaxis],
                                                       nspat_vec[islit], axis=1)
 
@@ -180,7 +179,7 @@ class Rectify2DSpec(scriptbase.ScriptBase):
                     hdu.header['CRPIX2'] = 0
                     hdu.header['CRVAL2'] = 0.
                 else:
-                    # Create HDU without WCS header
+                    # Create HDU with WCS header
                     hdu = fits.ImageHDU(image_rect, name=detname)
                     hdu.header['CTYPE1'] = 'LINEAR  '
                     hdu.header['CUNIT1'] = 'pixel'
