@@ -1,7 +1,7 @@
 """
 Create an FITS file with rectified 2D spectra for all slits/orders.
 
-.. include common links, assuming primary doc root is up one directory
+.. include common links, assuming the primary doc root is up one directory
 .. include:: ../include/links.rst
 """
 
@@ -19,10 +19,6 @@ from astropy.io import fits
 from astropy.wcs import WCS
 
 from IPython import embed
-
-
-spec2file = 'Science/spec2d_d0225_0054-16045h_DEIMOS_20190225T145727.158.fits'
-detname = None
 
 
 class Rectify2DSpec(scriptbase.ScriptBase):
@@ -124,7 +120,7 @@ class Rectify2DSpec(scriptbase.ScriptBase):
                 # Initialize output array
                 image_rect = np.zeros((nspec_rect, nspat_rect))
                 ivar_rect = np.zeros((nspec_rect, nspat_rect))
-                mask_rect = (np.zeros((nspec_rect, nspat_rect), dtype=bool))
+                mask_rect = np.zeros((nspec_rect, nspat_rect), dtype=bool)
                 waveimg_rect = np.zeros((nspec_rect, nspat_rect))
 
                 # Loop over slits and rectify each one
