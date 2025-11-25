@@ -13,11 +13,11 @@ The Setup GUI performs the same core functions as the command-line :ref:`pypeit_
 
 - Select a spectrograph
 - Specify raw data directories
-- Automatically scan and organize raw data files
-- View and edit the observation log
+- Automatically scan and organize raw data files.
+- Create an observation log
 - Create and manage `.pypeit` configuration files
 - Edit data tables and frame types
-- Save your setup for reduction
+- Save your `.pypeit` file for reduction
 
 Launching the Setup GUI
 =======================
@@ -41,9 +41,9 @@ You can also launch the GUI with some initial settings:
     pypeit_setup -G -s keck_deimos -r /path/to/raw/data
 
 This will:
-- Start the GUI with the spectrograph already selected (`keck_deimos`)
-- Pre-populate the raw data directory path
-- Automatically run the setup scan when the GUI opens
+    - Start the GUI with the spectrograph already selected (`keck_deimos`)
+    - Pre-populate the raw data directory path
+    - Automatically run the setup scan when the GUI opens
 
 The GUI Interface
 =================
@@ -91,10 +91,9 @@ The spectrograph selection determines how PypeIt will interpret your raw data fi
 Step 2: Add Raw Data Directories
 ---------------------------------
 
-1. In the **Raw Data Directories** section, type or browse to the folder containing your raw FITS files
-2. Click the folder icon or press Enter to add the directory
-3. You can add multiple directories if your data is spread across different locations
-4. Previously used directories appear in a dropdown for quick access
+1. In the **Raw Data Directories** section, type the folder containing your raw FITS files or press the `Browse` button to bring up a dialog box to choose the directory.
+3. You can add multiple directories if your data is spread across different locations.
+4. Previously used directories appear in a dropdown for quick access.
 
 .. note::
     The directories can contain data from multiple observing configurations. PypeIt will automatically parse and separate them in the next step.
@@ -113,7 +112,7 @@ The setup process:
 - Extracts metadata from FITS headers
 - Groups files by instrument configuration
 - Assigns frame types (science, arc, flat, bias, etc.)
-- Creates a separate `.pypeit` file for each configuration
+- Creates a separate `.pypeit` file tab for each configuration
 
 .. tip::
     The scan may take a few moments depending on the number of files. Watch the status bar or log window for progress.
@@ -138,21 +137,19 @@ Click on the configuration tabs (A, B, C, etc.) to view and edit the `.pypeit` f
 
 **Configuration Tab Features:**
 
-- **Parameter Block**: Edit PypeIt reduction parameters
-- **Data Table**: Modify frame types, add background pairs, adjust settings
+- **Parameter Block**: Shows the PypeIt reduction parameters
+- **Data Table**: Modify frame types, add background pairs.
 - **Setup Block**: View the instrument configuration parameters
 
 **Common Edits:**
 
 - Change frame types if PypeIt misidentified them
-- Add background pair columns (`-b` flag equivalent)
-- Enable manual extraction columns (`-m` flag equivalent)
-- Adjust reduction parameters in the parameter block
+- Update the  background pair columns (`comb_id`, `bkg_id`)
 
 To edit frame types:
-1. Click on a cell in the frametype column
-2. Enter the correct frame type (e.g., `science`, `arc`, `flat`, `bias`, `trace`)
-3. Multiple types can be comma-separated (e.g., `arc,tilt`)
+    1. Click on a cell in the frametype column
+    2. Check the correct frame type in the pop up list of types
+    3. Multiple types can be selected and will appear as comma-separated in the metadata (e.g., `arc,tilt`)
 
 Step 6: Save Your Setup
 -----------------------
@@ -162,7 +159,7 @@ When you're satisfied with your configuration:
 1. **Save Tab**: Saves only the currently displayed tab
 2. **Save All**: Saves all tabs that have unsaved changes
 
-The GUI will prompt you to specify a filename and location for each `.pypeit` file. By default, files are named using the convention:
+The GUI will prompt you to specify the location for each `.pypeit` file. By default, files are named using the convention:
 
 .. code-block:: bash
 
@@ -170,8 +167,8 @@ The GUI will prompt you to specify a filename and location for each `.pypeit` fi
 
 For example: `keck_deimos_A.pypeit`, `keck_deimos_B.pypeit`
 
-Advanced Features
-=================
+Additional Features
+===================
 
 Opening Existing PypeIt Files
 -----------------------------
@@ -276,7 +273,7 @@ Multiple frame types can be assigned by separating with commas, e.g., `arc,tilt`
 Parameter Customization
 -----------------------
 
-The parameter block in each configuration tab uses PypeIt's standard configuration format. Common parameters to adjust:
+The parameter block in each configuration tab uses PypeIt's standard configuration format. Common parameters include:
 
 - `[[rdx]]`: Basic reduction settings
 - `[[calibrations]]`: Calibration frame processing
@@ -288,20 +285,15 @@ See :ref:`pypeitpar` for complete parameter documentation.
 Handling Edge Cases
 -------------------
 
-**Missing calibrations**: If PypeIt cannot find certain calibration types, it will warn you in the log. You may need to:
-- Acquire missing calibration frames
-- Use calibrations from a different night
-- Adjust the frame type assignments
-
 **Multiple setups**: If you have multiple configurations but don't want to reduce all of them:
-- Only save the tabs you need
-- Close unwanted configuration tabs
-- Or run setup with the `-c` flag to pre-select specific configurations
+    - Only save the tabs you need
+    - Close unwanted configuration tabs
+    - Or run setup with the `-c` flag to pre-select specific configurations
 
 **Large datasets**: For very large datasets (hundreds of files):
-- The initial scan may take some time
-- Consider splitting into separate reduction directories by configuration
-- Use the log viewer to monitor progress
+    - The initial scan may take some time
+    - Consider splitting into separate reduction directories by configuration
+    - Use the log viewer to monitor progress
 
 Keyboard Shortcuts
 ==================
@@ -320,7 +312,7 @@ GUI Won't Launch
 
 If the GUI fails to start:
 
-1. Check that you have Qt dependencies installed (PyQt5 or PySide2)
+1. Check that you have Qt dependencies installed (PyQt6)
 2. Verify your PypeIt installation is up to date
 3. Check for error messages in the terminal
 
