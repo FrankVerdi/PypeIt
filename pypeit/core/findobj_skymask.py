@@ -1409,6 +1409,8 @@ def objfind_QA(spat_peaks, snr_peaks, spat_vector, snr_vector, snr_thresh, qa_ti
     plt.xlabel('Approximate Spatial Position (pixels)')
     plt.ylabel('SNR')
     plt.title(qa_title)
+    plt.tick_params(axis="both", which="both", direction="in", top=True, right=True)
+    plt.tight_layout()
     #plt.ylim(np.fmax(snr_vector.min(), -20.0), 1.3*snr_vector.max())
     fig = plt.gcf()
     if show:
@@ -1426,6 +1428,7 @@ def objtrace_QA(
     trace_input: np.ndarray,
     trace_input_bpm: np.ndarray,
     trace_names: list | None = None,
+    qa_title: str | None = None,
     objtraceQA_filename: str | None = None,
     show: bool = False,
 ):
@@ -1462,6 +1465,8 @@ def objtrace_QA(
         fitting.  This should be a (npix, ntrace) :obj:`bool` array.
     trace_names
         List of trace names for plot titles.  This should be ntrace items long.
+    qa_title
+        Title for the QA file plot.
     objtraceQA_filename
         Output filename for the QA plot.  If None, plot is not saved.
     show
@@ -1487,6 +1492,8 @@ def objtrace_QA(
 
     # Line the individual object traces up as rows in the plot
     fig, axes = plt.subplots(ncols=1, nrows=ntrace, gridspec_kw={"hspace": 0.0})
+
+    tsz = plt.rcParams['font.size']
 
     # Make possible loop for more than one object
     for i, axis in enumerate([axes] if ntrace == 1 else axes):
@@ -1552,14 +1559,24 @@ def objtrace_QA(
             color="r", linewidth=2.0, linestyle="--", label="Fit",
         )
 
-        plt.title(f"Centroid fit for trace {trace_names[i]}")
         plt.ylim((0.995 * np.amin(trace_fit[:, i]), 1.005 * np.amax(trace_fit[:, i])))
 
-        if i + 1 == ntrace:
-            axis.set_xlabel("Spectral Pixel")
-        axis.set_ylabel("Spatial Pixel")
-        axis.legend()
+        axis.legend(fontsize=tsz-ntrace)
+        axis.tick_params(axis="both", which="both", direction="in", top=True, right=True)
 
+    try:
+        *_, slit, det = trace_names[0].split('-')
+    except ValueError:
+        slit, det = trace_names[0], ''
+    
+    try:
+        fig.suptitle(qa_title.replace("Finding", "Centroid fit for"))
+    except AttributeError:
+        fig.suptitle(f"Centroid fit for objects on {slit} {det}")
+    fig.supxlabel("Spectral Pixel")
+    fig.supylabel("Spatial Pixel")
+
+    plt.tight_layout()
     # Display and/or save the plot(s)
     if show:
         plt.show()
@@ -2098,7 +2115,7 @@ def objs_in_slit(image, ivar, thismask, slit_left, slit_righ,
         objtraceQA_filename = None if objfindQA_filename is None else objfindQA_filename.replace("prof","trace")
         objtrace_QA(xfit_gweight, traceset.outmask.T, cen, np.logical_not(msk.astype(bool)),
                     xinit_fweight, np.logical_not(trc_inmask), trace_names=sobjs.NAME,
-                    objtraceQA_filename=objtraceQA_filename)
+                    qa_title=qa_title, objtraceQA_filename=objtraceQA_filename)
 
     # Now deal with the hand apertures if a hand_extract_dict was passed in. Add these to the SpecObj objects
     if hand_extract_dict is not None:
