@@ -16,7 +16,6 @@ from pypeit.core import coadd
 from pypeit.core.wavecal import wvutils
 from pypeit.core.moment import moment1d
 from astropy.io import fits
-from astropy.wcs import WCS
 
 from IPython import embed
 
@@ -107,7 +106,7 @@ class Rectify2DSpec(scriptbase.ScriptBase):
                     imgrect_dict = coadd.compute_coadd2d([slit_cen], [spec2d.sciimg],
                                                          [spec2d.ivarmodel],[spec2d.skymodel],
                                                          [mask],[this_mask],
-                                                         [spec2d.waveimg], wave_grid, single_frame=True)
+                                                         [spec2d.waveimg], wave_grid)
                     imgrect_list.append(imgrect_dict)
 
 
@@ -143,10 +142,8 @@ class Rectify2DSpec(scriptbase.ScriptBase):
                                 (wave_grid_mid <= wave_slit.max())
 
                         # get the spectral pixel where the slit should start/stop
-                        _wave_grid_mid = np.round(wave_grid_mid,4)
-                        _wave_slit = np.round(imgrect_dict['wave_mid'],4)
-                        wstart = np.where(_wave_grid_mid == _wave_slit[0])[0][0]
-                        wend = np.where(_wave_grid_mid == _wave_slit[-1])[0][0] + 1
+                        wstart = np.where(np.isclose(wave_grid_mid, wave_slit[0]))[0][0]
+                        wend = np.where(np.isclose(wave_grid_mid, wave_slit[-1]))[0][0] + 1
 
                         # Assign to output arrays
                         image_rect[wstart:wend, spat_left + ispat_slit] = flux
@@ -204,4 +201,4 @@ class Rectify2DSpec(scriptbase.ScriptBase):
             out_file = spec2file.replace('spec2d', 'rectified_spec2d')
             hdulist = fits.HDUList(hdu_list)
             hdulist.writeto(out_file, overwrite=True)
-            print(f'Rectified images saved to {out_file}')
+            msgs.info(f'Rectified images saved to {out_file}')

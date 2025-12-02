@@ -14,8 +14,7 @@ from IPython import embed
 
 # TODO make weights optional and do uniform weighting without.
 def weighted_combine(weights, sci_list, var_list, inmask_stack,
-                     sigma_clip=False, sigma_clip_stack=None, sigrej=None, maxiters=5,
-                     single_frame=False):
+                     sigma_clip=False, sigma_clip_stack=None, sigrej=None, maxiters=5):
     r"""
     Combine multiple sets of images, all using the same weights and mask.
 
@@ -85,9 +84,6 @@ def weighted_combine(weights, sci_list, var_list, inmask_stack,
         `astropy.stats.SigmaClip`_ as its ``sigma`` parameter.
     maxiters : :obj:`int`, optional, default=5
         Maximum number of rejection iterations; see `astropy.stats.SigmaClip`_.
-    single_frame : :obj:`bool`, optional, default = False
-        If only a single image is being combined, return the input images
-        rather than raising an error.
 
     Returns
     -------
@@ -112,8 +108,7 @@ def weighted_combine(weights, sci_list, var_list, inmask_stack,
     if nimgs == 1:
         # If only one image is passed in, simply return the input lists of images, but reshaped
         # to be (nspec, nspat)
-        if not single_frame:
-            msgs.warn('Cannot combine a single image. Returning input images')
+        msgs.warn('Cannot combine a single image. Returning input images')
         sci_list_out = []
         for sci_stack in sci_list:
             sci_list_out.append(sci_stack.reshape(img_shape))
