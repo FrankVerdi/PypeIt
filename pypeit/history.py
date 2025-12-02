@@ -181,7 +181,7 @@ class History:
             objname (:obj:`str`): Name of the object being coadded
         """
         # Add history
-        self.append(f'PypeIt Coadding target {objname} in '
+        self.append(f'PypeIt Coadded target {objname} in '
                     f'{len(spec2d_files)} spec2d files')
         for i, spec2d in enumerate(spec2d_files):
             self.append(f'Exp {i}: "{Path(spec2d).name}"', add_date=False)
