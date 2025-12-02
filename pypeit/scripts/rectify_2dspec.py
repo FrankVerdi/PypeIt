@@ -25,12 +25,14 @@ class Rectify2DSpec(scriptbase.ScriptBase):
     @classmethod
     def get_parser(cls, width=None):
         parser = super().get_parser(description='Create an FITS file with rectified '
-                                                '2D spectra for all slits/orders.', width=width)
+                                                '2D sky-subtracted spectra for all slits/orders.', width=width)
 
         parser.add_argument('files', type = str, nargs='*', help = 'PypeIt spec2d file(s)')
         parser.add_argument('--no_rot', default=False, action='store_true',
                             help='Do not rotate the rectified image to have wavelength '
                                  'on the x-axis.')
+        parser.add_argument('--embed', default=False, action='store_true',
+                            help='Embed in IPython shell in each detector loop, i.e., before saving to disk.')
         parser.add_argument('--try_old', default=False, action='store_true',
                             help='Attempt to load old datamodel versions.  A crash may ensue..')
         return parser
@@ -93,13 +95,21 @@ class Rectify2DSpec(scriptbase.ScriptBase):
                     msgs.warn(f'There is a problem with the wavelengths on det {detname}. '
                               f'The RECTIFIED 2D spectral image will not be created.')
                     continue
-                wmax, wmin = np.ceil(spec2d.waveimg[spec2d.waveimg>0].max()), np.floor(spec2d.waveimg[spec2d.waveimg>0].min())
+                wmax = np.ceil(spec2d.waveimg[spec2d.waveimg>0].max())
+                wmin = np.floor(spec2d.waveimg[spec2d.waveimg>0].min())
                 wave_grid, wave_grid_mid, dsamp = wvutils.get_wave_grid(waves=waves, gpms=gpms,
                                                                         wave_grid_min=wmin, wave_grid_max=wmax)
 
+                # Loop over slits and rectify each one
                 imgrect_list = []
                 for slitidx, slit_id in enumerate(slit_ids):
                     this_mask = (slitmask == slit_id)
+                    # check if this slit was masked. If so, skip it.
+                    if not np.any(this_mask):
+                        msgs.warn(f'Slit/order {slit_id} on {detname} is fully masked. Skipping it.')
+                        continue
+                    msgs.info(f'Rectifying slit/order {slit_id}')
+
                     slit_cen = spec2d.slits.center[:,slitidx]
                     mask = spec2d.bpmmask.mask == 0
 
@@ -112,50 +122,45 @@ class Rectify2DSpec(scriptbase.ScriptBase):
 
                 # Get dimensions for each slit
                 nspat_vec = np.array([cdict['nspat'] for cdict in imgrect_list])
-
                 nspec_rect = len(wave_grid_mid)
                 nspat_rect = int(np.sum(nspat_vec) + (spec2d.slits.nslits + 1) * pad)
 
                 # Initialize output array
+                # this is the rectified image on a common wavelength grid for all slits
                 image_rect = np.zeros((nspec_rect, nspat_rect))
-                ivar_rect = np.zeros((nspec_rect, nspat_rect))
-                mask_rect = np.zeros((nspec_rect, nspat_rect), dtype=bool)
+                # the outputs below are not really used, but are useful for double-checking
+                # this is the wave image created by placing the rectified wavelengths for each slit in
+                # their proper location in the rectified image
                 waveimg_rect = np.zeros((nspec_rect, nspat_rect))
-                wave_grid_rect2 = np.zeros((nspec_rect, nspat_rect))
+                # this is the common wave image for the whole rectified image, created by repeating
+                # the wavelength grid for each spatial pixel
+                wavegrid_image = np.repeat(wave_grid_mid[:, np.newaxis], nspat_rect, axis=1)
 
                 # Loop over slits and rectify each one
                 spat_left = pad
                 for islit, imgrect_dict in enumerate(imgrect_list):
                     spat_righ = spat_left + nspat_vec[islit]
-                    ispat = slice(spat_left, spat_righ)
 
                     # Get wavelength array for this slit
                     wave_slit = imgrect_dict['wave_mid']
                     nspec_slit = len(wave_slit)
+                    # get the spectral pixel where the slit should start/stop
+                    wstart = np.where(np.isclose(wave_grid_mid, wave_slit[0]))[0][0]
+                    wend = np.where(np.isclose(wave_grid_mid, wave_slit[-1]))[0][0] + 1
 
-                    # Interpolate onto a common wavelength grid
+                    # Place the rectified data for this slit in the output arrays
                     for ispat_slit in range(nspat_vec[islit]):
                         # Get data for this spatial pixel
                         flux = imgrect_dict['imgminsky'][:nspec_slit, ispat_slit]
-                        ivar = imgrect_dict['sciivar'][:nspec_slit, ispat_slit]
-                        valid = (wave_grid_mid >= wave_slit.min()) & \
-                                (wave_grid_mid <= wave_slit.max())
-
-                        # get the spectral pixel where the slit should start/stop
-                        wstart = np.where(np.isclose(wave_grid_mid, wave_slit[0]))[0][0]
-                        wend = np.where(np.isclose(wave_grid_mid, wave_slit[-1]))[0][0] + 1
 
                         # Assign to output arrays
                         image_rect[wstart:wend, spat_left + ispat_slit] = flux
-                        ivar_rect[wstart:wend, spat_left + ispat_slit] = ivar
-                        mask_rect[:, spat_left + ispat_slit] = np.logical_not(valid)
-                        wave_grid_rect2[wstart:wend, spat_left + ispat_slit] = wave_slit
-
-                    # Create a wavelength image for this slit
-                    waveimg_rect[:, ispat] = np.repeat(wave_grid_mid[:, np.newaxis],
-                                                      nspat_vec[islit], axis=1)
+                        waveimg_rect[wstart:wend, spat_left + ispat_slit] = wave_slit
 
                     spat_left = spat_righ + pad
+
+                if args.embed:
+                    embed(header=f">>> Rectify2DSpec: useful variables are image_rect, waveimg_rect, wavegrid_image")
 
                 # Rotate if desired
                 if not args.no_rot:
