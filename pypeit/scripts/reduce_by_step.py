@@ -213,7 +213,7 @@ class ReducebyStep(scriptbase.ScriptBase):
                     msgs.error("Need to implement this!")
 
                 # Run me
-                calib_slits = exposure.adjust_for_slitmask(
+                calib_slits, specobjs_objfind = exposure.adjust_for_slitmask(
                     sciImg_dict, pypeIt.spectrograph, pypeIt.fitstbl, pypeIt.par, 
                     frames[0], pypeIt.fitstbl['binning'][frames[0]],
                     specobjs_objfind, calib_slits)[0]
