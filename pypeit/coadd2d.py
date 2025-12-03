@@ -519,10 +519,10 @@ class CoAdd2D:
                 ivars.append(ivar_iexp)
                 gpms.append(gpm_iexp)
                 msgs.warn(f'Optimal extraction not available for object '
-                          f'{uniq_obj_id[iexp]} {order_str} in exp {iexp}. Using box extraction.')
+                          f'{uniq_obj_id[iexp]} {order_str} in file {iexp}. Using box extraction.')
             else:
                 msgs.error(f'Optimal weights cannot be determined because '
-                           f'flux not available for object = {uniq_obj_id[iexp]} {order_str} in exp {iexp}. ')
+                           f'flux not available for object = {uniq_obj_id[iexp]} {order_str} in file {iexp}. ')
 
         # TODO For now just use the zero as the reference for the wavelengths? Perhaps we should be rebinning the data though?
         rms_sn, weights = coadd.sn_weights(fluxes, ivars, gpms, sn_smooth_npix=self.sn_smooth_npix, weight_method=weight_method)
@@ -851,7 +851,7 @@ class CoAdd2D:
             msg_string = msgs.newline() + '---------------------------------------------------------------------------------'
             msg_string += msgs.newline() + ' Summary of offsets from {}     '.format(offsets_method)
             msg_string += msgs.newline() + '---------------------------------------------------------------------------------'
-            msg_string += msgs.newline() + '           exp#      offset (pixels)    offset (arcsec)'
+            msg_string += msgs.newline() + '          file#      offset (pixels)    offset (arcsec)'
             for iexp, off in enumerate(offsets):
                 msg_string += msgs.newline() + '            {:2d}            {:6.2f}              {:6.3f}'.format(iexp, off, off*pixscale)
             msg_string += msgs.newline() + '---------------------------------------------------------------------------------'
@@ -1614,7 +1614,7 @@ class MultiSlitCoAdd2D(CoAdd2D):
         msg_string += msgs.newline() + '  Summary for highest S/N object'
         msg_string += msgs.newline() + '      found on slitid = {:d}            '.format(slitid)
         msg_string += msgs.newline() + '-------------------------------------'
-        msg_string += msgs.newline() + '       exp#   spat_pixpos     S/N'
+        msg_string += msgs.newline() + '      file#   spat_pixpos     S/N'
         msg_string += msgs.newline() + '-------------------------------------'
         for iexp, (spat,snr) in enumerate(zip(spat_pixpos, snr_bar)):
             msg_string += msgs.newline() + '       {:2d}      {:7.1f}      {:5.2f}'.format(iexp, spat, snr)
@@ -1954,7 +1954,7 @@ class EchelleCoAdd2D(CoAdd2D):
         msg_string = msgs.newline() + '-------------------------------------'
         msg_string += msgs.newline() + '  Summary for highest S/N object'
         msg_string += msgs.newline() + '-------------------------------------'
-        msg_string += msgs.newline() + '           exp#        S/N'
+        msg_string += msgs.newline() + '          file#        S/N'
         for iexp, snr in enumerate(snr_bar):
             msg_string += msgs.newline() + '            {:d}         {:5.2f}'.format(iexp, snr)
 

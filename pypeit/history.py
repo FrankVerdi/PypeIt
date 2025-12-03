@@ -171,10 +171,10 @@ class History:
         For example::
             
             HISTORY 2025-10-30T23:21 PypeIt Coadding target JWST in 4 spec2d files
-            HISTORY Exp 0: "spec2d_20251008.0053-JWST_DeVeny_20251008T045554.290.fits"
-            HISTORY Exp 1: "spec2d_20251008.0054-JWST_DeVeny_20251008T050103.240.fits"
-            HISTORY Exp 2: "spec2d_20251008.0055-JWST_DeVeny_20251008T050611.510.fits"
-            HISTORY Exp 3: "spec2d_20251008.0056-JWST_DeVeny_20251008T051119.790.fits"
+            HISTORY File 0: "spec2d_20251008.0053-JWST_DeVeny_20251008T045554.290.fits"
+            HISTORY File 1: "spec2d_20251008.0054-JWST_DeVeny_20251008T050103.240.fits"
+            HISTORY File 2: "spec2d_20251008.0055-JWST_DeVeny_20251008T050611.510.fits"
+            HISTORY File 3: "spec2d_20251008.0056-JWST_DeVeny_20251008T051119.790.fits"
 
         Args:
             spec2d_files (:obj:`list`): List of the spec2d files used for coadding.
@@ -184,7 +184,7 @@ class History:
         self.append(f'PypeIt Coadded target {objname} in '
                     f'{len(spec2d_files)} spec2d files')
         for i, spec2d in enumerate(spec2d_files):
-            self.append(f'Exp {i}: "{Path(spec2d).name}"', add_date=False)
+            self.append(f'File {i}: "{Path(spec2d).name}"', add_date=False)
 
     def append(self, history, add_date=True):
         """Append a new history entry.
