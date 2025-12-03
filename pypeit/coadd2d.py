@@ -1417,13 +1417,17 @@ class MultiSlitCoAdd2D(CoAdd2D):
             for iexp in range(self.nexp):
                 sobjs_exp = findobj_skymask.objs_in_slit(
                     sci_list_rebin[0][iexp,:,:], utils.inverse(var_list_rebin[0][iexp,:,:]), thismask, slit_left, slit_righ,
-                    inmask=inmask[iexp,:,:], fwhm=self.par['reduce']['findobj']['find_fwhm'],
+                    inmask=inmask[iexp,:,:],
+                    fwhm=self.par['reduce']['findobj']['find_fwhm'],
                     trim_edg=self.par['reduce']['findobj']['find_trim_edge'],
-                    maxdev=self.par['reduce']['findobj']['find_maxdev'],
+                    maxshift=self.par['reduce']['findobj']['trace_maxshift'],
+                    maxdev=self.par['reduce']['findobj']['trace_maxdev'],
                     numiterfit=self.par['reduce']['findobj']['find_numiterfit'],
-                    ncoeff=3, snr_thresh=self.par['reduce']['findobj']['snr_thresh'], 
+                    ncoeff=self.par['reduce']['findobj']['trace_npoly'],
+                    snr_thresh=self.par['reduce']['findobj']['snr_thresh'],
                     nperslit=1 if self.par['coadd2d']['user_obj_ids'] is None else None, 
                     find_min_max=self.par['reduce']['findobj']['find_min_max'],
+                    spec_min_max=self.par['reduce']['findobj']['trace_min_max'],
                     show_trace=self.debug_offsets, show_peaks=self.debug_offsets)
                 if len(sobjs_exp) == 0:
                     msgs.error(f'No objects found in the rebinned image for exposure {iexp} '
