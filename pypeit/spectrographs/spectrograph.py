@@ -1103,8 +1103,8 @@ class Spectrograph:
                   to reduce a single slit; see ``slitspatnum`` in the
                   :ref:`pypeitpar`.  The string is parsed into the list of relevant
                     detectors.
-                - you are inputing the detectors/mosaics in string format, 
-                    e.g. "3,(1,5)" 
+                - you are inputing the detectors/mosaics in string format,
+                    e.g. "3,(1,5)"
 
             - If ``subset`` is a list, integer, or tuple, it is parsed into a
               set of single detector or detector mosaics to reduce.
@@ -1130,7 +1130,9 @@ class Spectrograph:
             >>> spectrograph.select_detectors(subset=3)
             [3]
             >>> spectrograph.select_detectors(subset=(3,4))
-            [3, 4]
+            PypeItError: The allowed values are det=[1, 2, 3, 4, 5, 6, 7, 8, (1, 5), (2, 6), (3, 7), (4, 8)]
+            >>> spectrograph.select_detectors(subset=(3,7))
+            [(3, 7)]
             >>> spectrograph.select_detectors(subset=[(1,5),(2,6)])
             [(1,5), (2, 6)]
             >>> spectrograph.select_detectors(subset='DET01:10')

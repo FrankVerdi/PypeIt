@@ -31,7 +31,8 @@ class ReducebyStep(scriptbase.ScriptBase):
         )
         parser.add_argument(
             '--det', default=None, type=str,
-            help='Detector number or Mosaic tuple. Required, but the list of options is provided '
+            help='Single detector number or Mosaic tuple. The Mosaic tuple must include the parentheses '
+                 'and be provided as a string, e.g. "(1,2)". Required, but the list of options is provided '
                  'if nothing is provided.'
         )
         parser.add_argument(
@@ -76,15 +77,15 @@ class ReducebyStep(scriptbase.ScriptBase):
             print("---------------------------------------------------------------------")
             print("---------------------------------------------------------------------")
             print("---------------------------------------------------------------------")
-            print(f"No detector provided (--det). Choose from one of these: {detectors}.") 
+            print(f"No detector provided (--det). Choose from one of these: {detectors}.")
             if len(mosaics) > 0:
                 print("")
                 print(f"This instrument also supports the following mosaics: {mosaics}")
-                print("To reduce a mosaic, provide the mosaic as the detector, e.g. --det '1,2'")
+                print('To reduce a mosaic, provide the mosaic as the detectors tuple, e.g. --det "(1,2)"')
                 print("")
             print("---------------------------------------------------------------------")
             return
-        else: 
+        else:
             det = pypeIt.spectrograph.select_detectors(subset=args.det)
             if len(det) > 1:
                 msgs.error("The input --det must be a single detector or mosaic.")
@@ -216,7 +217,7 @@ class ReducebyStep(scriptbase.ScriptBase):
                 calib_slits, specobjs_objfind = exposure.adjust_for_slitmask(
                     sciImg_dict, pypeIt.spectrograph, pypeIt.fitstbl, pypeIt.par, 
                     frames[0], pypeIt.fitstbl['binning'][frames[0]],
-                    specobjs_objfind, calib_slits)[0]
+                    specobjs_objfind, calib_slits)
                 # Update this_calib_silts
                 idx = mosaics.index(det)
                 this_calib_silts = calib_slits[idx]
