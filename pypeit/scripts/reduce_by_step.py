@@ -49,6 +49,7 @@ class ReducebyStep(scriptbase.ScriptBase):
         import numpy as np
         from pathlib import Path
 
+        from pypeit.core import parse
         from pypeit import pypeit
         from pypeit import pypeit_steps
         from pypeit import msgs
@@ -86,7 +87,7 @@ class ReducebyStep(scriptbase.ScriptBase):
             print("---------------------------------------------------------------------")
             return
         else:
-            det = pypeIt.spectrograph.select_detectors(subset=args.det)
+            det = pypeIt.spectrograph.select_detectors(subset=parse.eval_detectors(args.det))
             if len(det) > 1:
                 msgs.error("The input --det must be a single detector or mosaic.")
             det = det[0]
