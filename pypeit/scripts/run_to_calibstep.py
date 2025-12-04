@@ -44,13 +44,13 @@ class RunToCalibStep(scriptbase.ScriptBase):
     @staticmethod
     def main(args):
 
-        import ast
         import numpy as np
         from IPython import embed
         from pathlib import Path
 
         from pypeit import pypeit, pypeit_steps
         from pypeit import msgs
+        from pypeit.core import parse
 
         # Load options from command line
         _pypeit_file = Path(args.pypeit_file).absolute()
@@ -71,11 +71,14 @@ class RunToCalibStep(scriptbase.ScriptBase):
         pypeIt.reuse_calibs = True
 
         # Find the detectors to reduce
-        dets = pypeIt.par['rdx']['detnum'] if args.det is None else ast.literal_eval(args.det)
-        slitspatnum=pypeIt.par['rdx']['slitspatnum']
-        dets = slitspatnum if slitspatnum is not None else dets
+        if args.det is None:
+            dets = pypeIt.par['rdx']['detnum']
+        else:
+            dets = parse.eval_detectors(args.det)
+        # NOTE: dets *can be* None
 
-        detectors = pypeIt.spectrograph.select_detectors(dets)
+        detectors = pypeIt.spectrograph.select_detectors(
+            pypeIt.spectrograph, dets, slitspatnum=pypeIt.par['rdx']['slitspatnum'])
 
         # Find the row of the frame
         if args.science_frame is not None:
