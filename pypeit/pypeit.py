@@ -409,8 +409,6 @@ def reduce_calibID(spectrograph, par, fitstbl, calib_ID:str,
             # TODO: come up with sensible naming convention for
             # save_exposure for combined files
             if len(this_spec2d.detectors) > 0:
-                #self.save_exposure(frames[0], sci_spec2d, sci_sobjs, history,
-                #                   skip_write_2d=self.par['scienceframe']['process']['skip_write_2d'])
                 exposure.save_exposure(spectrograph,
                                     fitstbl, par, frames[0], 
                                     this_spec2d, this_sobjs, calibrations_path,

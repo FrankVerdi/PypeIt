@@ -79,7 +79,7 @@ def set_bkg_negative(fitstbl, par, bg_frames:list):
     Args:
         fitstbl (:class:`~pypeit.metadata.PypeItMetaData`):
             The class holding the metadata for all the frames in this PypeIt run.
-        par (:class:`~pypeit.par.pypeitpar.CalibrationsPar`):
+        par (:class:`~pypeit.par.pypeitpar.PypeItPar`):
             The parameter set for the reduction process, 
             including slitmask and object finding parameters.
         bg_frames : list
@@ -392,6 +392,85 @@ def findobj_on_det(sciImg, spectrograph, fitstbl, par, frames:list, calib_ID:str
 
     return initial_sky, sobjs_obj, objFind
 
+def finalize_sky_det(spectrograph, fitstbl, par, frame,
+                     det, objFind, initial_sky, all_specobjs_objfind,
+                     bkg_redux_sciimg=None, bkg_redux=False, show=False):
+    """
+    Finalize sky subtraction for a specific detector.
+
+    This function performs the final global sky subtraction for a given detector.
+    It also updates the slit mask based on bad sky subtraction flags.
+
+    Args:
+        spectrograph (:class:`~pypeit.spectrographs.spectrograph.Spectrograph`):
+            The spectrograph instance.
+        fitstbl (:class:`~pypeit.metadata.PypeItMetaData`):
+            The class holding the metadata for all the frames in this PypeIt run.
+        par (:class:`~pypeit.par.pypeitpar.PypeItPar`):
+            The parameter set for the reduction process.
+        frame (:obj:`int`):
+            The index of the frame in the fitstbl.
+        det (:obj:`int`):
+            Detector number (1-indexed).
+        objFind (:class:`~pypeit.find_objects.FindObjects`):
+            The object finding instance for this detector.
+        initial_sky (`numpy.ndarray`_):
+            The initial sky model for this detector.
+        all_specobjs_objfind (:class:`~pypeit.specobjs.SpecObjs`):
+            All spectral objects found during object finding.
+        bkg_redux_sciimg (:class:`~pypeit.images.pypeitimage.PypeItImage`, optional):
+            Background-reduced science image, or None if background reduction is
+            not being performed.
+        bkg_redux (:obj:`bool`, optional):
+            Indicates whether background reduction is being performed. Default is False.
+        show (:obj:`bool`, optional):
+            Show the QA during processing. Default is False.
+
+    Returns:
+        tuple: A tuple containing:
+            - final_global_sky (`numpy.ndarray`_): The final global sky model for this detector.
+            - bkg_redux_global_sky (`numpy.ndarray`_ or None): The background-reduced global sky
+              model, or None if bkg_redux is False.
+            - updated_slits (:class:`~pypeit.slittrace.SlitTraceSet`): Updated slit trace set with
+              flagged slits marked as 'BADSKYSUB'.
+    """
+
+    objtype, setup, obstime, basename, binning \
+            = get_sci_metadata(spectrograph, fitstbl, frame, det)
+    detname = spectrograph.get_det_name(det)
+
+    # Get objects on this detector
+    if all_specobjs_objfind.nobj > 0:
+        all_specobjs_on_det = all_specobjs_objfind[all_specobjs_objfind.DET == detname]
+    else:
+        all_specobjs_on_det = all_specobjs_objfind
+
+    # Determine if final global sky subtraction should be performed
+    skymask = None
+    if 'standard' in objtype or \
+            par['reduce']['findobj']['skip_skysub'] or \
+            par['reduce']['findobj']['skip_final_global'] or \
+            par['reduce']['skysub']['user_regions'] is not None:
+        final_global_sky = initial_sky
+    else:
+        # Update the skymask
+        skymask = objFind.create_skymask(all_specobjs_on_det)
+        final_global_sky = objFind.global_skysub(previous_sky=initial_sky,
+                                                 skymask=skymask, show=show,
+                                                 reinit_bpm=False)
+
+    # Get the bkg_redux_global_sky
+    bkg_redux_global_sky = None
+    if bkg_redux and bkg_redux_sciimg is not None:
+        skymask = objFind.create_skymask(all_specobjs_on_det) if skymask is None else skymask
+        # DO NOT reinit_bpm, nor update_crmask
+        bkg_redux_global_sky = objFind.global_skysub(skymask=skymask,
+                                                     bkg_redux_sciimg=bkg_redux_sciimg,
+                                                     reinit_bpm=False, update_crmask=False, show=show)
+
+    return final_global_sky, bkg_redux_global_sky
+
+
 
 def load_calibrations_for_frame(spectrograph, fitstbl, par, frame, det, 
                                 calib_ID, calibrations_path:str):
@@ -534,10 +613,9 @@ def load_skyregions(spectrograph, fitstbl, par, frame, det, caliBrate,
 def extract_det(spectrograph, fitstbl, par, 
                 frames, det, calib_ID:str, calibrations_path:str,
                 sciImg, bkg_redux_sciimg, 
-                initial_sky, sobjs_obj, 
-                bkg_redux:bool=False,
+                final_sky, sobjs_obj, calib_slits,
+                bkg_redux_final_sky=None, bkg_redux:bool=False,
                 find_negative:bool=False,
-                calib_slits=None,
                 show:bool=False):
     """
     Extract Objects in a single exposure/detector pair
@@ -570,8 +648,9 @@ def extract_det(spectrograph, fitstbl, par,
             before background subtraction if self.bkg_redux is True,
             otherwise None. It's used to generate a global sky
             model without bkg subtraction.
-        initial_sky (`numpy.ndarray`_):
-            Initial global sky model
+        final_sky (`numpy.ndarray`_):
+            Final global sky model
+
         sobjs_obj (:class:`~pypeit.specobjs.SpecObjs`):
             List of objects found during `run_objfind`
         bkg_redux (:obj:`bool`, optional):
@@ -603,47 +682,11 @@ def extract_det(spectrograph, fitstbl, par,
     # Grab the calibrations
     caliBrate = load_calibrations_for_frame(
         spectrograph, fitstbl, par, frames[0], det, calib_ID, calibrations_path)
-    if calib_slits is not None:
-        caliBrate.slits = calib_slits
+    # update slits
+    caliBrate.slits = calib_slits
 
     # Is this a standard star?
     std_redux = 'standard' in objtype
-
-    # Instantiate a new objFind object
-    objFind = instantiate_objfind(sciImg, spectrograph, fitstbl,
-                                  par, frames, det, caliBrate,
-                                  bkg_redux, 
-                                  find_negative)
-
-    ## TODO JFH I think all of this about determining the final global sky should be moved out of this method
-    ## and preferably into the FindObjects class. I see why we are doing it like this since for multislit we need
-    # to find all of the objects first using slitmask meta data,  but this comes at the expense of a much more complicated
-    # control structure.
-    # TODO -- Can we do this now?  Probably not..
-
-    # Update the global sky
-    skymask = None
-    if 'standard' in objtype or \
-            par['reduce']['findobj']['skip_skysub'] or \
-            par['reduce']['findobj']['skip_final_global'] or \
-            par['reduce']['skysub']['user_regions'] is not None:
-        final_global_sky = initial_sky
-    else:
-        # Update the skymask
-        skymask = objFind.create_skymask(sobjs_obj)
-        final_global_sky = objFind.global_skysub(previous_sky=initial_sky,
-                                                    skymask=skymask, show=show,
-                                                    reinit_bpm=False)
-    # get the bkg_redux_global_sky
-    bkg_redux_global_sky = None
-    if bkg_redux:
-        skymask = objFind.create_skymask(sobjs_obj) if skymask is None else skymask
-        # DO NOT reinit_bpm, nor update_crmask
-        bkg_redux_global_sky = objFind.global_skysub(skymask=skymask, bkg_redux_sciimg=bkg_redux_sciimg,
-                                                    reinit_bpm=False, update_crmask=False, show=show)
-
-    # TODO -- worry about this
-    scaleImg = objFind.scaleimg
 
     # Each spec2d file includes the slits object with unique flagging
     #  for extraction failures.  So we make a copy here before those flags
@@ -651,12 +694,6 @@ def extract_det(spectrograph, fitstbl, par,
     maskdef_designtab = caliBrate.slits.maskdef_designtab
     slits = copy.deepcopy(caliBrate.slits)
     slits.maskdef_designtab = None
-
-    # update here slits.mask since global_skysub modify reduce_bpm and we need to propagate it into extraction
-    flagged_slits = np.where(objFind.reduce_bpm)[0]
-    if len(flagged_slits) > 0:
-        slits.mask[flagged_slits] = \
-            slits.bitmask.turn_on(slits.mask[flagged_slits], 'BADSKYSUB')
 
     if not par['reduce']['extraction']['skip_extraction']:
         msgs.info(f"Extraction begins for {basename} on det={det}")
@@ -666,8 +703,8 @@ def extract_det(spectrograph, fitstbl, par,
         # TODO Are we repeating steps in the init for FindObjects and Extract??
         exTract = extraction.Extract.get_instance(
             sciImg, slits, sobjs_obj, spectrograph,
-            par, objtype, global_sky=final_global_sky, 
-            bkg_redux_global_sky=bkg_redux_global_sky,
+            par, objtype, global_sky=final_sky,
+            bkg_redux_global_sky=bkg_redux_final_sky,
             waveTilts=caliBrate.wavetilts, wv_calib=caliBrate.wv_calib, 
             flatimages=caliBrate.flatimages,
             bkg_redux=bkg_redux, 
@@ -678,26 +715,32 @@ def extract_det(spectrograph, fitstbl, par,
             tilts, slits = exTract.run()
         slitgpm = np.logical_not(exTract.extract_bpm)
         slitshift = exTract.slitshift
-        #embed(header='675 of pypeit_steps.py')
+        scaleImg = np.array([1.0], dtype=float) # this is only used for IFU reductions currently
     else:
         msgs.info(f"Extraction skipped for {basename} on det={det}")
         # TODO
         # If IFU, need to redo global sky sub for waveimg (this is a HACK)
         # TODO
         # Deal with slitshift too, for IFU
+        objFind = instantiate_objfind(sciImg, spectrograph, fitstbl,
+                                      par, frames, det, caliBrate,
+                                      bkg_redux,
+                                      find_negative)
 
         # Since the extraction was not performed, fill the arrays with the best available information
         skymodel, bkg_redux_skymodel, objmodel, ivarmodel, outmask, sobjs, waveImg, tilts = \
-            final_global_sky, \
-            bkg_redux_global_sky, \
-            np.zeros_like(objFind.sciImg.image), \
-            np.copy(objFind.sciImg.ivar), \
-            objFind.sciImg.fullmask, \
+            final_sky, \
+            bkg_redux_final_sky, \
+            np.zeros_like(sciImg.image), \
+            np.copy(sciImg.ivar), \
+            sciImg.fullmask, \
             sobjs_obj, \
             objFind.waveimg, \
             objFind.tilts
         slitgpm = (slits.mask == 0)
-        slitshift = objFind.slitshift
+        slitshift = objFind.slitshift #TODO: this is not correct. Find a way to propagate this information from objFind
+        scaleImg = objFind.scaleimg  # TODO: this is not correct. Find a way to propagate this information from objFind
+
         # If waveImg has not yet been created, make it now
         if waveImg is None:
             waveImg = caliBrate.wv_calib.build_waveimg(tilts, slits, spat_flexure=objFind.spat_flexure_shift)
