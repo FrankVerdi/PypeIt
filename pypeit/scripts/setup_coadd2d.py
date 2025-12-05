@@ -144,7 +144,7 @@ class SetupCoAdd2D(scriptbase.ScriptBase):
         # reduced files have dashes in them or if the objects have underscores.
         if pypeitFile is not None and 'target' in pypeitFile.data.keys():
             objects = np.unique([row['target'] for row in pypeitFile.data 
-                                 if any(element in row['frametype'] for element in ['science','standard'])])
+                                 if any(ft in row['frametype'] for ft in ['science','standard'])])
         else:
             objects = np.unique([f.name.split('-')[1].split('_')[0] for f in spec2d_files])
 

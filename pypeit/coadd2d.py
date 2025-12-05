@@ -180,7 +180,7 @@ class CoAdd2D:
         # Check that there are the same number of slits on every exposure
         nslits_list = [slits.nslits for slits in self.stack_dict['slits_list']]
         if not len(set(nslits_list)) == 1:
-            msgs.error('Not all of your filess have the same number of slits. Check your inputs')
+            msgs.error('Not all of your files have the same number of slits. Check your inputs')
         # This is the number of slits of the single (un-coadded) frames
         self.nslits_single = nslits_list[0]
 
@@ -192,9 +192,9 @@ class CoAdd2D:
         binspec_list = [slits.binspec for slits in self.stack_dict['slits_list']]
         binspat_list = [slits.binspat for slits in self.stack_dict['slits_list']]
         if not len(set(binspec_list)) == 1:
-            msgs.error('Not all of your filess have the same spectral binning. Check your inputs')
+            msgs.error('Not all of your files have the same spectral binning. Check your inputs')
         if not len(set(binspat_list)) == 1:
-            msgs.error('Not all of your filess have the same spatial binning. Check your inputs')
+            msgs.error('Not all of your files have the same spatial binning. Check your inputs')
         self.binning = np.array([self.stack_dict['slits_list'][0].binspec,
                                  self.stack_dict['slits_list'][0].binspat])
 
@@ -584,7 +584,7 @@ class CoAdd2D:
             coadd_list.append(coadd_dict)
 
         if len(coadd_list) == 0:
-            msgs.error("All the slits were missing in one or more filess. 2D coadd cannot be performed")
+            msgs.error("All the slits were missing in one or more files. 2D coadd cannot be performed")
 
         return coadd_list
 
@@ -1043,7 +1043,7 @@ class CoAdd2D:
             msgs.error('Unrecognized type for check_input')
         if isinstance(input, (list, np.ndarray)):
             if len(input) != self.nexp:
-                msgs.error(f'If {type} are input it must be a list/array with same number of elements a files')
+                msgs.error(f'If {type} are input it must be a list/array with same number of elements as files')
             return np.atleast_1d(input).tolist() if type == 'weights' else np.atleast_1d(input)
         msgs.error(f'Unrecognized format for {type}')
 
@@ -1084,7 +1084,7 @@ class CoAdd2D:
             # Check if maskdef_offset is actually recoded in the SlitTraceSet
             if np.any(self.maskdef_offset == None):
                 msgs.error('maskdef_offsets are not recoded in the SlitTraceSet '
-                           'for one or more filess. They cannot be used.')
+                           'for one or more files. They cannot be used.')
             # the offsets computed during the main reduction (`run_pypeit`) are used
             msgs.info('Determining offsets using maskdef_offset recoded in SlitTraceSet')
             self.offsets = self.maskdef_offset[0] - self.maskdef_offset
