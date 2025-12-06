@@ -255,8 +255,7 @@ def findobj_on_exposure(sciImg_dict:dict, bkg_redux_sciimg_dict:dict,
     # Return
     return final_sky_dict, bkg_redux_final_sky_dict, all_specobjs_objfind, all_slits
 
-def extract_exposure(sciImg_dict:dict, bkg_redux_sciimg_dict:dict, 
-                     spectrograph, fitstbl, par, frames:list, detectors, 
+def extract_exposure(sciImg_dict:dict, spectrograph, fitstbl, par, frames:list, detectors,
                      calib_ID:str, calibrations_path:str, all_specobjs_objfind, 
                      final_sky_dict:dict, bkg_redux_final_sky_dict:dict,
                      calib_slits, bkg_redux:bool=False, find_negative:bool=False):
@@ -271,7 +270,6 @@ def extract_exposure(sciImg_dict:dict, bkg_redux_sciimg_dict:dict,
         sciImg_dict (:obj:`dict`): A dict of science image objects, one for each 
             detector, containing information such as spatial flexure and 
             detector properties.
-        bkg_redux_sciimg_dict (dict): Dictionary containing background-reduced science images for each detector.
         spectrograph (:class:`~pypeit.spectrographs.spectrograph.Spectrograph`):
             Spectrograph object
         fitstbl (:class:`~pypeit.metadata.PypeItMetaData`):
@@ -285,10 +283,10 @@ def extract_exposure(sciImg_dict:dict, bkg_redux_sciimg_dict:dict,
         all_specobjs_objfind: SpecObjs object containing objects found during object finding.
         final_sky_dict (:obj:`dict`): Dictionary containing final sky models for each detector.
         bkg_redux_final_sky_dict (:obj:`dict`): Dictionary containing final bkg_redux sky models for each detector.
-        bkg_redux (bool, optional): If True, perform background reduction. Default is False.
-        find_negative (bool, optional): If True, search for negative objects. Default is False.
         calib_slits (:obj:`list`): A list of SlitTraceSet objects for all detectors updated
         after slitmask adjustment and findobj+sky subtraction.
+        bkg_redux (bool, optional): If True, perform background reduction. Default is False.
+        find_negative (bool, optional): If True, search for negative objects. Default is False.
 
     Returns:
         tuple: A tuple containing:
@@ -320,7 +318,6 @@ def extract_exposure(sciImg_dict:dict, bkg_redux_sciimg_dict:dict,
             spectrograph, fitstbl, par, frames, det,
             calib_ID, calibrations_path,
             sciImg_dict[det],
-            bkg_redux_sciimg_dict[det],
             final_sky_dict[det],
             all_specobjs_on_det,
             calib_slits[i],
@@ -449,16 +446,12 @@ def reduce_exposure(spectrograph, fitstbl, par, frames, calib_ID,
     # #####################################
     # Extract
     all_spec2d, all_specobjs_extract = extract_exposure(
-        sciImg_dict, bkg_redux_sciimg_dict,
-        spectrograph, fitstbl, 
-        par, frames, 
-        detectors, calib_ID,
-        calibrations_path, 
-        all_specobjs_find,
+        sciImg_dict, spectrograph, fitstbl,
+        par, frames, detectors, calib_ID,
+        calibrations_path, all_specobjs_find,
         final_sky_dict, bkg_redux_final_sky_dict,
-        bkg_redux=bkg_redux,
-        find_negative=find_negative,
-        calib_slits=calib_slits)
+        calib_slits, bkg_redux=bkg_redux,
+        find_negative=find_negative)
 
     # Return
     return all_spec2d, all_specobjs_extract

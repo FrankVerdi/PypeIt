@@ -223,7 +223,9 @@ class SpecObj(datamodel.DataContainer):
                  'ECH_NAME': dict(otype=str,
                                   descr='Name of the object for echelle data. Same as NAME above '
                                         'but order numbers are omitted giving a unique name per '
-                                        'object.')}
+                                        'object.'),
+                 'ech_snr': dict(otype=(float, np.floating),
+                                    descr='Median S/N of the echelle of the spectrum')}
     """
     Defines the current datmodel.
     """
@@ -243,7 +245,6 @@ class SpecObj(datamodel.DataContainer):
                  'max_spat',
                  # Echelle
                  'ech_frac_was_fit',
-                 'ech_snr',
                  # spectrograph
                 'spectrograph',
                 ]

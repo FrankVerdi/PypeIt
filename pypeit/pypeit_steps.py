@@ -612,8 +612,7 @@ def load_skyregions(spectrograph, fitstbl, par, frame, det, caliBrate,
 
 def extract_det(spectrograph, fitstbl, par, 
                 frames, det, calib_ID:str, calibrations_path:str,
-                sciImg, bkg_redux_sciimg, 
-                final_sky, sobjs_obj, calib_slits,
+                sciImg, final_sky, sobjs_obj, calib_slits,
                 bkg_redux_final_sky=None, bkg_redux:bool=False,
                 find_negative:bool=False,
                 show:bool=False):
@@ -642,26 +641,22 @@ def extract_det(spectrograph, fitstbl, par,
         sciImg (:class:`~pypeit.images.pypeitimage.PypeItImage`):
             Data container that holds a single image from a
             single detector and its related images (e.g. ivar, mask)
-        bkg_redux_sciimg (:class:`~pypeit.images.pypeitimage.PypeItImage`, optional):
-            Data container that holds a single image from a
-            single detector and its related images (e.g. ivar, mask)
-            before background subtraction if self.bkg_redux is True,
-            otherwise None. It's used to generate a global sky
-            model without bkg subtraction.
         final_sky (`numpy.ndarray`_):
             Final global sky model
-
         sobjs_obj (:class:`~pypeit.specobjs.SpecObjs`):
             List of objects found during `run_objfind`
+        calib_slits (:class:`~pypeit.slittrace.SlitTraceSet`):
+            If provided, use these slits instead of those from the
+            calibrations.
+        bkg_redux_final_sky (`numpy.ndarray`_, optional):
+            Final global sky model for the background-reduced science image.
+            Default is None.
         bkg_redux (:obj:`bool`, optional):
             Indicates whether the reduction involves background subtraction.
             Default is False.
         find_negative (:obj:`bool`, optional):
             Indicates whether to find negative objects during the reduction.
             Default is False.
-        calib_slits (:class:`~pypeit.slittrace.SlitTraceSet`, optional):
-            If provided, use these slits instead of those from the
-            calibrations. Default is None.
         show (:obj:`bool`, optional):
             Show the QA during processing. Default is False.0
 
