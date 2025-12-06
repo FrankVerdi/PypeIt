@@ -723,22 +723,22 @@ def extract_det(spectrograph, fitstbl, par,
                                       find_negative)
 
         # Since the extraction was not performed, fill the arrays with the best available information
-        skymodel, bkg_redux_skymodel, objmodel, ivarmodel, outmask, sobjs, waveImg, tilts = \
+        skymodel, bkg_redux_skymodel, objmodel, ivarmodel, outmask, sobjs = \
             final_sky, \
             bkg_redux_final_sky, \
             np.zeros_like(sciImg.image), \
             np.copy(sciImg.ivar), \
             sciImg.fullmask, \
-            sobjs_obj, \
-            objFind.waveimg, \
-            objFind.tilts
+            sobjs_obj
         slitgpm = (slits.mask == 0)
+        # Check these below
+        tilts = caliBrate.wavetilts.fit2tiltimg(slits.slitmask, flexure=sciImg.spat_flexure - caliBrate.wavetilts.spat_flexure)
+        waveImg = caliBrate.wv_calib.build_waveimg(tilts, slits, spat_flexure=sciImg.spat_flexure)
         slitshift = objFind.slitshift #TODO: this is not correct. Find a way to propagate this information from objFind
         scaleImg = objFind.scaleimg  # TODO: this is not correct. Find a way to propagate this information from objFind
-
-        # If waveImg has not yet been created, make it now
-        if waveImg is None:
-            waveImg = caliBrate.wv_calib.build_waveimg(tilts, slits, spat_flexure=objFind.spat_flexure_shift)
+        # The 4 variables above are usually taken from objFind when extraction is skipped (for IFU). At this step,
+        # don't have the original objFind object. How can we propagate these information from objFind to this function?
+        # NEED to talk to Ryan!
 
     # Apply a reference frame correction to each object and the waveimg
     vel_corr, waveImg = refframe_correct(spectrograph, par, slits, 

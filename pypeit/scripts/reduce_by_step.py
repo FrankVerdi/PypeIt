@@ -259,6 +259,8 @@ class ReducebyStep(scriptbase.ScriptBase):
                 calib_slits, bkg_redux_final_sky=bkg_redux_skyimg,
                 bkg_redux=bkg_redux, find_negative=find_negative)
 
+            # TODO: Should we add the calibration associations to the SpecObjs object as done in the main run?
+
             # Save it
             exposure.save_exposure(pypeIt.spectrograph, pypeIt.fitstbl,
                                    pypeIt.par, frame, all_spec2d, sobjs_extract,

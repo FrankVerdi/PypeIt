@@ -520,7 +520,6 @@ def save_exposure(spectrograph, fitstbl, par,
     # 1D spectra
     if all_specobjs.nobj > 0 and not par['reduce']['extraction']['skip_extraction']:
         # Spectra
-        #outfile1d = science_path / f'spec1d_{basename}.fits'
         outfile1d = outputfiles.spec_output_file(fitstbl, par, frame)
         # TODO
         #embed(header='deal with the following for maskIDs;  713 of pypeit')
@@ -537,7 +536,6 @@ def save_exposure(spectrograph, fitstbl, par,
         # option is to re-work write_info to also "append"
         sobjs = specobjs.SpecObjs.from_fitsfile(outfile1d, chk_version=False)
         sobjs.write_info(outfiletxt, spectrograph.pypeline)
-        #all_specobjs.write_info(outfiletxt, self.spectrograph.pypeline)
 
     if skip_write_2d:
         return
