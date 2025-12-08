@@ -56,6 +56,11 @@ Instrument-specific Updates
 Script Changes
 --------------
 
+- Added a new script, ``pypeit_rectify_2dspec``, which creates a rectified 2D
+  spectral image. Each slit/order in the spec2d output file is rectified onto a common
+  wavelength grid. This rectified 2D image must be used only for quick-look visualization
+  purposes, and not for scientific analysis.
+
 
 
 Datamodel Changes
