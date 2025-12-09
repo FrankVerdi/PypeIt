@@ -1611,14 +1611,14 @@ class MultiSlitCoAdd2D(CoAdd2D):
         """
 
         # Print out a report on the SNR
-        msg_string = '-------------------------------------'
-        msg_string += '  Summary for highest S/N object'
-        msg_string += '      found on slitid = {:d}            '.format(slitid)
-        msg_string += '-------------------------------------'
-        msg_string += '       exp#   spat_pixpos     S/N'
-        msg_string += '-------------------------------------'
+        msg_string = '\n-------------------------------------\n'
+        msg_string += '  Summary for highest S/N object\n'
+        msg_string += f'      found on slitid = {slitid}            \n'
+        msg_string += '-------------------------------------\n'
+        msg_string += '       exp#   spat_pixpos     S/N\n'
+        msg_string += '-------------------------------------\n'
         for iexp, (spat,snr) in enumerate(zip(spat_pixpos, snr_bar)):
-            msg_string += '       {:2d}      {:7.1f}      {:5.2f}'.format(iexp, spat, snr)
+            msg_string += f'       {iexp:2d}      {spat:7.1f}      {snr:5.2f}\n'
         msg_string += '-------------------------------------'
         log.info(msg_string)
 

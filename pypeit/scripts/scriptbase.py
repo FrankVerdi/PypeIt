@@ -117,14 +117,6 @@ class ScriptBase:
         """
         cls.main(cls.parse_args())
 
-    # TODO: This could also be combined with the property decorator; see
-    # https://docs.python.org/3.9/library/functions.html#classmethod
-    # Order matters.
-    #
-    # @classmethod
-    # @property
-    #
-    # Leave as is for now.
     @classmethod
     def name(cls):
         """

@@ -345,7 +345,7 @@ class ParSet:
         return '\n'.join(row_string)+'\n'
 
     @staticmethod
-    def _data_string(data, use_repr=False, verbatim=False):
+    def _data_string(data, use_repr=False, verbatim=False, check_dir=False):
         """
         Convert a single datum into a string
         
@@ -363,14 +363,18 @@ class ParSet:
                 Use quotes around the provided string to indicate that
                 the string should be representated in a verbatim (fixed
                 width) font.
+            check_dir (:obj:`bool`, optional):
+                If ``data`` is a string, check if it matches the current working
+                directory and replace it with a generic string if it does.
         
         Returns:
             str: A string representation of the provided ``data``.
         """
         if isinstance(data, str):
+            _data = '$PWD' if check_dir and data == os.getcwd() else data
             if verbatim:
-                return '..' if len(data) == 0 else '``' + data + '``'
-            return data
+                return '..' if len(_data) == 0 else '``' + _data + '``'
+            return _data
         if isinstance(data, list):
             # When the list is empty, return an empty string, which config_lines will append a "," to.
             # This allows ConfigObj to interpret it as an empty list, instead of string, when re-reading the
@@ -727,7 +731,7 @@ class ParSet:
                 data_table[i+1,1] = ', '.join([t.__name__ for t in self.dtype[k]])
                 data_table[i+1,3] = '..' if self.default[k] is None \
                                     else ParSet._data_string(self.default[k], use_repr=False,
-                                                             verbatim=True)
+                                                             verbatim=True, check_dir=True)
 
             data_table[i+1,2] = '..' if self.options[k] is None \
                                     else ParSet._data_string(self.options[k], use_repr=False,

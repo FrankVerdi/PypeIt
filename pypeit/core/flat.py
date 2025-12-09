@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 from IPython import embed
 
 from pypeit import log
+from pypeit import PypeItError
 from pypeit.core import coadd
 from pypeit import utils
 

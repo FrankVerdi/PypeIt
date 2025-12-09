@@ -16,9 +16,6 @@ from astropy.time import Time
 from astropy.utils.iers import conf
 conf.auto_max_age = None
 
-
-
-from pypeit import log
 from pypeit import PypeItError
 
 from IPython import embed

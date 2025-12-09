@@ -10,9 +10,7 @@ from typing import Type
 
 from configobj import ConfigObj
 from IPython import embed
-import numpy as np
 
-from pypeit import log, __version__
 from pypeit import PypeItError
 
 
