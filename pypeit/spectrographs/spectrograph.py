@@ -967,7 +967,7 @@ class Spectrograph:
         Correct the table frametype values for the given setup, if necessary.
         """
 
-        return
+        pass
 
     def get_comb_group(self, fitstbl):
         """

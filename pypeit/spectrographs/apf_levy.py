@@ -476,4 +476,3 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
         if np.any(is_narrowflat) and setup['decker'] == '3.0':
             table['frametype'][is_wideflat] = 'pixelflat'
 
-        return
