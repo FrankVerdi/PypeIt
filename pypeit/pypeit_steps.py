@@ -731,8 +731,13 @@ def extract_det(spectrograph, fitstbl, par,
             sciImg.fullmask, \
             sobjs_obj
         slitgpm = (slits.mask == 0)
-        # Check these below
-        tilts = caliBrate.wavetilts.fit2tiltimg(slits.slitmask, flexure=sciImg.spat_flexure - caliBrate.wavetilts.spat_flexure)
+        # TODO: Check these below
+        # get slitmask (same as in extract)
+        slitmask = slits.slit_img(flexure=sciImg.spat_flexure, exclude_flag=slits.bitmask.exclude_for_reducing)
+        # get spat_flexure and tilts (same as in extract)
+        _spat_flexure = 0. if sciImg.spat_flexure is None else sciImg.spat_flexure
+        _tilts_spat_flexure = 0. if caliBrate.wavetilts.spat_flexure is None else caliBrate.wavetilts.spat_flexure
+        tilts = caliBrate.wavetilts.fit2tiltimg(slitmask, flexure=_tilts_spat_flexure)
         waveImg = caliBrate.wv_calib.build_waveimg(tilts, slits, spat_flexure=sciImg.spat_flexure)
         slitshift = objFind.slitshift #TODO: this is not correct. Find a way to propagate this information from objFind
         scaleImg = objFind.scaleimg  # TODO: this is not correct. Find a way to propagate this information from objFind
