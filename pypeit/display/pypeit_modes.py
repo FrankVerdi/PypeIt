@@ -8,6 +8,8 @@ from ginga.modes.mode_base import Mode
 from ginga.modes.plot2d import Plot2DMode
 
 
+# Note inheritance from Plot2DMode, which already defines many callbacks
+#
 class Spec1DMode(Plot2DMode):
     """
     Spec1DMode enables special bindings for viewing PypeIt spec1d files.
@@ -20,8 +22,8 @@ class Spec1DMode(Plot2DMode):
     ----------------
     * Esc
 
-    Default bindings in mode
-    ------------------------
+    Mouse/trackpad bindings in mode
+    -------------------------------
     * Shift + left click : set pan position
     * middle click : set pan position
     * scroll : zoom in/out
@@ -29,6 +31,12 @@ class Spec1DMode(Plot2DMode):
     * shift + scroll : zoom in/out Y axis only
     * alt + scroll : zoom in/out Y axis only
     * meta + scroll : zoom in/out at cursor
+
+    Keystroke bindings in mode
+    --------------------------
+
+    Zooming
+    -------
     * equals : zoom in one zoom level
     * ctrl + equals : zoom in X axis one zoom level
     * shift + equals (plus) : zoom in Y axis one zoom level
@@ -44,14 +52,25 @@ class Spec1DMode(Plot2DMode):
     * backquote : fit plot to window
     * 1 : fit x axis only to window
     * 2 : fit y axis only to window
-    * left arrow : pan left
-    * right arrow : pan right
-    * up arrow : pan up
-    * down arrow : pan down
     * k : set lower X range to X value at cursor
     * l : set upper X range to X value at cursor
     * K : set lower Y range to Y value at cursor
     * L : set upper Y range to Y value at cursor
+
+    Panning
+    -------
+    * left arrow : pan left
+    * right arrow : pan right
+    * up arrow : pan up
+    * down arrow : pan down
+
+    Regions
+    -------
+    * [ : mark lower X boundary of region
+    * ] : mark upper X boundary of region
+    * backslash : clear region
+    * singlequote : (zoom) set X range to region
+    * f : fit region and show result
     """
 
     # Needs to be set by reference viewer (via set_shell_ref) before any
@@ -93,8 +112,18 @@ class Spec1DMode(Plot2DMode):
 
             kp_cut_x_lo=['spec1d+k'],
             kp_cut_x_hi=['spec1d+l'],
+            kp_cut_x_range=['spec1d+singlequote'],
             kp_cut_y_lo=['spec1d+K'],
             kp_cut_y_hi=['spec1d+L'],
+
+            kp_unsmooth=['spec1d+A'],
+            kp_smooth_less=['spec1d+a'],
+            kp_smooth_more=['spec1d+s'],
+
+            kp_mark_left=['spec1d+['],
+            kp_mark_right=['spec1d+]'],
+            kp_mark_clear=['spec1d+backslash'],
+            kp_fitting=['spec1d+f'],
 
             plot_zoom_rate=1.2,
             plot_pan_pct=0.10,
@@ -109,7 +138,11 @@ class Spec1DMode(Plot2DMode):
     def stop(self):
         pass
 
-    #####  SCROLL ACTION CALLBACKS #####
+    def get_plugin(self):
+        chname = self.fv.get_channel_name(self.viewer)
+        channel = self.fv.get_channel(chname)
+        pl_obj = channel.opmon.get_plugin('spec1dview')
+        return pl_obj
 
     #####  MOUSE ACTION CALLBACKS #####
 
@@ -122,7 +155,51 @@ class Spec1DMode(Plot2DMode):
 
     #####  KEYBOARD ACTION CALLBACKS #####
 
-    def kp_smooth(self, viewer, event, data_x, data_y):
+    def kp_unsmooth(self, viewer, event, data_x, data_y):
         event.accept()
-        plot = viewer.get_dataobj()
-        viewer.zoom_plot(delta_x, delta_y)
+
+        plugin = self.get_plugin()
+        plugin.unsmooth()
+
+    def kp_smooth_more(self, viewer, event, data_x, data_y):
+        event.accept()
+
+        plugin = self.get_plugin()
+        plugin.smooth_more()
+
+    def kp_smooth_less(self, viewer, event, data_x, data_y):
+        event.accept()
+
+        plugin = self.get_plugin()
+        plugin.smooth_less()
+
+    def kp_cut_x_range(self, viewer, event, data_x, data_y):
+        if not self.canpan:
+            return False
+        event.accept()
+        plugin = self.get_plugin()
+        plugin.cut_x_range('mark')
+
+    def kp_mark_left(self, viewer, event, data_x, data_y):
+        event.accept()
+
+        plugin = self.get_plugin()
+        plugin.set_region_side('mark', 'left', data_x)
+
+    def kp_mark_right(self, viewer, event, data_x, data_y):
+        event.accept()
+
+        plugin = self.get_plugin()
+        plugin.set_region_side('mark', 'right', data_x)
+
+    def kp_mark_clear(self, viewer, event, data_x, data_y):
+        event.accept()
+
+        plugin = self.get_plugin()
+        plugin.clear_region('mark')
+
+    def kp_fitting(self, viewer, event, data_x, data_y):
+        event.accept()
+
+        plugin = self.get_plugin()
+        plugin.fit_range('mark')
