@@ -115,7 +115,7 @@ The setup process:
 - Creates a separate `.pypeit` file tab for each configuration
 
 .. tip::
-    The scan may take a few moments depending on the number of files. Watch the status bar or log window for progress.
+    The scan may take a few moments depending on the number of files. Watch the progress bar or log window for progress.
 
 Step 4: Inspect the Observation Log
 -----------------------------------
