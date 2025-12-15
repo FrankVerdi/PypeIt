@@ -183,7 +183,7 @@ To load and edit an existing `.pypeit` file:
 4. Edit as needed and save changes
 
 .. note::
-    Opening a `.pypeit` file will also load the associated spectrograph and update the ObsLog accordingly.
+    Opening a `.pypeit` file will also load the ObsLog tab for the raw data directories mentioned in the file.
 
 Viewing Raw Data
 ----------------
@@ -244,9 +244,9 @@ Here's a complete example using Keck DEIMOS data:
 5. Review the ObsLog tab - verify all expected files are present
 6. Click on **Configuration A** tab
 7. Inspect frame types in the data table
-8. Make any necessary edits to frame types or parameters
+8. Make any necessary edits to frame types
 9. Click **Save Tab**
-10. Choose filename: `keck_deimos_A.pypeit`
+10. Choose the location for the file. The file will be named `keck_deimos_A.pypeit`
 11. Click **Exit**
 
 Your setup is now ready! Run the reduction with:
