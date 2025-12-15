@@ -181,7 +181,9 @@ class CoAdd2D:
         # Check that there are the same number of slits on every exposure
         nslits_list = [slits.nslits for slits in self.stack_dict['slits_list']]
         if not len(set(nslits_list)) == 1:
-            raise PypeItError('Not all of your exposures have the same number of slits. Check your inputs')
+            raise PypeItError(
+                'Not all of your files have the same number of slits. Check your inputs'
+            )
         # This is the number of slits of the single (un-coadded) frames
         self.nslits_single = nslits_list[0]
 
@@ -193,9 +195,13 @@ class CoAdd2D:
         binspec_list = [slits.binspec for slits in self.stack_dict['slits_list']]
         binspat_list = [slits.binspat for slits in self.stack_dict['slits_list']]
         if not len(set(binspec_list)) == 1:
-            raise PypeItError('Not all of your exposures have the same spectral binning. Check your inputs')
+            raise PypeItError(
+                'Not all of your files have the same spectral binning. Check your inputs'
+            )
         if not len(set(binspat_list)) == 1:
-            raise PypeItError('Not all of your exposures have the same spatial binning. Check your inputs')
+            raise PypeItError(
+                'Not all of your files have the same spatial binning. Check your inputs'
+            )
         self.binning = np.array([self.stack_dict['slits_list'][0].binspec,
                                  self.stack_dict['slits_list'][0].binspat])
 
@@ -519,11 +525,16 @@ class CoAdd2D:
                 fluxes.append(flux_iexp)
                 ivars.append(ivar_iexp)
                 gpms.append(gpm_iexp)
-                log.warning(f'Optimal extraction not available for object '
-                          f'{uniq_obj_id[iexp]} {order_str} in exp {iexp}. Using box extraction.')
+
+                log.warning(
+                    f'Optimal extraction not available for object {uniq_obj_id[iexp]} '
+                    f'{order_str} in file {iexp}. Using box extraction.'
+                )
             else:
-                raise PypeItError(f'Optimal weights cannot be determined because '
-                           f'flux not available for object = {uniq_obj_id[iexp]} {order_str} in exp {iexp}. ')
+                raise PypeItError(
+                    f'Optimal weights cannot be determined because flux not available for object '
+                    f'= {uniq_obj_id[iexp]} {order_str} in file {iexp}. '
+                )
 
         # TODO For now just use the zero as the reference for the wavelengths? Perhaps we should be rebinning the data though?
         rms_sn, weights = coadd.sn_weights(fluxes, ivars, gpms, sn_smooth_npix=self.sn_smooth_npix, weight_method=weight_method)
@@ -562,8 +573,10 @@ class CoAdd2D:
 
             # check if the slit is found in every exposure
             if not np.all([np.any(thismask) for thismask in thismask_stack]):
-                log.warning(f'Slit/order {_slitord_id[slit_idx]} was not found in every exposures. '
-                          f'2D coadd cannot be performed on this slit. Try increasing the parameter spat_toler')
+                log.warning(
+                    f'Slit/order {_slitord_id[slit_idx]} was not found in every file. 2D coadd '
+                    'cannot be performed on this slit. Try increasing the parameter spat_toler'
+                )
                 continue
 
             # reference trace
@@ -585,7 +598,9 @@ class CoAdd2D:
             coadd_list.append(coadd_dict)
 
         if len(coadd_list) == 0:
-            raise PypeItError("All the slits were missing in one or more exposures. 2D coadd cannot be performed")
+            raise PypeItError(
+                'All the slits were missing in one or more files. 2D coadd cannot be performed.'
+            )
 
         return coadd_list
 
@@ -849,12 +864,12 @@ class CoAdd2D:
         """
 
         if offsets_method is not None and offsets is not None:
-            msg_string = '---------------------------------------------------------------------------------'
-            msg_string += ' Summary of offsets from {}     '.format(offsets_method)
-            msg_string += '---------------------------------------------------------------------------------'
-            msg_string += '           exp#      offset (pixels)    offset (arcsec)'
+            msg_string = '\n---------------------------------------------------------------------------------\n'
+            msg_string += f' Summary of offsets from {offsets_method}     \n'
+            msg_string += '---------------------------------------------------------------------------------\n'
+            msg_string += '          file#      offset (pixels)    offset (arcsec)\n'
             for iexp, off in enumerate(offsets):
-                msg_string += '            {:2d}            {:6.2f}              {:6.3f}'.format(iexp, off, off*pixscale)
+                msg_string += f'            {iexp:2d}            {off:6.2f}              {off*pixscale:6.3f}\n'
             msg_string += '---------------------------------------------------------------------------------'
             log.info(msg_string)
 
@@ -1044,7 +1059,10 @@ class CoAdd2D:
             raise PypeItError('Unrecognized type for check_input')
         if isinstance(input, (list, np.ndarray)):
             if len(input) != self.nexp:
-                raise PypeItError(f'If {type} are input it must be a list/array with same number of elements as exposures')
+                raise PypeItError(
+                    f'If {type} are input it must be a list/array with same number of elements '
+                    'as files.'
+                )
             return np.atleast_1d(input).tolist() if type == 'weights' else np.atleast_1d(input)
         raise PypeItError(f'Unrecognized format for {type}')
 
@@ -1084,8 +1102,10 @@ class CoAdd2D:
             self.maskdef_offset = np.array([slits.maskdef_offset for slits in self.stack_dict['slits_list']])
             # Check if maskdef_offset is actually recoded in the SlitTraceSet
             if np.any(self.maskdef_offset == None):
-                raise PypeItError('maskdef_offsets are not recoded in the SlitTraceSet '
-                           'for one or more exposures. They cannot be used.')
+                raise PypeItError(
+                    'maskdef_offsets are not recoded in the SlitTraceSet for one or more files. '
+                    'They cannot be used.'
+                )
             # the offsets computed during the main reduction (`run_pypeit`) are used
             log.info('Determining offsets using maskdef_offset recoded in SlitTraceSet')
             self.offsets = self.maskdef_offset[0] - self.maskdef_offset
@@ -1326,7 +1346,9 @@ class MultiSlitCoAdd2D(CoAdd2D):
                 if self.par['coadd2d']['weights'] != 'auto':
                     raise PypeItError('Parameter `user_obj_ids` can only be used if weights are set to `auto`.')
                 if len(self.par['coadd2d']['user_obj_ids']) != self.nexp:
-                    raise PypeItError('Parameter `user_obj_ids` must have the same number of elements as exposures.')
+                    raise PypeItError(
+                        'Parameter `user_obj_ids` must have the same number of elements as files.'
+                    )
                 user_obj_exist = np.zeros(self.nexp, dtype=bool)
                 # get the flux, ivar, gpm, and spatial pixel position of the user object
                 fluxes, ivars, gpms, spatids, spat_pixpos = [], [], [], [], []
@@ -1345,7 +1367,10 @@ class MultiSlitCoAdd2D(CoAdd2D):
                             user_obj_exist[i] = True
                 # check if the user object exists in all the exposures
                 if not np.all(user_obj_exist):
-                    raise PypeItError('Not all of the spat_pixpos_ids provided through `user_obj_ids` exist in all of the exposures.')
+                    raise PypeItError(
+                         'Not all of the spat_pixpos_ids provided through `user_obj_ids` exist '
+                         'in all of the files.'
+                    )
                 # Check that all spatids are within the spat_toler of each other
                 if not np.all(np.abs(spatids - np.mean(spatids[0])) <= self.par['coadd2d']['spat_toler']):
                     raise PypeItError('Not all spatial IDs are within spat_toler of each other')
@@ -1431,9 +1456,11 @@ class MultiSlitCoAdd2D(CoAdd2D):
                     spec_min_max=self.par['reduce']['findobj']['trace_min_max'],
                     show_trace=self.debug_offsets, show_peaks=self.debug_offsets)
                 if len(sobjs_exp) == 0:
-                    raise PypeItError(f'No objects found in the rebinned image for exposure {iexp} '
-                               f'(used to compute the offsets). '
-                               f'Check `FindObjPar` parameters and try to adjust `snr_thresh`')
+                    raise PypeItError(
+                        f'No objects found in the rebinned image for file {iexp} (used to compute '
+                        'the offsets).  Check `FindObjPar` parameters and try to adjust '
+                        '`snr_thresh`.'
+                    )
                 if self.par['coadd2d']['user_obj_ids'] is not None:
                     # find the spectrum of the user object and the corresponding trace
                     idx_orig = self.stack_dict['specobjs_list'][iexp].slitorder_uniq_id_indices(
@@ -1455,7 +1482,7 @@ class MultiSlitCoAdd2D(CoAdd2D):
                     else:
                         raise PypeItError(f'Could not identify an object in the rebinned image corresponding '
                                    f'to the trace for the user object {self.par["coadd2d"]["user_obj_ids"][iexp]} '
-                                   f'in exposure {iexp+1} within the specified spatial '
+                                   f'in file {iexp+1} within the specified spatial '
                                    f'tolerance ={self.par["coadd2d"]["spat_toler"]}')
                 else: 
                     traces_rect[:, iexp] = sobjs_exp.TRACE_SPAT
@@ -1543,7 +1570,7 @@ class MultiSlitCoAdd2D(CoAdd2D):
         spat_pixpos_max = np.zeros((nslits, nexp), dtype=float)
         # Loop over each exposure, slit, find the brightest object on that slit for every exposure
         for iexp, sobjs in enumerate(specobjs_list):
-            log.info("Working on exposure {}".format(iexp))
+            log.info(f"Working on file {iexp}")
             for islit, spat_id in enumerate(slit_spat_ids):
                 if len(sobjs) == 0:
                     continue
@@ -1577,8 +1604,11 @@ class MultiSlitCoAdd2D(CoAdd2D):
 
         # Find the highest snr object among all the slits
         if np.all(bpm):
-            log.warning('You do not appear to have a unique reference object that was traced as the highest S/N '
-                      'ratio on the same slit of every exposure. Try increasing the parameter `spat_toler`')
+            log.warning(
+                'You do not appear to have a unique reference object that was traced as the '
+                'highest S/N ratio on the same slit of every file. Try increasing the parameter '
+                '`spat_toler`.'
+            )
             return None, None, None, None
         else:
             # mask the bpm
@@ -1615,7 +1645,7 @@ class MultiSlitCoAdd2D(CoAdd2D):
         msg_string += '  Summary for highest S/N object\n'
         msg_string += f'      found on slitid = {slitid}            \n'
         msg_string += '-------------------------------------\n'
-        msg_string += '       exp#   spat_pixpos     S/N\n'
+        msg_string += '      file#   spat_pixpos     S/N\n'
         msg_string += '-------------------------------------\n'
         for iexp, (spat,snr) in enumerate(zip(spat_pixpos, snr_bar)):
             msg_string += f'       {iexp:2d}      {spat:7.1f}      {snr:5.2f}\n'
@@ -1775,8 +1805,10 @@ class EchelleCoAdd2D(CoAdd2D):
         # If a user-input object to compute offsets and weights is provided, check if it exists and get the needed info
         if len(self.stack_dict['specobjs_list']) > 0 and self.par['coadd2d']['user_obj_ids'] is not None:
             if len(self.par['coadd2d']['user_obj_ids']) != self.nexp:
-                raise PypeItError(f'Parameter `user_obj_ids` {self.par["coadd2d"]["user_obj_ids"]} must have the same number '
-                           f'of elements as exposures {self.nexp}.')
+                raise PypeItError(
+                    f'Parameter `user_obj_ids` {self.par["coadd2d"]["user_obj_ids"]} must have '
+                    f'the same number of elements as files {self.nexp}.'
+                )
             else:
                 # does it exists?
                 user_obj_exist = np.zeros((self.nexp,self.nslits_single), dtype=bool)
@@ -1786,14 +1818,20 @@ class EchelleCoAdd2D(CoAdd2D):
                         # check if the object exists in this exposure
                         ind = sobjs.slitorder_uniq_id_indices(self.par['coadd2d']['user_obj_ids'][iexp], order=ord)
                         if (len(ind) == 0) or (not np.any(ind)):
-                            raise PypeItError(f'Object with user_obj_id {self.par["coadd2d"]["user_obj_ids"][iexp]} does not exist in exposure {iexp+1} for order {ord}.')
+                            raise PypeItError(
+                                'Object with user_obj_id '
+                                f'{self.par["coadd2d"]["user_obj_ids"][iexp]} does not exist in '
+                                f'file {iexp+1} for order {ord}.'
+                            )
                         flux, ivar, mask = self.unpack_specobj(sobjs[ind][0])
                         if flux is not None and ivar is not None and mask is not None:
                                 user_obj_exist[iexp, iord] = True
 
                             
                 if not np.all(user_obj_exist):
-                    raise PypeItError('Object provided through `user_obj_ids` does not exist in all the exposures.')
+                    raise PypeItError(
+                        'Object provided through `user_obj_ids` does not exist in all the files.'
+                    )
 
                 # get the needed info about the user object
                 self.obj_id_bri = np.array(self.par['coadd2d']['user_obj_ids'])
@@ -1904,7 +1942,7 @@ class EchelleCoAdd2D(CoAdd2D):
         fracpos_id = np.zeros(nexp, dtype=int)
         snr_bar = np.zeros(nexp)
         for iexp, sobjs in enumerate(specobjs_list):
-            log.info("Working on exposure {}".format(iexp))
+            log.info("Working on file {}".format(iexp))
             uni_fracpos_id = np.unique(sobjs.ECH_FRACPOS_ID)
             nobjs = len(uni_fracpos_id)
             order_snr = np.zeros((orders.size, nobjs), dtype=float)
@@ -1934,8 +1972,10 @@ class EchelleCoAdd2D(CoAdd2D):
                 fracpos_id[iexp] = uni_fracpos_id[snr_bar_vec.argmax()]
                 snr_bar[iexp] = snr_bar_vec[snr_bar_vec.argmax()]
         if 0 in snr_bar:
-            log.warning('You do not appear to have a unique reference object that was traced as the highest S/N '
-                      'ratio for every exposure')
+            log.warning(
+                'You do not appear to have a unique reference object that was traced as the '
+                'highest S/N ratio for every file.'
+            )
             return None, None
         return fracpos_id, snr_bar
 
@@ -1955,10 +1995,9 @@ class EchelleCoAdd2D(CoAdd2D):
         msg_string = '\n-------------------------------------'
         msg_string += '\n  Summary for highest S/N object'
         msg_string += '\n-------------------------------------'
-        msg_string += '\n           exp#        S/N'
+        msg_string += '\n          file#        S/N'
         for iexp, snr in enumerate(snr_bar):
-            msg_string += '\n            {:d}         {:5.2f}'.format(iexp, snr)
-
+            msg_string += f'\n            {iexp:d}         {snr:5.2f}'
         msg_string += '\n-------------------------------------'
         log.info(msg_string)
 

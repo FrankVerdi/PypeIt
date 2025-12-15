@@ -49,6 +49,7 @@ class CoAdd2DSpec(scriptbase.ScriptBase):
 
         from pypeit import log
         from pypeit import coadd2d
+        from pypeit import history
         from pypeit import inputfiles
         from pypeit import specobjs
         from pypeit import spec2dobj
@@ -104,7 +105,7 @@ class CoAdd2DSpec(scriptbase.ScriptBase):
         log_string += f"Searching for objects that are {head2d['FINDOBJ']}\n"
         log_string += 'Combining frames in 2d coadd:\n'
         for f, file in enumerate(spec2d_files):
-            log_string += f'Exp {f}: {Path(file).name}\n'
+            log_string += f'File {f}: {Path(file).name}\n'
         log.info(log_string)
 
         # Instantiate the sci_dict
@@ -216,12 +217,17 @@ class CoAdd2DSpec(scriptbase.ScriptBase):
 
         # SAVE TO DISK
 
+        # Add history entries for coadding.
+        coadd_history = history.History()
+        coadd_history.add_coadd2d(spec2d_files, basename)
+
         # THE FOLLOWING MIMICS THE CODE IN pypeit.save_exposure()
         subheader = spectrograph.subheader_for_spec(head2d, head2d)
+        subheader['coaddobj'] = (basename, 'Coadd object base name')
         # Write spec1D
         if all_specobjs.nobj > 0:
             outfile1d = coadd_scidir / f'spec1d_{basename}.fits'
-            all_specobjs.write_to_fits(subheader, outfile1d)
+            all_specobjs.write_to_fits(subheader, outfile1d, history=coadd_history)
 
             # Info
             outfiletxt = coadd_scidir / f'spec1d_{basename}.txt'
@@ -231,7 +237,7 @@ class CoAdd2DSpec(scriptbase.ScriptBase):
         # Build header for spec2d
         outfile2d = coadd_scidir / f'spec2d_{basename}.fits'
         pri_hdr = all_spec2d.build_primary_hdr(head2d, spectrograph,
-                                               subheader=subheader,
+                                               subheader=subheader, history=coadd_history,
                                                # TODO -- JFH :: Decide if we need any of these
                                                redux_path=None)
         # Write spec2d
