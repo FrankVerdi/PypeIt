@@ -233,6 +233,8 @@ def findobj_on_exposure(sciImg_dict:dict, bkg_redux_sciimg_dict:dict,
         this_objfind = all_objfinds[i]
         bkg_redux_sciimg = bkg_redux_sciimg_dict[det]
         initial_sky = initial_sky_dict[det]
+        # update the slits in objfind
+        this_objfind.slits = all_slits[i]
 
         final_global_sky, bkg_redux_global_sky, this_objfind = \
             pypeit_steps.finalize_sky_det(spectrograph, fitstbl, par, frames[0],

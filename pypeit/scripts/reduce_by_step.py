@@ -181,7 +181,7 @@ class ReducebyStep(scriptbase.ScriptBase):
 
             # #####################################
             # final sky subtraction
-            final_global_sky, bkg_redux_global_sky, this_objfind = \
+            final_global_sky, bkg_redux_global_sky, objFind = \
                 pypeit_steps.finalize_sky_det(pypeIt.spectrograph, pypeIt.fitstbl, pypeIt.par, frames[0],
                                               det, objFind, initial_sky, sobjs_obj_find,
                                               bkg_redux_sciimg=bkg_redux_sciimg, bkg_redux=bkg_redux, show=args.show)
