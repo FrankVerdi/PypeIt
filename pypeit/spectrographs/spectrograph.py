@@ -813,6 +813,33 @@ class Spectrograph:
         msgs.error('This spectrograph does not support the use of mask design. '
                    'Set `use_maskdesign=False`')
 
+    @staticmethod
+    def maskdef_spec_minmax(maskfile=None, maskdef_ids=None, nspec=None, shift=150):
+        """
+        Get the spectral min and max values of each slit from the mask definition file.
+
+        This method is not defined for all spectrographs. This base-class
+        method raises an exception.
+
+        Args:
+            maskfile (:obj:`str`, optional):
+                The mask file to read the maskdef spec minmax from.
+            maskdef_ids (:obj:`list`, optional):
+                The list of maskdef IDs to match to the maskfile values.
+            nspec (:obj:`int`, optional):
+                The number of spectral pixels in the image.
+            shift (:obj:`int`, optional):
+                The shift to apply to the spec minmax. Default is 150.
+                This is used to shift the spec minmax to account for the
+                uncertainty in the maskdef spec minmax values.
+        Returns:
+            :obj:`tuple`: A tuple of two `numpy.ndarray`_ with the spec min and max values.
+            If the maskfile, maskdef_ids, or nspec are not provided, None is returned for both min and max.
+        """
+
+        msgs.error('This spectrograph does not support the use of mask design to get the '
+                     'maskdef spec minmax. Set `maskdef_spec_minmax=False`')
+
     def configuration_keys(self):
         """
         Return the metadata keys that define a unique instrument
