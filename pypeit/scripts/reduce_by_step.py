@@ -193,13 +193,10 @@ class ReducebyStep(scriptbase.ScriptBase):
                 _slits.mask[flagged_slits] = \
                     _slits.bitmask.turn_on(_slits.mask[flagged_slits], 'BADSKYSUB')
 
-            # Update the wv_calib object file with the spectral flexure information
-            if objFind.wv_calib is not None and objFind.wv_calib.flex_shift is not None:
-                msgs.info("Updating the wv_calib file with the spectral flexure information.")
-                objFind.wv_calib.to_file()
-
             # Update the sciImg with the scaleImg information
             sciImg.rel_scaleImg = objFind.scaleimg
+            # and the global spectral flexure shift
+            sciImg.flex_shift = objFind.slitshift
 
             # Write
             # sobjs object found
@@ -229,10 +226,6 @@ class ReducebyStep(scriptbase.ScriptBase):
             # Load a lot of stuff
             msgs.info(f'Loading images for detector {det}')
             sciImg = pypeitimage.PypeItImage.from_file(sci_filename)
-            if bg_frames is not None and len(bg_frames) > 0:
-                bkg_redux_sciimg = pypeitimage.PypeItImage.from_file(bkg_filename)
-            else:
-                bkg_redux_sciimg = None
 
             # sky images
             msgs.info(f'Loading sky image for detector {det}')

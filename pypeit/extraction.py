@@ -545,8 +545,6 @@ class Extract:
             self.waveimg = self.wv_calib.build_waveimg(self.tilts, self.slits,
                                                        spat_flexure=self.spat_flexure_shift,
                                                        spec_flexure=self.slitshift)
-            # save the value also in the wv_calib object
-            self.wv_calib.flex_shift = self.slitshift.copy()
         elif mode == "local":
             msgs.info('Performing local spectral flexure correction')
             # Measure flexure:

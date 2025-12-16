@@ -610,7 +610,7 @@ def load_skyregions(spectrograph, fitstbl, par, frame, det, caliBrate,
                                 slits_left, slits_right, spat_flexure=spat_flexure)
 
 
-def extract_det(spectrograph, fitstbl, par, 
+def extract_det(spectrograph, fitstbl, par,
                 frames, det, calib_ID:str, calibrations_path:str,
                 sciImg, final_sky, sobjs_obj, calib_slits,
                 bkg_redux_final_sky=None, bkg_redux:bool=False,
@@ -723,8 +723,7 @@ def extract_det(spectrograph, fitstbl, par,
             sciImg.fullmask, \
             sobjs_obj
         slitgpm = (slits.mask == 0)
-        # TODO: Check these below
-        slitshift = np.zeros(slits.nslits) if caliBrate.wv_calib.flex_shift is None else caliBrate.wv_calib.flex_shift
+        slitshift = sciImg.flex_shift
         # get slitmask (same as in extract)
         slitmask = slits.slit_img(flexure=sciImg.spat_flexure, exclude_flag=slits.bitmask.exclude_for_reducing)
         # get spat_flexure and tilts (same as in extract)

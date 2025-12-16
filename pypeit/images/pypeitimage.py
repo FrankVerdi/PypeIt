@@ -136,7 +136,14 @@ class PypeItImage(datamodel.DataContainer):
                                   descr='Image used to apply a relative scaling to the science '
                                         'image to correct its spectral illumination. Currently '
                                         'only used for IFU reductions. This is calculated and '
-                                        'updated during object finding.'),}
+                                        'updated during object finding.'),
+                 'flex_shift': dict(otype=np.ndarray, atype=np.floating,
+                                    descr='Array of global spectral shifts (pixels) of the '
+                                          'wavelength array at the center of each slit to '
+                                          'correct for spectral flexure. This is calculated '
+                                          'using the sky spectrum, therefore, updated during '
+                                          'object finding/extraction.')
+                 }
     """Data model components."""
 
     internals = ['process_steps', 'files', 'rawheadlist']

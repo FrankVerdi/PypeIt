@@ -1032,8 +1032,6 @@ class SlicerIFUFindObjects(MultiSlitFindObjects):
             msgs.info("Generating wavelength image, accounting for spectral flexure")
             self.waveimg = self.wv_calib.build_waveimg(self.tilts, self.slits, spec_flexure=self.slitshift,
                                                        spat_flexure=self.spat_flexure_shift)
-            # save the value also in the wv_calib object
-            self.wv_calib.flex_shift = self.slitshift.copy()
 
         # If the joint fit or spec/spat sensitivity corrections are not being performed, return the separate slits sky
         if not self.par['reduce']['skysub']['joint_fit'] or bkg_redux_sciimg is not None:

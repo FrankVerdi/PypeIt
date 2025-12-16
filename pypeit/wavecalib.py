@@ -39,7 +39,7 @@ class WaveCalib(calibframe.CalibFrame):
     .. include:: ../include/class_datamodel_wavecalib.rst
 
     """
-    version = '1.1.3'
+    version = '1.1.2'
 
     # Calibration frame attributes
     calib_type = 'WaveCalib'
@@ -76,13 +76,7 @@ class WaveCalib(calibframe.CalibFrame):
                                    descr='Echelle order ID numbers.  Defined only for echelle.'),
                  'strpar': dict(otype=str, descr='Parameters as a string'),
                  'lamps': dict(otype=str,
-                               descr='List of arc lamps used for the wavelength calibration'),
-                 'flex_shift': dict(otype=np.ndarray, atype=np.floating, descr='Global spectral shift (pixels) of '
-                                                       'the wavelength array at the center of '
-                                                       'the slit to correct for spectral flexure. '
-                                                       'This is calculated using the sky spectrum, '
-                                                       'therefore, updated during object finding/extraction.'),
-                 }
+                               descr='List of arc lamps used for the wavelength calibration')}
 
     def __init__(self, wv_fits=None, fwhm_map=None, nslits=None, spat_ids=None, ech_orders=None,
                  PYP_SPEC=None, strpar=None, wv_fit2d=None, arc_spectra=None, lamps=None,

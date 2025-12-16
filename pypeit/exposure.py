@@ -244,18 +244,14 @@ def findobj_on_exposure(sciImg_dict:dict, bkg_redux_sciimg_dict:dict,
         bkg_redux_final_sky_dict[det] = bkg_redux_global_sky
         # Update the sciImg with the scaleImg information
         sciImg_dict[det].rel_scaleImg = this_objfind.scaleimg
+        # and the global spectral flexure shift
+        sciImg_dict[det].flex_shift = this_objfind.slitshift
 
         # update here slits.mask since global_skysub modify reduce_bpm, and we need to propagate it into extraction
         flagged_slits = np.where(this_objfind.reduce_bpm)[0]
         if len(flagged_slits) > 0:
             all_slits[i].mask[flagged_slits] = \
                 all_slits[i].bitmask.turn_on(all_slits[i].mask[flagged_slits], 'BADSKYSUB')
-
-        # Update the wv_calib object file with the spectral flexure information
-        if this_objfind.wv_calib is not None and this_objfind.wv_calib.flex_shift is not None:
-            msgs.info("Updating the wv_calib file with the spectral flexure information.")
-            this_objfind.wv_calib.to_file()
-
 
     # Return
     return final_sky_dict, bkg_redux_final_sky_dict, all_specobjs_objfind, all_slits, sciImg_dict
