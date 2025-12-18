@@ -57,7 +57,7 @@ class SpecObj(datamodel.DataContainer):
             Running index for the order.
     """
 
-    version = '1.1.13'
+    version = '1.1.14'
     """
     Current datamodel version number.
     """
@@ -72,6 +72,9 @@ class SpecObj(datamodel.DataContainer):
                                         descr='Peak value of the spectral direction collapsed spatial profile'),
                  'smash_snr': dict(otype=float,
                                         descr='Peak S/N ratio of the spectral direction collapsed patial profile'),
+                 'SPEC_DET': dict(otype=np.ndarray, atype=np.integer,
+                                  descr='Array of detector indices for each pixel in the spectral direction. '
+                                        'This is only available for mosaic reductions.'),
                  'OPT_WAVE': dict(otype=np.ndarray, atype=float,
                                   descr='Optimal Wavelengths in vacuum (Angstroms)'),
                  'OPT_FLAM': dict(otype=np.ndarray, atype=float,
