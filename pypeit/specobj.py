@@ -72,8 +72,11 @@ class SpecObj(datamodel.DataContainer):
                  'smash_snr': dict(otype=float,
                                         descr='Peak S/N ratio of the spectral direction collapsed patial profile'),
                  'sign': dict(otype=float,
-                                        descr='Sign of the object profile (+1 or -1).  + is a positive '+\
-                                                'profile above the sky background.'),
+                              descr='Sign of the object profile (+1 or -1).  + is a positive ' + \
+                                    'profile above the sky background.'),
+                 'SPEC_DET': dict(otype=np.ndarray, atype=np.integer,
+                                  descr='Array of detector indices for each pixel in the spectral direction. '
+                                        'This is only available for mosaic reductions.'),
                  'OPT_WAVE': dict(otype=np.ndarray, atype=float,
                                   descr='Optimal Wavelengths in vacuum (Angstroms)'),
                  'OPT_FLAM': dict(otype=np.ndarray, atype=float,
