@@ -415,41 +415,42 @@ class Spec1dView(GingaPlugin.LocalPlugin):
             continuum = model[0]
             line = model[1]
 
-            # collect some results and display
-            line_center = line.mean.value
-            line_sigma = line.stddev.value
-            line_fwhm = 2.35482 * line_sigma
-            line_flux = line.amplitude.value * np.sqrt(2 * np.pi) * line_sigma
-
-            # Plot the fitted gaussian
-            # Dense grid for smooth model curve
-            x_fitted = np.linspace(self.data.wave[idx_lo],
-                                  self.data.wave[idx_hi], 100)  # 1000?
-            y_fitted = model(x_fitted)
-
-            result = dict(x=line_center, sigma=line_sigma, fwhm=line_fwhm,
-                          flux=line_flux, x_fitted=x_fitted, y_fitted=y_fitted)
-
-            # TODO: probably want to plot multiple unique lines and label them
-            # name = str(line_center)  # ?? what is a better unique name
-            # for now, just plot the last result
-            # self.add_marker(name, result)
-            self.marker_dct = dict(fitting=result)
-
-            text = """
-            Center: {x:.4f}
-            Sigma: {sigma:.6f}
-            FWHM: {fwhm:.6f}
-            Flux: {flux:.4f}
-            """.format(**result)
-            self.w.text.set_text(text)
-
-            self.plot_lines()
-
         except Exception as e:
             errtxt = f"error doing fitting: {e}; traceback in viewer log"
             self.w.text.set_text(errtxt)
             self.logger.error(f"error doing fitting: {e}", exc_info=True)
+            return
+
+        # collect some results and display
+        line_center = line.mean.value
+        line_sigma = line.stddev.value
+        line_fwhm = 2.35482 * line_sigma
+        line_flux = line.amplitude.value * np.sqrt(2 * np.pi) * line_sigma
+
+        # Plot the fitted gaussian
+        # Dense grid for smooth model curve
+        x_fitted = np.linspace(self.data.wave[idx_lo],
+                              self.data.wave[idx_hi], 100)  # 1000?
+        y_fitted = model(x_fitted)
+
+        result = dict(x=line_center, sigma=line_sigma, fwhm=line_fwhm,
+                      flux=line_flux, x_fitted=x_fitted, y_fitted=y_fitted)
+
+        # TODO: probably want to plot multiple unique lines and label them
+        # name = str(line_center)  # ?? what is a better unique name
+        # for now, just plot the last result
+        # self.add_marker(name, result)
+        self.marker_dct = dict(fitting=result)
+
+        text = """
+        Center: {x:.4f}
+        Sigma: {sigma:.6f}
+        FWHM: {fwhm:.6f}
+        Flux: {flux:.4f}
+        """.format(**result)
+        self.w.text.set_text(text)
+
+        self.plot_lines()
 
     def add_marker(self, name, dct):
         self.marker_dct[name] = dct
