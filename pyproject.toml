@@ -43,7 +43,7 @@ dependencies = [
     "configobj>=5.0.6",
     "scikit-learn>=1.2",
     "IPython>=8.0.0",
-    "ginga>=5.4.0",
+    "ginga>=5.5.0",
     "setuptools<81",    # Keep until we deprecate linetools
     "linetools>=0.3.2",
     "qtpy>=2.2.0",
@@ -165,6 +165,10 @@ pypeit_show_pixflat = "pypeit.scripts.show_pixflat:ShowPixFlat.entry_point"
 
 SlitWavelength = "pypeit.display:setup_SlitWavelength"
 Spec1dView = "pypeit.display:setup_Spec1dView"
+
+[project.entry-points."ginga_modes"]
+
+pypeit1d = "pypeit.display.pypeit_modes:Spec1DMode"
 
 [build-system]
 requires = [
