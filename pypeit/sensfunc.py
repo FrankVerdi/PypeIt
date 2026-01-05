@@ -643,8 +643,8 @@ class SensFunc(datamodel.DataContainer):
         zeros = zeropoint_splice_1d == 0.
         if np.any(zeros):
             log.info("Interpolating over gaps (and extrapolating with fill_value=1, if need be)")
-            interp_func = scipy.interpolate.interp1d(wave_splice_1d[np.invert(zeros)],
-                                                     zeropoint_splice_1d[np.invert(zeros)],
+            interp_func = scipy.interpolate.interp1d(wave_splice_1d[np.logical_not(zeros)],
+                                                     zeropoint_splice_1d[np.logical_not(zeros)],
                                                      kind='nearest', fill_value=0.,
                                                      bounds_error=False) #
             #kind='nearest', fill_value='extrapoloate', bounds_error=False)

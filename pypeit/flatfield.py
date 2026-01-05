@@ -1256,7 +1256,7 @@ class FlatField:
                 # image
                 resid = twod_flat_data - twod_flat_fit
                 goodpix = twod_gpm_fit & twod_gpm_data
-                badpix = np.invert(twod_gpm_fit) & twod_gpm_data
+                badpix = np.logical_not(twod_gpm_fit) & twod_gpm_data
 
                 plt.clf()
                 ax = plt.gca()
@@ -1407,7 +1407,7 @@ class FlatField:
             gpm[spat_gpm] &= (spat_gpm & _spat_gpm)[spat_gpm]
 
         # Make sure that the normalized and filtered flat is finite!
-        if np.any(np.invert(np.isfinite(spat_flat_data))):
+        if np.any(np.logical_not(np.isfinite(spat_flat_data))):
             raise PypeItError('Inifinities in slit illumination function computation!')
 
         # Determine the breakpoint spacing from the sampling of the
@@ -2539,7 +2539,7 @@ def load_pixflat(pixel_flat_file, spectrograph, det, flatimages, calib_dir=None,
         traceimg = edgetrace.EdgeTraceSet.from_file(edges_file, chk_version=chk_version).traceimg
         det_info = traceimg.detector
         # check that the mosaic parameters are defined
-        if not np.all(np.in1d(['tform', 'msc_ord'], list(det_info.keys()))) or  \
+        if not np.all(np.isin(['tform', 'msc_ord'], list(det_info.keys()))) or  \
                 det_info.tform is None or det_info.msc_ord is None:
             raise PypeItError('Mosaic parameters are not defined in the Edges frame. Cannot load the pixel flat!')
 
@@ -2548,9 +2548,11 @@ def load_pixflat(pixel_flat_file, spectrograph, det, flatimages, calib_dir=None,
             # list of available detectors in the pixel flat file
             file_dets = [int(h.name.split('-')[0].split('DET')[1]) for h in hdu[1:]]
             # check if all detectors required for the mosaic are in the list
-            if not np.all(np.in1d(list(det), file_dets)):
-                raise PypeItError(f'Not all detectors in the mosaic are in the pixel flat file: '
-                           f'{pixel_flat_file}. Cannot load the pixel flat!')
+            if not np.all(np.isin(list(det), file_dets)):
+                raise PypeItError(
+                    f'Not all detectors in the mosaic are in the pixel flat file: '
+                    f'{pixel_flat_file}. Cannot load the pixel flat!'
+                )
 
             # get the pixel flat images of only the detectors in the mosaic
             pixflat_images = np.concatenate([hdu[f'DET{d:02d}-PIXELFLAT_NORM'].data[None,:,:] for d in det])
@@ -2580,8 +2582,10 @@ def load_pixflat(pixel_flat_file, spectrograph, det, flatimages, calib_dir=None,
                 log.info(f'Using pixelflat file: {pixel_flat_file} for {detname}.')
                 nrm_image = FlatImages(pixelflat_norm=hdu[idx].data)
             else:
-                raise PypeItError(f'{detname} not found in the pixel flat file: '
-                           f'{pixel_flat_file}. Cannot load the pixel flat!')
+                raise PypeItError(
+                    f'{detname} not found in the pixel flat file: {pixel_flat_file}. Cannot '
+                    'load the pixel flat!'
+                )
                 nrm_image = None
 
     return merge(flatimages, nrm_image)
