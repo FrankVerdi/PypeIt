@@ -582,7 +582,7 @@ class PypeItMetaData:
                 Raised if the 'comb_id' column has not been defined.
         """
         if 'comb_id' not in self.keys():
-            msgs.error('Cannot get frames from comb_id; run set_combination_groups.')
+            raise PypeItError('Cannot get frames from comb_id; run set_combination_groups.')
 
         # Frames
         frames = np.where(self['comb_id'] == comb_id)[0]

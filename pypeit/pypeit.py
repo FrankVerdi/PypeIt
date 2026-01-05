@@ -308,7 +308,7 @@ def reduce_calibID(spectrograph, par, fitstbl, calib_ID:str,
 
     # Find the indices of the science frames in this calibration group:
     grp_this = frame_indx[is_this & in_grp]
-    msgs.info(f'Found {len(grp_this)} {rtype} frames in calibration group {calib_ID}.')
+    log.info(f'Found {len(grp_this)} {rtype} frames in calibration group {calib_ID}.')
 
     # Associate standards (previously reduced above) for this setup
     if not reduce_standard:
@@ -328,7 +328,7 @@ def reduce_calibID(spectrograph, par, fitstbl, calib_ID:str,
         # for now...
 #                # Quicklook mode?
 #                if self.par['rdx']['quicklook'] and j > 0:
-#                    msgs.warn('PypeIt executed in quicklook mode.  Only reducing science frames '
+#                    log.warning('PypeIt executed in quicklook mode.  Only reducing science frames '
 #                              'in the first combination group!')
 #                    break
         #
@@ -373,8 +373,12 @@ def reduce_calibID(spectrograph, par, fitstbl, calib_ID:str,
                                     history=history,
                                     skip_write_2d=par['scienceframe']['process']['skip_write_2d'])
             else:
-                msgs.warn('No spec2d and spec1d saved to file because the '
-                            'calibration/reduction was not successful for all the detectors')
+                log.warning(
+                    'No spec2d and spec1d saved to file because the calibration/reduction was '
+                    'not successful for all the detectors'
+                )
         else:
-            msgs.warn(f'Output file: {fitstbl.construct_basename(frames[0])} already '
-                        'exists. Set overwrite=True to recreate and overwrite.')
+            log.warning(
+                f'Output file: {fitstbl.construct_basename(frames[0])} already exists. Set '
+                'overwrite=True to recreate and overwrite.'
+            )
