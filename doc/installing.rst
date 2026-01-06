@@ -182,7 +182,8 @@ PypeIt, upgrading the package should simply be a matter of executing:
 
 If this causes problems (*e.g.*, a new PypeIt script is unavailable or you
 encounter script errors), first try uninstalling (``pip uninstall pypeit``) and
-then reinstalling.
+then reinstalling.  Also note that not all PypeIt versions are
+backwards-compatible; see :ref:`versioning`.
 
 .. _m1_macs:
 

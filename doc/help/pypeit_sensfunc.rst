@@ -4,14 +4,18 @@
     usage: pypeit_sensfunc [-h] [--extr {OPT,BOX}] [--algorithm {UVIS,IR}]
                            [--multi MULTI] [-o OUTFILE] [-s SENS_FILE] [-f]
                            [--debug] [--par_outfile PAR_OUTFILE] [-v VERBOSITY]
-                           spec1dfile
+                           spec1dfiles [spec1dfiles ...]
     
     Compute a sensitivity function
     
     positional arguments:
-      spec1dfile            spec1d file for the standard that will be used to
-                            compute the sensitivity function. This can be the output
-                            file of `pypeit_coadd_1dspec` for non Echelle data.
+      spec1dfiles           file(s) of the reduced standard star spectrum. These can
+                            be either spec1d*.fits files or the output of
+                            `pypeit_coadd_1dspec` (except for cross-dispersed
+                            echelle data). Multiple files can be provided, but they
+                            are helpful onlyif they cover different wavelength
+                            ranges, since thisscript will splice (not combine) them
+                            together.
     
     options:
       -h, --help            show this help message and exit
