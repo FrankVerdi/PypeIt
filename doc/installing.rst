@@ -236,7 +236,7 @@ installation options are welcome; please `Submit an issue`_.
 Installation on Windows
 -----------------------
 
-Generally speaking, we encounter most installation issues on Windows users.
+Generally speaking, we encounter most installation issues for Windows users.
 
 An alternative for running under Windows is to install the `Windows Subsystem
 for Linux (WSL) <https://learn.microsoft.com/en-us/windows/wsl/install>`_.  This
