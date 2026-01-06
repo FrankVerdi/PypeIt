@@ -182,44 +182,7 @@ PypeIt, upgrading the package should simply be a matter of executing:
 
 If this causes problems (*e.g.*, a new PypeIt script is unavailable or you
 encounter script errors), first try uninstalling (``pip uninstall pypeit``) and
-then reinstalling.  There are two important things to keep in mind when
-upgrading:
-
- - **PypeIt datamodels are not necessarily backwards-compatible.**  This means
-   that, *e.g.*, ``pypeit_show_2dspec`` may fault when trying to view
-   ``spec2d*`` files produced with your existing PypeIt version after upgrading
-   to a new version.  **The best approach is to always re-reduce data you're
-   still working with anytime you update PypeIt.**
-
- - **Cached files are version-specific.**  Every time you upgrade pypeit, we
-   recommend deleting your existing cache and starting fresh!  See
-   :ref:`view-cache`.  The only caveat to this is if you are actively using
-   multiple versions of PypeIt, meaning you will still be using old versions of
-   the cached files.  Otherwise, you will end up with multiple versions of the
-   same file on disk.  **Importantly**, the code also considers local files you
-   have installed (using, e.g., ``pypeit_install_linelist``) to be version
-   specific.  If you have installed such files, you will need to re-install them
-   *after* upgrading.
-
-If you have locally installed files, your upgrade may look something like this:
-
-.. code-block:: console
-
-    # Check the cache contents
-    pypeit_clean_cache -l
-    # Delete everything
-    pypeit_clean_cache --clear
-    # Upgrade pypeit
-    pip install pypeit --upgrade
-    # Reinstall your local line lists
-    pypeit_install_linelist /path/to/my/linelists/*_lines.dat
-
-.. note::
-
-    If you find particular data files useful for your reductions, please
-    consider issuing a PR to include them file in the PypeIt repository.  This
-    helps the community, and it means you'll avoid these upgrading
-    complications.
+then reinstalling.
 
 .. _m1_macs:
 
@@ -264,6 +227,69 @@ may want to change the application alias.  This is under ``Settings -> Apps ->
 App execution aliases`` on Windows 10 and ``Settings -> Apps -> Advanced app
 settings -> App execution aliases`` on Windows 11. Disable the ``App Installer``
 options for the ``python.exe`` and ``python3.exe`` executables.
+
+----
+
+.. _versioning:
+
+Versioning
+==========
+
+Traditionally, we provided no guarantee that *any* PypeIt version was backwards
+compatible.  However, as of version 2.0.0, PypeIt uses `Semantic Versioning
+<https://packaging.python.org/en/latest/discussions/versioning/>`__.  This
+approach uses three version categories --- *major*, *minor*, and *patch* ---
+where releases that increment the *major* version number are *not* backwards
+compatible.  We expect the most common reason for incrementing the *major*
+version number will be because of a backwards-incompatible change to either the
+input configuration files (like the ``*.pypeit`` file) or the data models of the
+primary output products.
+
+.. important::
+
+    When possible, we **always** recommend you use the most recent version of
+    PypeIt and reprocess data as necessary.  The code is always improving, not
+    just in functionality but also in robustness of data reduction and
+    processing.
+
+Beyond this, we emphasize two important considerations regarding PypeIt versioning:
+
+- **Backwards-incompatible changes to datamodels can break simple viewing
+  scripts.**  For example, ``pypeit_show_2dspec`` may fault when trying to view
+  ``spec2d*`` files produced using a version of PypeIt that is not backwards
+  compatible with your current version.  You can always maintain multiple python
+  environments with different PypeIt versions installed or reprocess data with
+  your currently installed PypeIt version.
+
+- **Cached files are version-specific.**  Every time you upgrade pypeit, we
+  recommend deleting your existing cache and starting fresh!  See
+  :ref:`view-cache`.  The only caveat to this is if you are actively using
+  multiple versions of PypeIt (in different environments), meaning you will
+  still be using old versions of the cached files.  Otherwise, you will end up
+  with multiple versions of the same file on disk.  **Importantly**, the code
+  also considers local files you have installed (using, e.g.,
+  ``pypeit_install_linelist``) to be version specific.  If you have installed
+  such files, you will need to re-install them *after* upgrading.
+
+  If you have locally installed files, your upgrade may look something like
+  this:
+
+  .. code-block:: console
+
+    # Check the cache contents
+    pypeit_clean_cache -l
+    # Delete everything
+    pypeit_clean_cache --clear
+    # Upgrade pypeit
+    pip install pypeit --upgrade
+    # Reinstall your local line lists
+    pypeit_install_linelist /path/to/my/linelists/*_lines.dat
+
+  .. note::
+
+    If you find particular data files useful for your reductions, please
+    consider issuing a PR to include them in the PypeIt repository.  This helps
+    the community, and it means you'll avoid these upgrading complications.
 
 ----
 
