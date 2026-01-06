@@ -39,9 +39,7 @@ def lock_qt_mutex(mutex):
         mutex.unlock()
 
 class OpCanceledError(Exception):
-    """Exception thrown when a background operation has been canceled."""
-    def __init__(self):
-        super().__init__()
+    pass
 
 class OperationThread(QThread):
     """Thread to run a background operation."""

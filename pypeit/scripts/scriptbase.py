@@ -232,9 +232,9 @@ class ScriptBase:
         """
         Initialize the logger provided the command-line arguments.
         """
-        level = cls._convert_verbosity_to_logging_level(args.verbosity)
+        level = log.convert_verbosity_to_logging_level(args.verbosity)
         log_file_level = None if args.log_level is None else \
-            cls._convert_verbosity_to_logging_level(args.log_level)
+            log.convert_verbosity_to_logging_level(args.log_level)
         if args.log_file == 'default':
             _log_file = cls.default_log_file()
         elif args.log_file in ['None', None]:
@@ -244,21 +244,6 @@ class ScriptBase:
         log.init(level=level,
                  log_file=_log_file,
                  log_file_level=log_file_level)
-
-    @staticmethod        
-    def _convert_verbosity_to_logging_level(v):
-        """
-        Given a PypeIt "verbosity level," return the logging level.
-        """
-        match v:
-            case 0:
-                return logging.WARNING
-            case 1:
-                return logging.INFO
-            case 2:
-                return logging.DEBUG
-            case _:
-                raise PypeItError(f'Verbosity level must be 0, 1, or 2, not {v}.')
 
     @classmethod
     def default_log_file(cls):

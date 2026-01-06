@@ -269,6 +269,36 @@ class PypeItLogger(logging.Logger):
         # Call the original exception hook
         self._excepthook_orig(etype, value, trace)
 
+    @staticmethod        
+    def convert_verbosity_to_logging_level(v):
+        """
+        Given a PypeIt "verbosity level," return the logging level.
+
+        Parameters
+        ----------
+        v : int
+            PypeIt verbosity level (0, 1, or 2)
+
+        Returns
+        -------
+        int
+            Corresponding logging level
+
+        Raises
+        ------
+        ValueError
+            Raised if the input verbosity level is not 0, 1, or 2.
+        """
+        match v:
+            case 0:
+                return logging.WARNING
+            case 1:
+                return logging.INFO
+            case 2:
+                return logging.DEBUG
+            case _:
+                raise ValueError(f'Verbosity level must be 0, 1, or 2, not {v}.')
+
     def makeRecord(
             self, name, level, pathname, lineno, msg, args, exc_info, func=None, extra=None,
             sinfo=None
