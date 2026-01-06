@@ -1508,7 +1508,7 @@ class SetupGUIMainWindow(QWidget):
                                                                progress dialog.
         """
         log.info(f"Starting operation {op_caption} max progress: {max_progress_value}")
-        self.current_op_progress_dialog = QProgressDialog(self.tr(op_caption), self.tr("Cancel"), 0, max_progress_value, parent=self)
+        self.current_op_progress_dialog = QProgressDialog(self.tr(op_caption), None, 0, max_progress_value, parent=self)
         self.current_op_progress_dialog.setMinimumWidth(380)
         self.current_op_progress_dialog.setWindowTitle(op_caption)
         self.current_op_progress_dialog.setMinimumDuration(1000)
