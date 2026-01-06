@@ -52,24 +52,41 @@ PypeIt |forks| |stars|
 
 PypeIt (pronounced "pipe it") is a Python package for semi-automated reduction
 of astronomical spectroscopic data. Its algorithms build on decades-long
-development of previous data reduction pipelines by the developers. The
-reduction procedure - including a complete list of the input parameters and
-available functionality - is provided by our `online documentation
+development of previous data reduction pipelines by the developers.
+
+**For a complete description of PypeIt**, please see our `online documentation
 <https://pypeit.readthedocs.io/en/stable/>`__.
+
+----
+
+.. _readme_usage:
+
+Installation and Usage
+++++++++++++++++++++++
+
+Detailed installation instructions can be found `here
+<https://pypeit.readthedocs.io/en/stable/installing.html>`__.  Briefly, after
+creating a fresh python environment, simply type:
+
+.. code-block:: bash
+
+    pip install pypeit
 
 PypeIt is designed to be used by both advanced spectroscopists with prior data
 reduction expertise and astronomers with no prior experience of data reduction.
 It is highly configurable and designed to be applied to any standard
 slit-imaging spectrograph, including long-slit, multi-slit, as well as
-cross-dispersed echelle spectra.  **The spectrographs that PypeIt can be used
-with are listed** `here
+cross-dispersed echelle spectra.
+
+**The spectrographs that PypeIt supports are listed** `here
 <https://pypeit.readthedocs.io/en/stable/spectrographs/spectrographs.html>`__.
 Specifically, look `here
 <https://pypeit.readthedocs.io/en/stable/spectrographs/spectrographs.html#instrument-specific-details>`__
 for useful information about reducing data with certain instruments.
 
-In addition to our primary code base, we maintain an extensive `development
-suite <https://github.com/pypeit/PypeIt-development-suite>`__ primarily used to
+**Example data sets**: In addition to our primary code base, we maintain an
+extensive `development suite
+<https://github.com/pypeit/PypeIt-development-suite>`__ primarily used to
 perform multiple layers of code testing, from basic unit tests to full
 end-to-end tests of all our command-line scripts.  **If you are new to PypeIt**,
 you are encouraged to learn how to use the code by finding and experimenting
@@ -91,7 +108,8 @@ are expected to read and follow our `Code of Conduct
 
 **Documentation**: We maintain extensive `online documentation
 <https://pypeit.readthedocs.io/en/stable/>`__ that provides usage tutorials and
-describes the PypeIt code and output data models.
+describes the PypeIt code, reduction and processing procedures, and output data
+models.
 
 **Real-time Communication**: We strongly encourage users to join 
 our `PypeIt Users Slack <https://pypeit-users.slack.com>`__.  Developers are
