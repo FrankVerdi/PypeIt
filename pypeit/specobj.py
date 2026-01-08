@@ -56,7 +56,7 @@ class SpecObj(datamodel.DataContainer):
             Running index for the order.
     """
 
-    version = '1.1.13'
+    version = '1.1.14'
     """
     Current datamodel version number.
     """
@@ -71,6 +71,12 @@ class SpecObj(datamodel.DataContainer):
                                         descr='Peak value of the spectral direction collapsed spatial profile'),
                  'smash_snr': dict(otype=float,
                                         descr='Peak S/N ratio of the spectral direction collapsed patial profile'),
+                 'sign': dict(otype=float,
+                              descr='Sign of the object profile (+1 or -1).  + is a positive ' + \
+                                    'profile above the sky background.'),
+                 'SPEC_DET': dict(otype=np.ndarray, atype=np.integer,
+                                  descr='Array of detector indices for each pixel in the spectral direction. '
+                                        'This is only available for mosaic reductions.'),
                  'OPT_WAVE': dict(otype=np.ndarray, atype=float,
                                   descr='Optimal Wavelengths in vacuum (Angstroms)'),
                  'OPT_FLAM': dict(otype=np.ndarray, atype=float,
@@ -220,7 +226,9 @@ class SpecObj(datamodel.DataContainer):
                  'ECH_NAME': dict(otype=str,
                                   descr='Name of the object for echelle data. Same as NAME above '
                                         'but order numbers are omitted giving a unique name per '
-                                        'object.')}
+                                        'object.'),
+                 'ech_snr': dict(otype=(float, np.floating),
+                                    descr='Median S/N of the echelle of the spectrum')}
     """
     Defines the current datmodel.
     """
@@ -236,12 +244,10 @@ class SpecObj(datamodel.DataContainer):
                  'hand_extract_fwhm',
                  # Object profile
                  'prof_nsigma',
-                 'sign',
                  'min_spat',
                  'max_spat',
                  # Echelle
                  'ech_frac_was_fit',
-                 'ech_snr',
                  # spectrograph
                 'spectrograph',
                 ]
@@ -255,7 +261,8 @@ class SpecObj(datamodel.DataContainer):
 
         # Initialize internal values that are not None
         self.hand_extract_flag = False
-        self.sign = 1.
+        if self.sign is None:
+            self.sign = 1.
 
         self.FLEX_SHIFT_GLOBAL = 0.
         self.FLEX_SHIFT_LOCAL = 0.
@@ -552,8 +559,7 @@ class SpecObj(datamodel.DataContainer):
         self.FLEX_SHIFT_TOTAL += shift
 
     def apply_flux_calib(self, wave_zp, zeropoint, exptime, tellmodel=None, extinct_correct=False,
-                         airmass=None, longitude=None, latitude=None, extinctfilepar=None,
-                         extrap_sens=False):
+                         airmass=None, extinct_file=None, extrap_sens=False):
         """
         Apply a sensitivity function to our spectrum
 
@@ -571,17 +577,16 @@ class SpecObj(datamodel.DataContainer):
                 generate the std fluxed QA plot. It should be None otherwise. To telluric
                 correct the data, use the telluric correct method.
             extinct_correct (bool, optional):
-                If True, extinction correct
+                If True, apply atmospheric extinction correction
             airmass (float, optional):
                 Airmass
-            longitude (float, optional):
-                longitude in degree for observatory
-            latitude (float, optional):
-                latitude in degree for observatory
-                Used for extinction correction
-            extinctfilepar (str, optional):
-                [sensfunc][UVIS][extinct_file] parameter
-                Used for extinction correction
+            extinct_file (str, optional):
+                Either (1) one of the extinction files provided by pypeit (see
+                :ref:`extinction_correction`), (2) the path to a local file on
+                disk, or (3) set ``extinct_file='closest'`` to have the code
+                find the most relevant extinction data based on the longitude
+                and latitude of the telescope for the spectrograph used to
+                observe the spectrum.
             extrap_sens (bool, optional):
                 Extrapolate the sensitivity function (instead of crashing out)
         """
@@ -593,9 +598,15 @@ class SpecObj(datamodel.DataContainer):
 
             wave = self[attr+'_WAVE']
             # Interpolate the sensitivity function onto the wavelength grid of the data
+            if extinct_correct:
+                self.get_spectrograph()
+                atmext = self.spectrograph.get_atmospheric_extinction(extinct_file)
+            else:
+                atmext = None
             sens_factor = flux_calib.get_sensfunc_factor(
-                wave, wave_zp, zeropoint, exptime, tellmodel=tellmodel, extinct_correct=extinct_correct, airmass=airmass,
-                longitude=longitude, latitude=latitude, extinctfilepar=extinctfilepar, extrap_sens=extrap_sens)
+                wave, wave_zp, zeropoint, exptime, tellmodel=tellmodel, atmext=atmext,
+                airmass=airmass, extrap_sens=extrap_sens
+            )
             flam = self[attr+'_COUNTS']*sens_factor
             flam_sig = sens_factor/np.sqrt(self[attr+'_COUNTS_IVAR'])
             flam_ivar = self[attr+'_COUNTS_IVAR']/sens_factor**2
