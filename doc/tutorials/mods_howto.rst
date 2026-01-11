@@ -15,9 +15,10 @@ the wavelength calibration, sky subtraction and extraction; (3) to the final ste
 flux calibration, coaddition of the extracted 1D spectra and correction of telluric 
 absorption. 
 
-There are two sets of MODS spectrograph classes: (1) the original ones (mods1b, mods1r, mods2b
-and mods2r) which work on the raw 2D spectra and (2) four new ones (mods1b_proc, mods1r_proc, mods2b_proc 
-and mods2r_proc) which were added in v1.18 and work on spectra which have been pre-processed by the `modsCCDRed 
+There are two sets of MODS spectrograph classes: (1) the original ones (lbt_mods1b, lbt_mods1r, lbt_mods2b
+and lbt_mods2r) which work on the raw 2D spectra and (2) four new ones (lbt_mods1b_proc, lbt_mods1r_proc, 
+lbt_mods2b_proc and lbt_mods2r_proc) which were added in v1.18 and work on spectra which have been pre-processed 
+by the `modsCCDRed 
 scripts <https://github.com/rwpogge/modsCCDRed>`_. The modsCCDRed scripts overcan-subtract, trim, flat-field and 
 flip the red-channel data about the Y axis. Pre-processed data will have the suffix _otf. 
 Using modsCCDRed to pre-process the spectra, and then feeding the results into a spectroscopic data reduction pipeline, 
@@ -133,11 +134,8 @@ central part of the spectrum.
 Optionally, you can add slitspatnum with the central row, 1544, to indicate that only the central slit segment should
 be reduced.
 
-
-.. note:: 
-
-   The proc classes work in ADUs and not electrons (the conversion gain, which is ~2 e-/ADU, is not applied), 
-   so snr_thresh = 10/sqrt(2) will find sources above 10-sigma.
+The box below shows the top of pypeit file, with the set of user-defined parameters as described in item 3 above,
+to reduce an object with a single trace (maxnumber_sci=1) in the central slit segment: 
 
 .. code-block:: console
 
@@ -159,6 +157,12 @@ be reduced.
            maxnumber_sci = 1
            maxnumber_std = 1
 
+
+.. note:: 
+
+   The proc classes work in ADUs and not electrons (the conversion gain, which is ~2 e-/ADU, is not applied), 
+   so snr_thresh = 10/sqrt(2) will find sources above 10-sigma.
+
 .. note::
 
    Use of find_numiterfit is discussed under Object Tracing in :ref:`object_finding`. In this case, the slit edges at the blue end 
@@ -168,8 +172,9 @@ be reduced.
 Non-standard binning
 --------------------
 
-The pipeline has been run for binned spectra which have been pre-processed by modsCCDRed.
-Please contact the developers if there are issues.
+The pipeline has been run for binned spectra which have been pre-processed by modsCCDRed, but in case any issues 
+are encountered, please post a note in the `PypeIt Users Slack <https://pypeit-users.slack.com>`__ or `submit an
+issue <https://github.com/pypeit/PypeIt/issues>`__ on GitHub.
 
 
 Main Run
@@ -224,7 +229,7 @@ filtered image used to detect edges:
 Wavelengths
 +++++++++++
 
-To check the quality of the wavelength calibration, open the QA/MF_A.html file and view the Arc_1D_Fit_A_DETO1.html to insure that the lines have been identified and the RMS is low, ideally < 0.1 pixel, or run :ref:`pypeit_chk_wavecalib`.
+To check the quality of the wavelength calibration, open the Arc_1dfit file in the QA/PNGs subdirectories (in this example, QA/PNGs/Arc_1dfit_A_0_DET01_S1623.png) to insure that the lines have been identified and the RMS is low, ideally < 0.1 pixel, or run :ref:`pypeit_chk_wavecalib`.
 
 .. code-block:: console
 
@@ -253,6 +258,8 @@ identified. How to mark new lines, delete lines and increase or decrease the fit
 :ref:`pypeit_identify`.
 
 .. figure:: ../figures/mods/mods1b_identify.png
+
+.. important:: 
 
 Remember, the default calibration is in vacuum wavelengths. The line lists provided on the `LBTO Sciops MODS webpages <https://scienceops.lbto.org/mods/>`__ have been converted to vacuum wavelengths for use by pypeit. 
 
@@ -317,8 +324,8 @@ and optimally extracted spectra for the first object (spec[0]) in the 1D spec fi
    import matplotlib.pyplot as plt
 
    spec = specobjs.SpecObjs.from_fitsfile(spec1dfits)
-   plt.plot(spec[0]['BOX_WAVE'],spec[0]['BOX_COUNTS']
-   plt.plot(spec[0]['OPT_WAVE'],spec[0]['OPT_COUNTS']
+   plt.plot(spec[0]['BOX_WAVE'],spec[0]['BOX_COUNTS'])
+   plt.plot(spec[0]['OPT_WAVE'],spec[0]['OPT_COUNTS'])
 
 
 Spectral Flexure
