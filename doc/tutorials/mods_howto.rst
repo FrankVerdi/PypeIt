@@ -15,11 +15,11 @@ the wavelength calibration, sky subtraction and extraction; (3) to the final ste
 flux calibration, coaddition of the extracted 1D spectra and correction of telluric 
 absorption. 
 
-There are two sets of MODS spectrograph classes: (1) the original ones (lbt_mods1b, lbt_mods1r, lbt_mods2b
-and lbt_mods2r) which work on the raw 2D spectra and (2) four new ones (lbt_mods1b_proc, lbt_mods1r_proc, 
-lbt_mods2b_proc and lbt_mods2r_proc) which were added in v1.18 and work on spectra which have been pre-processed 
+There are two sets of MODS spectrograph classes: (1) the original ones (*lbt_mods1b*, *lbt_mods1r*, *lbt_mods2b*
+and *lbt_mods2r*) which work on the raw 2D spectra and (2) four new ones (*lbt_mods1b_proc*, *lbt_mods1r_proc*, 
+*lbt_mods2b_proc* and *lbt_mods2r_proc*) which were added in v1.18 and work on spectra which have been pre-processed 
 by the `modsCCDRed 
-scripts <https://github.com/rwpogge/modsCCDRed>`_. The modsCCDRed scripts overcan-subtract, trim, flat-field and 
+scripts <https://github.com/rwpogge/modsCCDRed>`_. The modsCCDRed scripts overscan-subtract, trim, flat-field and 
 flip the red-channel data about the Y axis. Pre-processed data will have the suffix _otf. 
 Using modsCCDRed to pre-process the spectra, and then feeding the results into a spectroscopic data reduction pipeline, 
 has been the standard procedure for reducing MODS data. 
@@ -84,7 +84,7 @@ and
  mods1r.20230910.0080_otf.fits VFLAT5.0_Clear_Dual_LS60x5_Slit_Flat MODS1R Dual LS60x5 G670L 3.0 1.00
  mods1r.20230910.0081_otf.fits VFLAT5.0_Clear_Dual_LS60x5_Slit_Flat MODS1R Dual LS60x5 G670L 3.0 1.00
  
-The input files should be collected into a directory on your machine, e.g. $DATA/dual_grating_longslit_qso/Proc/ (Proc, to 
+The input files should be collected into a directory on your machine, e.g. $DATA/dual_grating_longslit_qso/Proc/ (*Proc*, to 
 indicate that these are pre-processed and not raw data). You should create a separate directory, e.g. $DATA/dual_grating_longslit_qso/pypeit_rdx/ 
 in which to run pypeit.
 
@@ -134,14 +134,14 @@ central part of the spectrum.
 Optionally, you can add slitspatnum with the central row, 1544, to indicate that only the central slit segment should
 be reduced.
 
-The box below shows the top of pypeit file, with the set of user-defined parameters as described in item 3 above,
-to reduce an object with a single trace (maxnumber_sci=1) in the central slit segment: 
+The box below, which shows the top of the pypeit file used to reduce the sample dataset, illustrates the use 
+of the user-defined parameters mentioned in item 3 above.
 
 .. code-block:: console
 
  # User-defined execution parameters
  [rdx]
-        spectrograph = lbt_mods1b_proc
+        spectrograph = lbt_mods1b_proc # or lbt_mods1r_proc
         slitspatnum = "DET01:1544"   # reduce only the central slit segment. 
  [calibrations]
         [[slitedges]]
@@ -261,8 +261,11 @@ identified. How to mark new lines, delete lines and increase or decrease the fit
 
 .. important:: 
 
-Remember, the default calibration is in vacuum wavelengths. The line lists provided on the `LBTO Sciops MODS webpages <https://scienceops.lbto.org/mods/>`__ have been converted to vacuum wavelengths for use by pypeit. 
-
+   Remember, the default calibration is in vacuum wavelengths. The line lists provided on the `LBTO Sciops MODS 
+   webpages <https://scienceops.lbto.org/mods/>`__, which contain air wavelengths for lines positively identified 
+   in MODS comparison lamp spectra, have been regenerated from NIST in vacuum wavelengths and are part of the 
+   default instrument-specific parameters for the *lbt_mods#c* and *lbt_mods#c_proc* classes in pypeit.
+   
 Spectra
 -------
 
