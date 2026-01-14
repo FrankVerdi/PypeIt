@@ -266,21 +266,12 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
         """
         # Start with instrument-wide parameters
         par = super().config_specific_par(inp, inp_par=inp_par)
-    
-        # TODO: Check the below about decker and grating
-        headarr = self.get_headarr(scifile)
 
-        if 'spec2d' in scifile:
-            decker = headarr[0]['DECKER']
-            grating = headarr[0]['DISPNAME']
-        else:
-            decker = headarr[1]['MASK']
-            grating = headarr[1]['DISPERS1']
+        # Adjust parameters based on instrument configuration
+        grating = self.get_meta_value(inp, 'dispname')
+        decker = self.get_meta_value(inp, 'decker')
 
-
-        ## Adjust parameters based on grating used
-        #grating = self.get_meta_value(inp, 'dispname')
-
+        # wavelengths
         match grating:
             case 'x270':
                 par['calibrations']['wavelengths']['reid_arxiv'] = 'mmt_binospec_270.fits'
@@ -289,9 +280,8 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
             case 'x1000':
                 par['calibrations']['wavelengths']['reid_arxiv'] = 'mmt_binospec_1000.fits'
 
-
+        # slitmask design specific parameters
         if 'Longslit' not in decker:
-
             # Turn on the use of mask design
             par['calibrations']['slitedges']['use_maskdesign'] = True
             # Since we use the slitmask info to find the alignment boxes, I don't need `minimum_slit_length_sci`
