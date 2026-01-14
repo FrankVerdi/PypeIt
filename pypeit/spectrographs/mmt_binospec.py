@@ -292,8 +292,6 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
             par['calibrations']['slitedges']['minimum_slit_gap'] = 0.
             # Lower edge_thresh works better
             par['calibrations']['slitedges']['edge_thresh'] = 10.
-            # decrease the SNR threshold to detect objects used for determining the offsets
-            par['reduce']['slitmask']['snr_thrshd'] = 10.
             # Assign RA, DEC, OBJNAME to detected objects
             par['reduce']['slitmask']['assign_obj'] = True
             # force extraction of undetected objects
