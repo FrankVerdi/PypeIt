@@ -91,7 +91,7 @@ class RunToCalibStep(scriptbase.ScriptBase):
             if len(rows) == 0:
                 raise PypeItError(f"Calibration group {args.calib_group} not found")
             row = rows[0]
-        row = int(row)
+        row = int(row[0])
         calib_id = pypeIt.fitstbl.find_frame_calib_groups(row)[0]
 
         # Calibrations?

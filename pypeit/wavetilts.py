@@ -5,8 +5,6 @@ Module for guiding Arc/Sky line tracing
 .. include:: ../include/links.rst
 
 """
-import os
-import copy
 import inspect
 
 from IPython import embed
@@ -503,7 +501,7 @@ class BuildWaveTilts:
         return self.all_fit_dict[slit_idx]['coeff2']
 
     def trace_tilts(self, arcimg, lines_spec, lines_spat, thismask, slit_cen, fwhm,
-                    debug_pca=False, show_tracefits=False):
+                    spat_order, debug_pca=False, show_tracefits=False):
         """
         Trace the tilts
 
@@ -526,6 +524,8 @@ class BuildWaveTilts:
                 Integer index indicating the slit in question.
             fwhm (:obj:`float`):
                 FWHM of the arc lines.
+            spat_order (:obj:`int`):
+                Order of the legendre polynomial that will be fit to the tilts.
             debug_pca (:obj:`bool`, optional):
                 Show the PCA modeling QA plots.
             show_tracefits (:obj:`bool`, optional):
@@ -538,7 +538,7 @@ class BuildWaveTilts:
         """
         trace_dict = tracewave.trace_tilts(arcimg, lines_spec, lines_spat, thismask, slit_cen,
                                            inmask=self.gpm, fwhm=fwhm,
-                                           spat_order=self.par['spat_order'],
+                                           spat_order=spat_order,
                                            maxdev_tracefit=self.par['maxdev_tracefit'],
                                            sigrej_trace=self.par['sigrej_trace'],
                                            debug_pca=debug_pca, show_tracefits=show_tracefits)
@@ -767,8 +767,11 @@ class BuildWaveTilts:
             # function of spatial position resulting in 1D traces for
             # each line.
             log.info('Trace the tilts')
+            # fill in spat_order and spec_order arrays for this slit first
+            self.spat_order[slit_idx] = self._parse_param(self.par, 'spat_order', slit_idx)
+            self.spec_order[slit_idx] = self._parse_param(self.par, 'spec_order', slit_idx)
             self.trace_dict = self.trace_tilts(_mstilt, self.lines_spec, self.lines_spat,
-                                               thismask, self.slitcen[:, slit_idx], fwhm)
+                                               thismask, self.slitcen[:, slit_idx], fwhm, self.spat_order[slit_idx])
             # IF there are < 2 usable arc lines for tilt tracing, PCA fit does not work and the reduction crushes
             # TODO investigate why some slits have <2 usable arc lines
             if np.sum(self.trace_dict['use_tilt']) < 2:
@@ -790,8 +793,6 @@ class BuildWaveTilts:
 
             # TODO: Show the traces before running the 2D fit
 
-            self.spat_order[slit_idx] = self._parse_param(self.par, 'spat_order', slit_idx)
-            self.spec_order[slit_idx] = self._parse_param(self.par, 'spec_order', slit_idx)
             # 2D model of the tilts, includes construction of QA
             # NOTE: This also fills in self.all_fit_dict and self.all_trace_dict
             coeff_out = self.fit_tilts(self.trace_dict, thismask, self.slitcen[:,slit_idx],
