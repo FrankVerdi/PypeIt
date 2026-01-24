@@ -442,11 +442,11 @@ def optimal_bkpts(bkpts_optimal, bsp_min, piximg, sampmask, samp_frac=0.80,
         used_grid = True
     else:
         piximg_temp = np.ma.array(np.copy(piximg))
-        piximg_temp.mask = np.invert(sampmask)
+        piximg_temp.mask = np.logical_not(sampmask)
         samplmin = np.ma.min(piximg_temp,fill_value=np.inf,axis=1)
-        samplmin = samplmin[np.invert(samplmin.mask)].data
+        samplmin = samplmin[np.logical_not(samplmin.mask)].data
         samplmax = np.ma.max(piximg_temp,fill_value=-np.inf,axis=1)
-        samplmax = samplmax[np.invert(samplmax.mask)].data
+        samplmax = samplmax[np.logical_not(samplmax.mask)].data
         if samplmax.size != samplmin.size:
             msgs.error('This should not happen')
         nbkpt = samplmax.size
@@ -1324,8 +1324,8 @@ def ech_local_skysub_extract(sciimg, sciivar, fullmask, tilts, waveimg,
             if np.sum(ind) == 0:
                 msgs.error('There is a missing order for object {0:d} on slit {1:d}!'.format(iobj, slitid))
             if iobj == 0:
-                order_vec[islit] = sobjs[ind].ECH_ORDER
-            order_snr[islit,iobj] = sobjs[ind].ech_snr
+                order_vec[islit] = sobjs[ind][0].ECH_ORDER
+            order_snr[islit,iobj] = sobjs[ind][0].ech_snr
 
     # Enforce that the number of objects in the sobjs object is an integer multiple of the number of good orders
     if (np.sum(sobjs.sign > 0) % norders) == 0:
@@ -1362,7 +1362,7 @@ def ech_local_skysub_extract(sciimg, sciivar, fullmask, tilts, waveimg,
     for iord in srt_order_snr:
         order = order_vec[iord]
         msgs.info("Local sky subtraction and extraction for slit/order: {:d}/{:d}".format(iord,order))
-        other_orders = (fwhm_here > 0) & np.invert(fwhm_was_fit)
+        other_orders = (fwhm_here > 0) & np.logical_not(fwhm_was_fit)
         other_fit    = (fwhm_here > 0) & fwhm_was_fit
         # Loop over objects in order of S/N ratio (from highest to lowest)
         for iobj in srt_obj:
@@ -1410,9 +1410,9 @@ def ech_local_skysub_extract(sciimg, sciivar, fullmask, tilts, waveimg,
                     if show_fwhm:
                         plt.plot(order_vec[other_orders][fit_mask], fwhm_here[other_orders][fit_mask], marker='o', linestyle=' ',
                         color='k', mfc='k', markersize=4.0, label='orders informing fit')
-                        if np.any(np.invert(fit_mask)):
-                            plt.plot(order_vec[other_orders][np.invert(fit_mask)],
-                                     fwhm_here[other_orders][np.invert(fit_mask)], marker='o', linestyle=' ',
+                        if np.any(np.logical_not(fit_mask)):
+                            plt.plot(order_vec[other_orders][np.logical_not(fit_mask)],
+                                     fwhm_here[other_orders][np.logical_not(fit_mask)], marker='o', linestyle=' ',
                                      color='magenta', mfc='magenta', markersize=4.0, label='orders rejected by fit')
                         if np.any(other_fit):
                             plt.plot(order_vec[other_fit], fwhm_here[other_fit], marker='o', linestyle=' ',
