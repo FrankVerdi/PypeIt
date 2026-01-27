@@ -43,8 +43,8 @@ class ReducebyStep(scriptbase.ScriptBase):
         )
         return parser
 
-    @staticmethod
-    def main(args):
+    @classmethod
+    def main(cls, args):
 
         import numpy as np
         from pathlib import Path
@@ -63,12 +63,19 @@ class ReducebyStep(scriptbase.ScriptBase):
 
         from IPython import embed
 
-        # Load options from command line
-        pypeit_file = Path(args.pypeit_file).absolute()
-        logname = pypeit_file.parent / f'{pypeit_file.stem}.log'
+        # Set a default log file based on the name of the pypeit file, not the
+        # name of the script
+        # NOTE: This is copied directly from run_pypeit.py
+        if args.log_file == 'default':
+            _pypeit_file = Path(args.pypeit_file)
+            if _pypeit_file.suffix != '.pypeit':
+                raise PypeItError('Input file must have a .pypeit extension!')
+            args.log_file = _pypeit_file.with_suffix('.log')
+
+        cls.init_log(args)
 
         # Instantiate the main pipeline reduction object
-        pypeIt = pypeit.PypeIt(args.pypeit_file, logname=logname, show=args.show)
+        pypeIt = pypeit.PypeIt(args.pypeit_file, show=args.show)
         pypeIt.reuse_calibs = True
 
         # Detector
