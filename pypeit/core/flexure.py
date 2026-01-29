@@ -15,10 +15,8 @@ from matplotlib import gridspec
 from matplotlib.lines import Line2D
 import matplotlib
 
-from astropy import stats
 from astropy import units
 from astropy.io import ascii
-from astropy.table import Table
 from astropy.stats import sigma_clipped_stats
 import scipy.signal
 import scipy.optimize as opt
@@ -35,6 +33,7 @@ from pypeit.core import extract
 from pypeit.core import fitting
 from pypeit.core import qa
 from pypeit.core import trace
+from pypeit.core import parse
 from pypeit.datamodel import DataContainer
 from pypeit.images.detector_container import DetectorContainer
 from pypeit.images.mosaic import Mosaic
@@ -1039,8 +1038,10 @@ def spec_flexure_slit_global(sciImg, waveimg, global_sky, par, slits, slitmask,
     """
     # TODO :: Need to think about spatial flexure - is the appropriate spatial flexure already included in trace_spat via left/right slits?
     slit_specs = []
-    # get boxcar radius
-    box_radius = par['reduce']['extraction']['boxcar_radius']
+    # get boxcar radius. Needs to be in pixels
+    _, binspat = parse.parse_binning(sciImg.detector.binning)
+    box_radius = par['reduce']['extraction']['boxcar_radius'] * sciImg.detector.platescale * binspat
+
     for ss in range(slits.nslits):
         if not gd_slits[ss]:
             slit_specs.append(None)
@@ -1155,7 +1156,7 @@ def get_sky_spectrum(sciimg, ivar, waveimg, thismask, global_sky, box_radius, sl
     spec = specobj.SpecObj(PYPELINE=pypeline, SLITID=-1, DET=str(det))
     spec.trace_spec = np.arange(slits.nspec)
     spec.TRACE_SPAT = trace_spat
-    spec.BOX_RADIUS = box_radius
+    spec.BOX_R_PIX = box_radius
     # Extract
     extract.extract_boxcar(sciimg, ivar, thismask, waveimg, global_sky, spec)
     slit_wave, slit_sky = spec.BOX_WAVE[spec.BOX_MASK], spec.BOX_COUNTS_SKY[spec.BOX_MASK]
@@ -1165,7 +1166,24 @@ def get_sky_spectrum(sciimg, ivar, waveimg, thismask, global_sky, box_radius, sl
     return obj_skyspec
 
 
-def spec_flexure_corrQA(ax, this_flex_dict, cntr, name):
+def spec_flexure_corrQA(ax:plt.Axes, this_flex_dict:dict, cntr:int, name:str):
+    """Spectral Flexure QA Plot
+
+    Creates one panel of the spectral felxure QA plot, with the overall figure
+    container being handled by the calling function.
+
+    Parameters
+    ----------
+    ax
+        Axes onto which to draw the plot
+    this_flex_dict
+        Dictionary of flexure-related information needed for the plot
+    cntr
+        The index into ``this_flex_dict``'s arrays corresponding to the
+        particular object, trace, or location of interest.
+    name
+        Object, trace, or location name to be printed in the plot
+    """
     # Fit
     fit = this_flex_dict['polyfit'][cntr]
     if fit is not None:
@@ -1196,8 +1214,12 @@ def spec_flexure_corrQA(ax, this_flex_dict, cntr, name):
         ax.set_xlabel('Lag')
 
 
-def spec_flexure_qa(slitords, bpm, basename, flex_list,
-                    specobjs=None, out_dir=None):
+# TODO: With Python 3.14's deferred evaluation of annotations, may be able
+#       to annotate `specobjs`; however, should really remove PypeIt-specific
+#       objects from `core`.
+def spec_flexure_qa(slitords:np.ndarray, bpm:np.ndarray, basename:str,
+                    flex_list:list[dict], specobjs=None,
+                    out_dir:str|None=None):
     """
     Generate QA for the spectral flexure calculation
 
@@ -1216,18 +1238,20 @@ def spec_flexure_qa(slitords, bpm, basename, flex_list,
             Path to the output directory for the QA plots.  If None, the current
             is used.
     """
+    # Extract the mode and detector from the ``basename``
+    *_, mode, det = basename.split("_")
+
     plt.rcdefaults()
     plt.rcParams['font.family'] = 'serif'
 
     # What type of QA are we doing
-    slit_cen = False
-    if specobjs is None: slit_cen = True
+    slit_cen = specobjs is None
 
     # Grab the named of the method
     method = inspect.stack()[0][3]
 
     # Mask
-    gdslits = np.where(np.invert(bpm))[0]
+    gdslits = np.where(np.logical_not(bpm))[0]
 
     # Loop over slits, and then over objects here
     for islit in gdslits:
@@ -1254,7 +1278,9 @@ def spec_flexure_qa(slitords, bpm, basename, flex_list,
 
         nrow = nobj // ncol + ((nobj % ncol) > 0)
         # Outfile, one QA file per slit
-        outfile = qa.set_qa_filename(basename, method + '_corr', slit=slitord, out_dir=out_dir)
+        outfile = qa.set_qa_filename(
+            basename, method + '_corr', slit=slitord, det=det, mode=mode, out_dir=out_dir
+        )
         plt.figure(figsize=(8, 5.0))
         plt.clf()
         gs = gridspec.GridSpec(nrow, ncol)
@@ -1290,6 +1316,8 @@ def spec_flexure_qa(slitords, bpm, basename, flex_list,
         max_wave = min(np.amax(arx_spec.wave), np.amax(sky_spec.wave))
 
         # Sky lines
+        # TODO: Should these be defined / identified somewhere else?  Then they
+        #       could more easily be included in the documentation.
         sky_lines = np.array([3370.0, 3914.0, 4046.56, 4358.34, 5577.338, 6300.304,
                               7340.885, 7993.332, 8430.174, 8919.610, 9439.660,
                               10013.99, 10372.88])
@@ -1303,7 +1331,9 @@ def spec_flexure_qa(slitords, bpm, basename, flex_list,
             gdsky = gdsky[idx]
 
         # Outfile
-        outfile = qa.set_qa_filename(basename, method+'_sky', slit=slitord, out_dir=out_dir)
+        outfile = qa.set_qa_filename(
+            basename, method+'_sky', slit=slitord, det=det, mode=mode, out_dir=out_dir
+        )
         # Figure
         plt.figure(figsize=(8, 5.0))
         plt.clf()

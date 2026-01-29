@@ -4,6 +4,7 @@ Wrapper to the linetools XSpecGUI
 .. include common links, assuming primary doc root is up one directory
 .. include:: ../include/links.rst
 """
+from pathlib import Path
 from IPython import embed
 
 from pypeit.scripts import scriptbase

@@ -34,7 +34,6 @@ requires-python = ">=3.11,<3.14"
 dependencies = [ 
     "numpy>=2.0",
     "astropy>=7.0",
-    "extension-helpers>=1.0",
     "packaging>=22.0",
     "scipy>=1.9",
     "matplotlib>=3.7",
@@ -44,7 +43,8 @@ dependencies = [
     "configobj>=5.0.6",
     "scikit-learn>=1.2",
     "IPython>=8.0.0",
-    "ginga>=5.2.0",
+    "ginga>=5.5.1",
+    "setuptools<81",    # Keep until we deprecate linetools
     "linetools>=0.3.2",
     "qtpy>=2.2.0",
     "pygithub",
@@ -57,7 +57,7 @@ scikit-image = [
     "scikit-image>=0.23",
 ]
 specutils = [
-    "specutils>=1.13",
+    "specutils>=2.0",
 ]
 test = [
     "pygit2",
@@ -71,6 +71,7 @@ docs = [
     "sphinx>=1.6,<8",
     "docutils<0.22",
     "sphinx-automodapi",
+    "sphinx-design",
     "sphinx_rtd_theme==2.0.0",
 ]
 devsuite = [
@@ -79,7 +80,7 @@ devsuite = [
 ]
 dev = [
     "scikit-image>=0.23",
-    "specutils>=1.13",
+    "specutils>=2.0",
     "pygit2",
     "pytest>=7.0.0",
     "pytest-astropy",
@@ -89,6 +90,7 @@ dev = [
     "sphinx>=1.6,<8",
     "docutils<0.22",
     "sphinx-automodapi",
+    "sphinx-design",
     "sphinx_rtd_theme==2.0.0",
     "psutil",
     "pytest-qt",
@@ -101,8 +103,8 @@ Documentation = "https://pypeit.readthedocs.io/"
 [project.scripts]
 
 # non-GUI scripts
+pypeit_rectify_2dspec = "pypeit.scripts.rectify_2dspec:Rectify2DSpec.entry_point"
 pypeit_arxiv_solution = "pypeit.scripts.arxiv_solution:ArxivSolution.entry_point"
-pypeit_c_enabled = "pypeit.scripts.c_enabled:CEnabled.entry_point"
 pypeit_cache_github_data = "pypeit.scripts.cache_github_data:CacheGithubData.entry_point"
 pypeit_clean_cache = "pypeit.scripts.clean_cache:CleanCache.entry_point"
 pypeit_chk_flexure = "pypeit.scripts.chk_flexure:ChkFlexure.entry_point"
@@ -134,6 +136,7 @@ pypeit_qa_html = "pypeit.scripts.qa_html:QAHtml.entry_point"
 pypeit_ql = "pypeit.scripts.ql:QL.entry_point"
 run_pypeit = "pypeit.scripts.run_pypeit:RunPypeIt.entry_point"
 pypeit_run_to_calibstep = "pypeit.scripts.run_to_calibstep:RunToCalibStep.entry_point"
+pypeit_reduce_by_step = "pypeit.scripts.reduce_by_step:ReducebyStep.entry_point"
 pypeit_sensfunc = "pypeit.scripts.sensfunc:SensFunc.entry_point"
 pypeit_setup = "pypeit.scripts.setup:Setup.entry_point"
 pypeit_setup_coadd2d = "pypeit.scripts.setup_coadd2d:SetupCoAdd2D.entry_point"
@@ -164,11 +167,14 @@ pypeit_show_pixflat = "pypeit.scripts.show_pixflat:ShowPixFlat.entry_point"
 SlitWavelength = "pypeit.display:setup_SlitWavelength"
 Spec1dView = "pypeit.display:setup_Spec1dView"
 
+[project.entry-points."ginga_modes"]
+
+pypeit1d = "pypeit.display.pypeit_modes:Spec1DMode"
+
 [build-system]
 requires = [
     "setuptools",
     "setuptools_scm",
-    "extension-helpers",
     "oldest-supported-numpy",
     "cython>=0.29.14"
 ]

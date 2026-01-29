@@ -36,6 +36,7 @@ def parse_param(par, key, slit):
 
     return param
 
+
 # TODO: Should this code allow the user to skip the smoothing steps and just
 # provide the raw delta_wave vector? I would think there are cases where you
 # want the *exact* pixel width, as opposed to the smoothed version.
@@ -82,16 +83,18 @@ def get_delta_wave(wave, wave_gpm, frac_spec_med_filter=0.03):
     nspec = wave.size
     # This needs to be an odd number
     nspec_med_filter = 2*int(np.round(nspec*frac_spec_med_filter/2.0)) + 1
-    delta_wave = np.zeros_like(wave)
-    wave_diff = np.diff(wave[wave_gpm])
+    wave_bpm = np.logical_not(wave_gpm)
+    wave_diff = np.diff(wave)
     wave_diff = np.append(wave_diff, wave_diff[-1])
+    # Set any regions with wave_diff = 0 to the median value of the data
+    wave_diff[wave_bpm] = np.median(wave_diff[wave_gpm])
+    # Filter out edge effects
     wave_diff_filt = utils.fast_running_median(wave_diff, nspec_med_filter)
 
     # Smooth with a Gaussian kernel
     sig_res = np.fmax(nspec_med_filter/10.0, 3.0)
     gauss_kernel = convolution.Gaussian1DKernel(sig_res)
-    wave_diff_smooth = convolution.convolve(wave_diff_filt, gauss_kernel, boundary='extend')
-    delta_wave[wave_gpm] = wave_diff_smooth
+    delta_wave = convolution.convolve(wave_diff_filt, gauss_kernel, boundary='extend')
     return delta_wave
 
 
@@ -882,13 +885,13 @@ def wavegrid(wave_min, wave_max, dwave, spec_samp_fact=1.0, log10=False):
 
     dwave_eff = dwave*spec_samp_fact
     if log10:
-        ngrid = np.ceil((np.log10(wave_max) - np.log10(wave_min))/dwave_eff).astype(int)
+        ngrid = np.ceil((np.log10(wave_max) - np.log10(wave_min))/dwave_eff).astype(int) + 1
         loglam_grid = np.log10(wave_min) + dwave_eff*np.arange(ngrid)
         wave_grid = np.power(10.0,loglam_grid)
         loglam_grid_mid = np.log10(wave_grid) + dwave_eff/2.0
         wave_grid_mid = np.power(10.0, loglam_grid_mid)
     else:
-        ngrid = np.ceil((wave_max - wave_min)/dwave_eff).astype(int)
+        ngrid = np.ceil((wave_max - wave_min)/dwave_eff).astype(int) + 1
         wave_grid = wave_min + dwave_eff*np.arange(ngrid)
         wave_grid_mid = wave_grid + dwave_eff/2.0
 
