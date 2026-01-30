@@ -125,7 +125,7 @@ of the ``#guidelines`` channel.
 **Bug Reports and Feature Requests**: If you encounter a bug, please first check
 if this could be caused by user error; be sure to consult the online
 documentation and post about your issue in the Users Slack (see above).  If the
-problem persists (particularly if it is also experienced by others users),
+problem persists (particularly if it is also experienced by other users),
 please `submit a GitHub issue <https://github.com/pypeit/PypeIt/issues>`__.
 When submitting the issue, please provide as much information as possible.  If
 you haven't already, we may ask you to join the Users Slack for more efficient

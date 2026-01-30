@@ -262,7 +262,7 @@ Beyond this, we emphasize two important considerations regarding PypeIt versioni
   environments with different PypeIt versions installed or reprocess data with
   your currently installed PypeIt version.
 
-- **Cached files are version-specific.**  Every time you upgrade pypeit, we
+- **Cached files are version-specific.**  Every time you upgrade PypeIt, we
   recommend deleting your existing cache and starting fresh!  See
   :ref:`view-cache`.  The only caveat to this is if you are actively using
   multiple versions of PypeIt (in different environments), meaning you will
@@ -349,7 +349,7 @@ cache.  To list the cache contents, use the ``-l`` option:
          github               1.15.1                tests solution_arrays.npz
 
 Note that the files hosted on GitHub will be specific to a branch or version of
-PypeIt.  **Every time you upgrade pypeit, we recommend deleting your existing
+PypeIt.  **Every time you upgrade PypeIt, we recommend deleting your existing
 cache and starting fresh!**
 
 **Local files** that have been installed into the cache (e.g., using
@@ -455,7 +455,7 @@ can be included in the PypeIt repository.
 
     Because PypeIt uses the cache system to manage the local files, it will
     associate each file with the version of the code used to install it in the
-    cache.  Every time you upgrade your pypeit version, you should delete the
+    cache.  Every time you upgrade your PypeIt version, you should delete the
     local files from the cache (this will not remove the local file itself) and
     re-install them using the upgraded version of PypeIt.  See :ref:`view-cache`
     and :ref:`upgrade`.
@@ -537,7 +537,7 @@ Python (see :ref:`dependencies`):
 * `PySide <https://wiki.qt.io/Qt_for_Python>`_
 
 At least one of those bindings must be installed for the interactive GUIs to
-work. By default ``pypeit`` will install ``pyqt6``. Other backends can be used
+work. By default PypeIt will install ``pyqt6``. Other backends can be used
 by installing them manually via ``pip`` or ``conda`` and then setting the ``QT_API``
 environment variable. See the `QtPy documentation <https://github.com/spyder-ide/qtpy>`_
 for more details.
@@ -630,7 +630,7 @@ spectrum from the Shane/KAST spectrograph at Lick Observatory.
 Troubleshooting
 ===============
 
-If you have trouble installing pypeit, you're encouraged to join our `PypeIt
+If you have trouble installing PypeIt, you're encouraged to join our `PypeIt
 Users Slack <https://pypeit-users.slack.com>`__ using `this invitation
 link <invite_>`_ and post your issue to the ``#installing`` channel.  Below is an
 incomplete list of issues that users have reported in the past.  In addition to
@@ -639,7 +639,7 @@ let us know if these suggestions do not work for you.*
 
 ----
 
-**I am trying to install pypeit for the first time and it fails!**:  The root
+**I am trying to install PypeIt for the first time and it fails!**:  The root
 problem of this can be system dependent:
 
  - First, *always* make sure you install the code into a fresh environment.
@@ -656,23 +656,23 @@ problem of this can be system dependent:
 
 ----
 
-**I am trying to upgrade pypeit and it fails!**:  First try uninstalling your
-current pypeit version:
+**I am trying to upgrade PypeIt and it fails!**:  First try uninstalling your
+current PypeIt version:
 
 .. code-block:: bash
 
     pip uninstall pypeit
 
 Then reinstall it.  If that also fails, try creating a fresh environment and
-reinstalling pypeit in that new environment.
+reinstalling PypeIt in that new environment.
 
 ----
 
 **The installation process succeeded, but the code is faulting!**:  This could
 be for a few reasons:
 
- - Recall that pypeit isn't necessarily backwards compatible.  If you've
-   upgraded pypeit and tried to use it with data that was reduced by a previous
+ - Recall that PypeIt isn't necessarily backwards compatible.  If you've
+   upgraded PypeIt and tried to use it with data that was reduced by a previous
    version, the fault may because of changes between versions.  You will either
    need to revert to your previous version or reprocess the data.
 
@@ -707,6 +707,6 @@ Slack.  However, here are a few things to note and/or try:
  - And, of course, the code will have bugs.  If you find one, the more
    information you provide the developers, the easier it will be for us to track
    down the issue.  Valuable information includes your OS, OS version, python
-   version, pypeit version, and the full Traceback provided with the error.  QA
+   version, PypeIt version, and the full Traceback provided with the error.  QA
    plots and ``ginga`` screen grabs that illustrate the issue are also very
    helpful!
