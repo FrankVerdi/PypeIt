@@ -6,16 +6,15 @@ Provides a simple datamodel for a single spectrum.
 """
 import inspect
 
+import astropy
 from IPython import embed
-
 import numpy as np
 from scipy.interpolate import interp1d
-import astropy
 
-from pypeit import msgs
-from pypeit import utils
 from pypeit import datamodel
 from pypeit import io
+from pypeit import log
+from pypeit import PypeItError
 from pypeit.spectrographs.util import load_spectrograph
 
 
@@ -115,14 +114,10 @@ class OneSpec(datamodel.DataContainer):
 
     @classmethod
     def from_xspec_file(cls, ifile:str):
-        # Load up
-        hdul = astropy.io.fits.open(ifile)
+        hdul = io.fits_open(ifile)
         wave = hdul['WAVELENGTH'].data
         flux = hdul['FLUX'].data
-        #
         return cls(wave, None, flux, fluxed=False)
-
-
 
     @property
     def npix(self):
@@ -212,7 +207,7 @@ class OneSpec(datamodel.DataContainer):
         # Deal with nan
         badf = np.any([np.isnan(flux), np.isinf(flux)], axis=0)
         if np.sum(badf) > 0:
-            msgs.warn("Ignoring pixels with NAN or INF in flux")
+            log.warning("Ignoring pixels with NAN or INF in flux")
         gdf = ~badf
         flux = flux[gdf]
 
@@ -222,7 +217,10 @@ class OneSpec(datamodel.DataContainer):
             bad_sig = sig[gdf] <= 0.
             if np.sum(bad_sig) > 0:
                 if not grow_bad_sig:
-                    msgs.error("Data contains rejected pixels (sig=0). Use grow_bad_sig to proceed and grow them.")
+                    raise PypeItError(
+                        'Data contains rejected pixels (sig=0). Use grow_bad_sig to proceed and '
+                        'grow them.'
+                    )
             bads = np.any([np.isnan(sig[gdf]), np.isinf(sig[gdf]**2)], axis=0)  # Latter is for way too large values
             bad_sig[bads] = True
 
@@ -305,7 +303,7 @@ class OneSpec(datamodel.DataContainer):
             # Zero out edge pixels -- not to be trusted
             igd = np.where(gd)[0]
             if len(igd) == 0:  # Should not get here!
-                msgs.error("Not a single good pixel?!  Something went wrong...")
+                raise PypeItError('Not a single good pixel?!  Something went wrong...')
             new_sig[igd[0]] = 0.
             new_sig[igd[-1]] = 0.
         else:

@@ -2141,7 +2141,7 @@ def radec_to_coord(radec, gal=False):
         if isinstance(radec[0], str):
             if radec[1][0] not in ['+', '-']:  #
                 DEC = '+'+radec[1]
-                msgs.warn("Assuming your DEC is +")
+                log.warning("Assuming your DEC is +")
             else:
                 DEC = radec[1]
             #
@@ -2184,12 +2184,21 @@ def radec_to_coord(radec, gal=False):
     return coord
 
 def loadjson(filename):
-    """ Load a python object saved with savejson."""
+    """
+    Load a python object saved with savejson.
+
+    Parameters
+    ----------
+    filename : str
+        The name of the file to load.
+
+    Returns
+    -------
+    dict
+        The loaded python object.
+    """
     if filename.endswith('.gz'):
         with gzip.open(filename, "rb") as f:
-            obj = json.loads(f.read().decode("ascii"))
-    else:
-        with open(filename, 'rt') as fh:
-            obj = json.load(fh)
-
-    return obj
+            return json.loads(f.read().decode("ascii"))
+    with open(filename, 'rt') as fh:
+        return json.load(fh)

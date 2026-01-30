@@ -10,7 +10,7 @@ import copy
 
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
-from astropy import units as u
+from astropy import units
 
 from pypeit import log
 from pypeit import PypeItError
@@ -905,7 +905,7 @@ def refframe_correct(spectrograph, par, slits, ra, dec, obstime, slitgpm=None,
             and par['calibrations']['wavelengths']['reference'] != 'pixel':
         log.info(f"Performing a {par['calibrations']['wavelengths']['refframe']} correction")
         # Calculate correction
-        radec = SkyCoord(ra=ra, dec=dec, unit=(u.deg, u.deg))
+        radec = SkyCoord(ra=ra, dec=dec, unit=(units.deg, units.deg))
         vel, vel_corr = wave.geomotion_correct(radec, obstime,
                                                 spectrograph.telescope['longitude'],
                                                 spectrograph.telescope['latitude'],

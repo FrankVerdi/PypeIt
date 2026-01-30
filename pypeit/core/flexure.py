@@ -8,41 +8,36 @@ import copy
 import inspect
 import pathlib
 
-import numpy as np
-
-from matplotlib import pyplot as plt
-from matplotlib import gridspec
-from matplotlib.lines import Line2D
-import matplotlib
-
-from astropy import units
 from astropy.io import ascii
 from astropy.stats import sigma_clipped_stats
-import scipy.signal
-import scipy.optimize as opt
+from IPython import embed
+import matplotlib
+from matplotlib import gridspec
+from matplotlib import pyplot as plt
+from matplotlib.lines import Line2D
+import numpy as np
 from scipy import interpolate
+from scipy import optimize
+from scipy import signal
 
-#from linetools.spectra import xspectrum1d
-
-from pypeit import log
-from pypeit import PypeItError
 from pypeit import dataPaths
 from pypeit import io
-from pypeit.core.wavecal import autoid
+from pypeit import log
+from pypeit import onespec
+from pypeit import PypeItError
+from pypeit import specobj
+from pypeit import specobjs
+from pypeit import wavemodel
 from pypeit.core import arc
 from pypeit.core import extract
 from pypeit.core import fitting
+from pypeit.core import parse
 from pypeit.core import qa
 from pypeit.core import trace
-from pypeit.core import parse
+from pypeit.core.wavecal import autoid
 from pypeit.datamodel import DataContainer
 from pypeit.images.detector_container import DetectorContainer
 from pypeit.images.mosaic import Mosaic
-from pypeit import specobj, specobjs
-from pypeit import onespec
-from pypeit import wavemodel
-
-from IPython import embed
 
 
 def spat_flexure_shift(sciimg, slits, bpm=None, maxlag=20, sigdetect=10., debug=False, qa_outfile=None, qa_vrange=None):
@@ -100,9 +95,9 @@ def spat_flexure_shift(sciimg, slits, bpm=None, maxlag=20, sigdetect=10., debug=
     # # create sobel images of both slitmask and the science image
     sci_sobel, sci_edges = trace.detect_slit_edges(_sciimg, bpm=_bpm, sigdetect=sigdetect)
     slits_sobel, slits_edges = trace.detect_slit_edges(slitmask, bpm=bpm, sigdetect=1.)
-    corr = scipy.signal.fftconvolve(sci_edges, np.fliplr(slits_edges), mode='same', axes=1)
+    corr = signal.fftconvolve(sci_edges, np.fliplr(slits_edges), mode='same', axes=1)
     xcorr = np.sum(corr, axis=0)
-    lags = scipy.signal.correlation_lags(sci_edges.shape[1], slits_edges.shape[1], mode='same')
+    lags = signal.correlation_lags(sci_edges.shape[1], slits_edges.shape[1], mode='same')
     lag0 = np.where(lags == 0)[0][0]
     xcorr_max = xcorr[lag0 - maxlag:lag0 + maxlag]
     lags_max = lags[lag0 - maxlag:lag0 + maxlag]
@@ -412,8 +407,10 @@ def spec_flex_shift(obj_skyspec, sky_file=None, arx_skyspec=None, arx_fwhm_pix=N
     obj_skyspec.flux[-2:] = 0.
 
     # Set minimum to 0.  For bad rebinning and for pernicious extractions
-    obj_skyspec.flux[:] = np.maximum(obj_skyspec.flux[:], 0.)
-    arx_skyspec.flux[:] = np.maximum(arx_skyspec.flux[:], 0.)
+#    obj_skyspec.flux[:] = np.maximum(obj_skyspec.flux[:], 0.)
+#    arx_skyspec.flux[:] = np.maximum(arx_skyspec.flux[:], 0.)
+    obj_skyspec.flux = np.clip(obj_skyspec.flux, a_min=0., a_max=None)
+    arx_skyspec.flux = np.clip(arx_skyspec.flux, a_min=0., a_max=None)
 
     # clip too large values (>90%) only in obj_skyspec (assuming arx_skyspec is being vetted before)
     # this is used ony for the cross-correlation
@@ -1166,9 +1163,7 @@ def get_sky_spectrum(sciimg, ivar, waveimg, thismask, global_sky, box_radius, sl
     extract.extract_boxcar(sciimg, ivar, thismask, waveimg, global_sky, spec)
     slit_wave, slit_sky = spec.BOX_WAVE[spec.BOX_MASK], spec.BOX_COUNTS_SKY[spec.BOX_MASK]
     # OneSpec
-#    obj_skyspec = xspectrum1d.XSpectrum1D.from_tuple((slit_wave, slit_sky))
-    obj_skyspec = onespec.OneSpec(slit_wave, None, slit_sky, fluxed=False)
-    return obj_skyspec
+    return onespec.OneSpec(slit_wave, None, slit_sky, fluxed=False)
 
 
 def spec_flexure_corrQA(ax:plt.Axes, this_flex_dict:dict, cntr:int, name:str):
@@ -1486,8 +1481,8 @@ def calculate_image_offset(im_ref, image, nfit=3):
     im_ref -= np.median(im_ref)
 
     # cross correlate (note, convolving seems faster)
-    ccorr = scipy.signal.correlate2d(im_ref, image, boundary='fill', mode='same')
-    #ccorr = scipy.signal.fftconvolve(im_ref, image[::-1, ::-1], mode='same')
+    ccorr = signal.correlate2d(im_ref, image, boundary='fill', mode='same')
+    #ccorr = signal.fftconvolve(im_ref, image[::-1, ::-1], mode='same')
 
     # Find the maximum
     amax = np.unravel_index(np.argmax(ccorr), ccorr.shape)
@@ -1506,7 +1501,9 @@ def calculate_image_offset(im_ref, image, nfit=3):
     xx, yy = np.meshgrid(x, y, indexing='ij')
 
     # Fit the neighborhood of the maximum with a Gaussian to calculate the offset
-    popt, _ = opt.curve_fit(fitting.twoD_Gaussian, (xx, yy), ccorr[xlo:xhi, ylo:yhi].ravel(), p0=initial_guess)
+    popt, _ = optimize.curve_fit(
+        fitting.twoD_Gaussian, (xx, yy), ccorr[xlo:xhi, ylo:yhi].ravel(), p0=initial_guess
+    )
     # Return the RA and DEC shift, in pixels
     xoff = 1 - (ccorr.shape[0] % 2)  # Need to add 1 for even shaped array
     yoff = 1 - (ccorr.shape[1] % 2)  # Need to add 1 for even shaped array

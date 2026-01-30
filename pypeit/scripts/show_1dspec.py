@@ -4,7 +4,6 @@ Wrapper to the linetools XSpecGUI
 .. include common links, assuming primary doc root is up one directory
 .. include:: ../include/links.rst
 """
-from pathlib import Path
 from IPython import embed
 
 from pypeit.scripts import scriptbase
@@ -38,12 +37,10 @@ class Show1DSpec(scriptbase.ScriptBase):
     def main(cls, args):
         """ Runs the XSpecGui on an input file
         """
-        import sys
-        import os
-        import pathlib
+        from pathlib import Path
+
         import numpy as np
 
-        from pypeit import log
         from pypeit import PypeItError
         from pypeit import specobjs
         from pypeit.display.display import show_1dspec
@@ -121,28 +118,11 @@ class Show1DSpec(scriptbase.ScriptBase):
             if sobjs[exten]['OPT_WAVE'] is None: #not in sobjs[exten]._data.keys():
                     raise PypeItError("Spectrum not extracted with OPT.  Try --extract BOX")
 
-#        if args.ginga:
-            # show the 1d spectrum in Ginga
-
         # Pre-pend cwd to filename (in case RC Ginga was launched already)
-        cwd = pathlib.Path.cwd()
-        full_file = os.path.join(cwd, args.file)
+        full_file = Path(args.file).absolute()
 
         # Ginga
-        show_1dspec(full_file, ext=exten,
-                        masked=args.masked, extraction=args.extract,
-                        fluxed=args.flux)
-
-#        spec = sobjs[exten].to_xspec1d(masked=args.masked, extraction=args.extract,
-#                                       fluxed=args.flux)
-#
-#        # Setup
-#        app = QApplication(sys.argv)
-#        # Screen dimensions
-#        width = app.screens()[0].geometry().width()
-#        scale = 2. * (width/3200.)
-#
-#        # Launch
-#        gui = XSpecGui(spec)#, screen_scale=scale)
-#        gui.show()
-#        app.exec_()
+        show_1dspec(
+            str(full_file), ext=exten, masked=args.masked, extraction=args.extract,
+            fluxed=args.flux
+        )

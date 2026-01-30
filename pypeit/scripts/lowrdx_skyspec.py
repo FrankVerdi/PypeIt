@@ -37,15 +37,26 @@ class LowRDXSkySpec(scriptbase.ScriptBase):
         wave = lrdx_sky['wave_calib']
         sky = lrdx_sky['sky_calib']
 
+#        # Write
+#        prihdu = fits.PrimaryHDU(sky)
+#        prihdu.name = 'FLUX'
+#        hdul = fits.HDUList([prihdu])
+#        wvhdu = fits.ImageHDU(wave)
+#        hdul.append(wvhdu)
+#        
+#        prihdu.header['NSPEC'] = 1
+#        prihdu.header['NPIX'] = len(sky)
+#        hdul.writeto(args.new_file, overwrite=True)
+
         # Write
-        prihdu = fits.PrimaryHDU(sky)
-        prihdu.name = 'FLUX'
-        hdul = fits.HDUList([prihdu])
-        wvhdu = fits.ImageHDU(wave)
-        hdul.append(wvhdu)
-        
-        prihdu.header['NSPEC'] = 1
-        prihdu.header['NPIX'] = len(sky)
-        hdul.writeto(args.new_file, overwrite=True)
+        hdr = fits.Header()
+        hdr['NSPEC'] = (1, 'Number of spectra')
+        hdr['NPIX'] = (len(sky), 'Number of pixels per spectrum')
+        hdu = fits.HDUList([
+            fits.PrimaryHDU(data=sky, header=hdr),
+            fits.ImageHDU(data=wave, name='WAVE')
+        ])
+        hdu[0].name = 'FLUX'
+        hdu.writeto(args.new_file, overwrite=True)
 
 

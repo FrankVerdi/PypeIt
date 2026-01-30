@@ -11,7 +11,6 @@ be distributed as part of the code base.
 
 import os
 import pathlib
-import json
 
 import numpy as np
 from IPython import embed
@@ -24,19 +23,18 @@ from scipy.interpolate import interp1d
 from astropy.table import Table
 from astropy import units
 
+from pypeit import dataPaths
+from pypeit import io
 from pypeit import log
 from pypeit import utils
-from pypeit import io
 from pypeit import wavecalib
 from pypeit.core import arc
+from pypeit.core import fitting
 from pypeit.core.wave import airtovac
 from pypeit.core.wavecal import waveio
 from pypeit.core.wavecal import wvutils
 from pypeit.core.wavecal import autoid
 from pypeit.core.wavecal import wv_fitting
-from pypeit.core import fitting
-from pypeit import dataPaths
-
 from pypeit.spectrographs.util import load_spectrograph
 
 # Data Model
@@ -260,8 +258,7 @@ def pypeit_arcspec(in_file, slit, binspec, binning=None):
 
     if '.json' in in_file:
         # Load JSON file
-        with open(in_file, 'r') as f:
-            wv_dict = json.load(f)
+        wv_dict = utils.loadjson(in_file)
         iwv_calib = wv_dict[str(slit)]
         pypeitFitting = fitting.PypeItFit(fitc=np.array(iwv_calib['fitc']),
                                           func=iwv_calib['function'],
