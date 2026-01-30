@@ -15,7 +15,8 @@ from matplotlib import patches
 import numpy as np
 
 from pypeit import io
-from pypeit import msgs
+from pypeit import log
+from pypeit import PypeItError
 from pypeit import telescopes
 from pypeit import utils
 from pypeit.core import framematch
@@ -345,7 +346,7 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
         bpm_img = super().bpm(filename, det, shape=shape, msbias=msbias)
 
         if det == 1:
-            msgs.info("Using hard-coded BPM for det=1 on BINOSPEC")
+            log.info("Using hard-coded BPM for det=1 on BINOSPEC")
 
             # TODO: Fix this
             # Get the binning
@@ -359,7 +360,7 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
             bpm_img[2111 // xbin, 2056 // ybin:4112 // ybin] = 1
 
         elif det == 2:
-            msgs.info("Using hard-coded BPM for det=2 on BINOSPEC")
+            log.info("Using hard-coded BPM for det=2 on BINOSPEC")
 
             # Get the binning
             hdu = io.fits_open(filename)
@@ -410,7 +411,7 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
         if ftype in ['pixelflat', 'trace', 'illumflat']:
             return good_exp & (fitstbl['lampstat01'] == 'off') & (fitstbl['lampstat02'] == 'deployed')
 
-        msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
+        log.debug('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
     def get_slitmask(self, filename, ccdnum=None):
@@ -602,7 +603,7 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
 
         # check if the mask design file exists
         if not Path(_maskfile).exists():
-            msgs.error(f'The mask design file {_maskfile} does not exist.')
+            raise PypeItError(f'The mask design file {_maskfile} does not exist.')
 
         # Load slitmask information if a file is provided
         self.get_slitmask(_maskfile, ccdnum)
@@ -675,7 +676,7 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
         fil = utils.find_single_file(f'{raw_file}*', required=True)
 
         # Read
-        msgs.info(f'Reading BINOSPEC file: {fil}')
+        log.info(f'Reading BINOSPEC file: {fil}')
         hdu = io.fits_open(fil)
         head1 = hdu[1].header
 
