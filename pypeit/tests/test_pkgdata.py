@@ -12,7 +12,7 @@ import pytest
 
 import github
 
-from pypeit.pypmsgs import PypeItPathError
+from pypeit import PypeItPathError
 from pypeit.pypeitdata import PypeItDataPath
 from pypeit import dataPaths
 from pypeit import io

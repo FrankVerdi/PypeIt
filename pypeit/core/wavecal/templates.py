@@ -24,7 +24,7 @@ from scipy.interpolate import interp1d
 from astropy.table import Table
 from astropy import units
 
-from pypeit import msgs
+from pypeit import log
 from pypeit import utils
 from pypeit import io
 from pypeit import wavecalib
@@ -145,7 +145,7 @@ def build_template(in_files, slits, wv_cuts, binspec, outroot, outdir=None,
         else:
             wv_vac, spec = wvspec['wv_vac'], wvspec['spec']
         # Diagnostics
-        msgs.info("wvmin, wvmax of {}: {}, {}".format(in_file, wv_vac.min(), wv_vac.max()))
+        log.info("wvmin, wvmax of {}: {}, {}".format(in_file, wv_vac.min(), wv_vac.max()))
         # Cut
         if len(slits) > 1:
             wvmin, wvmax = grab_wvlim(kk, wv_cuts, len(slits))
