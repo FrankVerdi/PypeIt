@@ -1,7 +1,7 @@
-pypeit.pypmsgs module
-=====================
+pypeit.logger module
+====================
 
-.. automodule:: pypeit.pypmsgs
+.. automodule:: pypeit.logger
    :members:
    :private-members:
    :show-inheritance:

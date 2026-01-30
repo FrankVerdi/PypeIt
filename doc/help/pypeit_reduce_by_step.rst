@@ -1,7 +1,8 @@
 .. code-block:: console
 
     $ pypeit_reduce_by_step -h
-    usage: pypeit_reduce_by_step [-h] [--det DET] [--show]
+    usage: pypeit_reduce_by_step [-h] [-v VERBOSITY] [--log_file LOG_FILE]
+                                 [--log_level LOG_LEVEL] [--det DET] [--show]
                                  pypeit_file frame {process,findobj,extract}
     
     Run one of the PypeIt reduction steps on a single frame (and detector)
@@ -18,6 +19,17 @@
     
     options:
       -h, --help            show this help message and exit
+      -v, --verbosity VERBOSITY
+                            Verbosity level, which must be 0, 1, or 2. Level 0
+                            includes warning and error messages, level 1 adds
+                            informational messages, and level 2 adds debugging
+                            messages and the calling sequence.
+      --log_file LOG_FILE   Name for the log file. If set to "default", a default
+                            name is used. If None, a log file is not produced.
+      --log_level LOG_LEVEL
+                            Verbosity level for the log file. If a log file is
+                            produce and this is None, the file log will match the
+                            console stream log.
       --det DET             Single detector number or Mosaic tuple. The Mosaic tuple
                             must include the parentheses and be provided as a
                             string, e.g. "(1,2)". Required, but the list of options
