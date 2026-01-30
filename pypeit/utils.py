@@ -2189,7 +2189,7 @@ def loadjson(filename):
 
     Parameters
     ----------
-    filename : str
+    filename : str, `pathlib.Path`
         The name of the file to load.
 
     Returns
@@ -2197,8 +2197,9 @@ def loadjson(filename):
     dict
         The loaded python object.
     """
-    if filename.endswith('.gz'):
-        with gzip.open(filename, "rb") as f:
+    _file = pathlib.Path(filename).resolve()
+    if _file.suffix == '.gz':
+        with gzip.open(_file, "rb") as f:
             return json.loads(f.read().decode("ascii"))
-    with open(filename, 'rt') as fh:
-        return json.load(fh)
+    with open(_file, 'rt') as f:
+        return json.load(f)

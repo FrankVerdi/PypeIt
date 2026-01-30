@@ -34,7 +34,7 @@ def load_wavelength_calibration(filename: pathlib.Path) -> dict:
         raise PypeItError(f"File does not exist: {filename}")
 
     # Load JSON file
-    wv_calib = utils.jsonload(filename)
+    wv_calib = utils.loadjson(filename)
 
     # Recast a few items as arrays
     for key in wv_calib.keys():
