@@ -63,6 +63,8 @@ Instrument-specific Updates
   is significant.
 - Updated the `gain` and `ronoise` values for Gemini/GMOS spectrographs to account
   for the different values measured in each amplifier.
+- Enables MMT/Binospec reductions to match the slitmask design input to the
+  detected slits, similar to procedures used for Keck/DEIMOS, Keck/MOSFIRE, etc.
 
 Script Changes
 --------------
@@ -71,8 +73,6 @@ Script Changes
   spectral image. Each slit/order in the spec2d output file is rectified onto a common
   wavelength grid. This rectified 2D image must be used only for quick-look visualization
   purposes, and not for scientific analysis.
-
-
 
 Datamodel Changes
 -----------------
@@ -90,7 +90,6 @@ Under-the-hood Improvements
 - Improved extension checking for post-processing scripts to explicitely
   allow PypeIt-produced ".fits" files regardless of a given spectrograph's
   raw data extension.
-
 
 Bug Fixes
 ---------

@@ -426,7 +426,7 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
         ----------
         filename : :obj:`str`
             Path to the slitmask FITS file.
-        det : :obj:`int`
+        ccdnum : :obj:`int`
             Detector number (1 or 2).
 
         Returns
@@ -458,10 +458,8 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
         else:
             raise ValueError("Not a valid detector number. Try 1 or 2.")
 
-
         # Identify TARGET objects and number of slits
-        target_type = mask_fits['TARGET_TYPE']
-        targ = np.where(target_type == 'TARGET')[0]
+        targ = mask_fits['TARGET_TYPE'] == 'TARGET'
         numslits = mask_fits['NTARGETS']
 
         # Target positions in mm
@@ -487,16 +485,17 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
         objid = mask_fits['TARGET_ID'][targ]
 
         # Assemble object array: [slit_id, id, ra, dec, name, mag, mag_band, top, bot]
-        objects = np.array([np.array(mask_fits['SLIT_ID'][targ], dtype=int),
-                            objid,
-                            obj_ra,
-                            obj_dec,
-                            objname,
-                            np.array(mask_fits['MAG'][targ], dtype=float),
-                            ['None'] * mask_fits['SLIT_ID'][targ].size,
-                            np.round(topdist.astype(float),2),
-                            np.round(botdist.astype(float),2)
-                            ], dtype=object).T
+        objects = np.array([
+            np.asarray(mask_fits['SLIT_ID'][targ], dtype=int),
+            objid,
+            obj_ra,
+            obj_dec,
+            objname,
+            np.asarray(mask_fits['MAG'][targ], dtype=float),
+            ['None'] * mask_fits['SLIT_ID'][targ].size,
+            np.round(topdist.astype(float),2),
+            np.round(botdist.astype(float),2)
+        ], dtype=object).T
 
         # Compute slit centers offsets from object positions
         xcen_slit = (mask_fits['POLY_X'][0][targ] + mask_fits['POLY_X'][3][targ]) / 2.
@@ -539,16 +538,18 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
 
         # Construct and return the slitmask object
         self.slitmask = SlitMask(
-            np.array(corners),
-            slitid=np.array(mask_fits['SLIT_ID'][targ], dtype=int),
-            onsky=np.array([
-                np.array(slit_ra), np.array(slit_dec),
+            np.asarray(corners),
+            slitid=np.asarray(mask_fits['SLIT_ID'][targ], dtype=int),
+            onsky=np.asarray([
+                np.asarray(slit_ra), np.asarray(slit_dec),
                 np.round(slit_length_arcsec.astype(float),2),
-                np.array(mask_fits['SLIT_WIDTH'][targ], dtype=float),
-                slit_pas]).T,
+                np.asarray(mask_fits['SLIT_WIDTH'][targ], dtype=float),
+                slit_pas
+            ]).T,
             objects=objects,
             mask_radec=(mask_coord.ra.deg, mask_coord.dec.deg),
-            posx_pa=posx_pa)
+            posx_pa=posx_pa
+        )
 
         return self.slitmask
 
@@ -611,15 +612,11 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
         if self.slitmask is None:
             raise ValueError("Unable to read slitmask design info. Provide a file.")
 
-        # get the shape of the detector
-        rawimg = self.get_rawimage(filename, ccdnum)[1]
-        Ny, Nx = rawimg.shape
-
         # Open FITS file and read mask data for the correct detector
         hdu = io.fits_open(filename)
         mask_fits = hdu[9].data[0] if ccdnum == 1 else hdu[10].data[0]
         # keep only the TARGET slits
-        targ = np.where(mask_fits['TARGET_TYPE'] == 'TARGET')[0]
+        targ = mask_fits['TARGET_TYPE'] == 'TARGET'
 
         # Define det buffer and mm/pixel scale factor
         # NOTE: these are hard-coded and not sure if there is a more robust way to determine them
@@ -634,7 +631,9 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
         right_edges = (mask_fits['POLY_Y'][1][targ] - mask_fits['MASK_CORNERS'][1])*mm_pixel + mask_edge_off
         if ccdnum == 2:
             # flip and reverse for detector 2
-            left_edges, right_edges = Nx - right_edges, Nx - left_edges
+            Nx = self.get_rawimage(filename, ccdnum)[1].shape[1]
+            left_edges = Nx - right_edges
+            right_edges = Nx - left_edges
 
         # Sort slits by their bottom edge position in ascending y-coordinate
         sortindx = np.argsort(left_edges)
@@ -691,7 +690,7 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
 
         # First read over the header info to determine the size of the output array...
         datasec = head1['DATASEC']
-        x1, x2, y1, y2 = np.array(parse.load_sections(datasec, fmt_iraf=False)).flatten()
+        x1, x2, y1, y2 = np.asarray(parse.load_sections(datasec, fmt_iraf=False)).flatten()
         nxb = x1 - 1
 
         # determine the output array size...
@@ -722,7 +721,7 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
             ys = iny * kk
             yn = ys + iny
 
-            b1, b2, b3, b4 = np.array(parse.load_sections(biassec, fmt_iraf=False)).flatten()
+            b1, b2, b3, b4 = np.asarray(parse.load_sections(biassec, fmt_iraf=False)).flatten()
 
             if kk == 0:
                 array[b2:inx+b2,:iny] = data #*1.028
@@ -796,10 +795,9 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
             raise ValueError("A valid detector number must be provided.")
 
         # Load slitmask information if a file is provided
-        if filename is not None:
-            self.get_slitmask(filename, ccdnum)
-        else:
+        if filename is None:
             raise ValueError("The name of a science file should be provided")
+        self.get_slitmask(filename, ccdnum)
 
         if self.slitmask is None:
             raise ValueError("Unable to read slitmask design info. Provide a file.")
@@ -814,18 +812,18 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
         res_y = np.zeros((2, numslits))
 
         # Extract target distances from slit edges and slit widths
-        topdist = np.array(self.slitmask.objects[:, 7], dtype=float)
-        botdist = np.array(self.slitmask.objects[:, 8], dtype=float)
-        width = np.array(self.slitmask.width)
+        topdist = np.asarray(self.slitmask.objects[:, 7], dtype=float)
+        botdist = np.asarray(self.slitmask.objects[:, 8], dtype=float)
+        width = np.asarray(self.slitmask.width)
 
         # Extract slit center positions in mask coordinates
-        x_slits = np.array(self.slitmask.center[:, 0])
+        x_slits = np.asarray(self.slitmask.center[:, 0])
         x_obj = x_slits
-        y_slits = -np.array(self.slitmask.center[:, 1])
+        y_slits = -np.asarray(self.slitmask.center[:, 1])
 
         # Extract slit corner y-coordinates (for top/bottom edges)
-        y_slitsh = -np.array(self.slitmask.corners[:, 0, 1])
-        y_slitsl = -np.array(self.slitmask.corners[:, 2, 1])
+        y_slitsh = -np.asarray(self.slitmask.corners[:, 0, 1])
+        y_slitsl = -np.asarray(self.slitmask.corners[:, 2, 1])
 
         # Compute object y-position relative to slit center
         y_obj = y_slits + (topdist - botdist) / 2
@@ -839,7 +837,7 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
         y_scl = 24.555832 if ccdnum == 1 else 24.548194
 
         # Extract mask corner reference point
-        mask_corners = np.array(mask_fits['MASK_CORNERS'])
+        mask_corners = np.asarray(mask_fits['MASK_CORNERS'])
         corner_x = mask_corners[0]
         corner_y = mask_corners[1]
 
@@ -940,43 +938,14 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
         else:
             raise ValueError("det must be 1, 2, or 'both'.")
 
-        # Internal helper to draw slits and targets on a given axis
-        def plot_region(ax, region, color, side_label):
-            num_targets = len(region[0])
-            label = f" N = {num_targets}"
-
-            for i in range(len(region[0])):
-                slit_x_range = region[0][i]
-                slit_y_range = region[1][i]
-                width = slit_x_range[1] - slit_x_range[0]
-                height = slit_y_range[1] - slit_y_range[0]
-
-                rect = patches.Rectangle(
-                    (slit_x_range[0], slit_y_range[0]),
-                    width,
-                    height,
-                    linewidth=1,
-                    edgecolor="blue",
-                    facecolor="none"
-                )
-                ax.add_patch(rect)
-
-            ax.scatter(region[2], region[3], s=10, color=color, label=label)
-            ax.set_xlabel("X")
-            ax.set_ylabel("Y")
-            ax.set_title(f"Detector {side_label}")
-            ax.set_aspect("equal")
-            ax.grid(True)
-            ax.legend()
-
         # Plot based on detector selection
         if ccdnum == 'both':
-            plot_region(axA, region_1, color="red", side_label="1")
-            plot_region(axB, region_2, color="green", side_label="2")
+            _plot_region(axA, region_1, color="red", side_label="1")
+            _plot_region(axB, region_2, color="green", side_label="2")
         elif ccdnum == 1:
-            plot_region(axA, region_1, color="red", side_label="1")
+            _plot_region(axA, region_1, color="red", side_label="1")
         elif ccdnum == 2:
-            plot_region(axB, region_2, color="green", side_label="2")
+            _plot_region(axB, region_2, color="green", side_label="2")
 
         # Save to file if directory provided
         if save_dir is not None:
@@ -996,6 +965,36 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
             return region_1
         elif ccdnum == 2:
             return region_2
+
+
+# Internal helper to draw slits and targets on a given axis
+def _plot_region(ax, region, color, side_label):
+    num_targets = len(region[0])
+    label = f" N = {num_targets}"
+
+    for i in range(len(region[0])):
+        slit_x_range = region[0][i]
+        slit_y_range = region[1][i]
+        width = slit_x_range[1] - slit_x_range[0]
+        height = slit_y_range[1] - slit_y_range[0]
+
+        rect = patches.Rectangle(
+            (slit_x_range[0], slit_y_range[0]),
+            width,
+            height,
+            linewidth=1,
+            edgecolor="blue",
+            facecolor="none"
+        )
+        ax.add_patch(rect)
+
+    ax.scatter(region[2], region[3], s=10, color=color, label=label)
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_title(f"Detector {side_label}")
+    ax.set_aspect("equal")
+    ax.grid(True)
+    ax.legend()
 
 
 def binospec_read_amp(inp, ext):
@@ -1040,7 +1039,9 @@ def binospec_read_amp(inp, ext):
 
     # parse the DATASEC keyword to determine the size of the science region (unbinned)
     datasec = header['DATASEC']
-    xdata1, xdata2, ydata1, ydata2 = np.array(parse.load_sections(datasec, fmt_iraf=False)).flatten()
+    xdata1, xdata2, ydata1, ydata2 = np.asarray(
+        parse.load_sections(datasec, fmt_iraf=False)
+    ).flatten()
     datasec = '[{:}:{:},{:}:{:}]'.format(xdata1 - 1, xdata2, ydata1-1, ydata2)
 
     # TODO: Since pypeit can only subtract overscan along one axis, I'm subtract
@@ -1061,7 +1062,7 @@ def binospec_read_amp(inp, ext):
 
     # Overscan
     biassec = '[0:{:},{:}:{:}]'.format(xdata1-1, ydata1-1, ydata2)
-    xos1, xos2, yos1, yos2 = np.array(parse.load_sections(biassec, fmt_iraf=False)).flatten()
+    xos1, xos2, yos1, yos2 = np.asarray(parse.load_sections(biassec, fmt_iraf=False)).flatten()
     overscan = np.zeros_like(temp[xos1:xos2, yos1:yos2]) # Give a zero fake overscan at the edge of each amplifiers
 
     return data, overscan, datasec, biassec
