@@ -138,5 +138,10 @@ following prompt (GPT-5 mini):
   file does not exist, the file is not JSON format, and any of the loading
   functions fail.
 
+- Please make the following edits to your contribution.  Remove the definition
+  of TEST_DIR; instead simply save the files in the current working directory.
+  Move all the new tests to the end of the file.  Make sure all imports are at
+  the top of the file, after any initial file docstring.
+
 
 
