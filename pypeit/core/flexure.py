@@ -685,7 +685,6 @@ def spec_flex_shift_global(slit_specs, islit, sky_file, empty_flex_dict,
             flex_dict[key].append(fdict[key])
         # Interpolate
         sky_wave_new = flexure_interp(fdict['shift'], slit_specs[islit].wave)
-        #flex_dict['sky_spec'].append(xspectrum1d.XSpectrum1D.from_tuple((sky_wave_new, slit_specs[islit].flux.value)))
         flex_dict['sky_spec'].append(onespec.OneSpec(sky_wave_new, None, slit_specs[islit].flux))
     else:
         # No success, come back to it later
@@ -781,8 +780,9 @@ def spec_flex_shift_local(slits, slitord, specobjs, islit, sky_file, empty_flex_
         log.info(f"Working on spectral flexure for object # {ss} in slit {slits.spat_id[islit]}")
 
         # get 1D spectrum for this object
-        #obj_sky = xspectrum1d.XSpectrum1D.from_tuple((sobj.BOX_WAVE[sobj.BOX_MASK], sobj.BOX_COUNTS_SKY[sobj.BOX_MASK]))
-        obj_sky = onespec.OneSpec(sobj.BOX_WAVE[sobj.BOX_MASK], None, sobj.BOX_COUNTS_SKY[sobj.BOX_MASK])
+        obj_sky = onespec.OneSpec(
+            sobj.BOX_WAVE[sobj.BOX_MASK], None, sobj.BOX_COUNTS_SKY[sobj.BOX_MASK]
+        )
 
         # Calculate the shift
         fdict = spec_flex_shift(obj_sky, sky_file=sky_file, mxshft=mxshft, excess_shft=excess_shft,
@@ -817,8 +817,10 @@ def spec_flex_shift_local(slits, slitord, specobjs, islit, sky_file, empty_flex_
                 flex_dict[key].insert(obj_idx, flex_dict[key][idx_med_shift])
             # Interpolate
             sky_wave_new = flexure_interp(flex_dict['shift'][obj_idx], this_specobjs[obj_idx].BOX_WAVE)
-            flex_dict['sky_spec'].insert(obj_idx, xspectrum1d.XSpectrum1D.from_tuple(
-                (sky_wave_new, this_specobjs[obj_idx].BOX_COUNTS_SKY)))
+            flex_dict['sky_spec'].insert(
+                obj_idx, 
+                onespec.OneSpec(sky_wave_new, None, this_specobjs[obj_idx].BOX_COUNTS_SKY)
+            )
 
     # if flexure failed for every objects in this slit, save for later to use value from other slits
     elif (len(return_later_sobjs) > 0) and (len(flex_dict['shift']) == 0):
@@ -969,7 +971,9 @@ def spec_flexure_slit(slits, slitord, slit_bpm, sky_file, method="boxcar", speco
                         flex_dict[key].append(fdict[key][0])
                     # Interpolate
                     sky_wave_new = flexure_interp(fdict['shift'][0], slit_specs[sidx].wavelength.value)
-                    flex_dict['sky_spec'].append(xspectrum1d.XSpectrum1D.from_tuple((sky_wave_new, slit_specs[sidx].flux.value)))
+                    flex_dict['sky_spec'].append(
+                        onespec.OneSpec(sky_wave_new, None, slit_specs[sidx].flux.value)
+                    )
 
                     # insert flex_dict in flex_list at the location of the slit that failed the calculation
                     flex_list[sidx] = flex_dict
@@ -996,7 +1000,8 @@ def spec_flexure_slit(slits, slitord, slit_bpm, sky_file, method="boxcar", speco
                         # Interpolate
                         sky_wave_new = flexure_interp(fdict['shift'][0], specobjs[indx][i].BOX_WAVE)
                         flex_dict['sky_spec'].append(
-                            xspectrum1d.XSpectrum1D.from_tuple((sky_wave_new, specobjs[indx][i].BOX_COUNTS_SKY)))
+                            onespec.OneSpec(sky_wave_new, None, specobjs[indx][i].BOX_COUNTS_SKY)
+                        )
                         # insert flex_dict in flex_list at the location of the slit that failed the calculation
                         flex_list[sidx] = flex_dict
     return flex_list
