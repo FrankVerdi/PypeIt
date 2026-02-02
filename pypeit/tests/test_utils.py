@@ -17,6 +17,7 @@ from pypeit.tests.tstutils import data_output_path
 from pypeit import io
 
 
+# Move this to tstutils?
 def _cleanup_file(path):
     try:
         path.unlink()

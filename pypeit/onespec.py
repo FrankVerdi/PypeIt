@@ -15,6 +15,7 @@ from pypeit import datamodel
 from pypeit import io
 from pypeit import log
 from pypeit import PypeItError
+from pypeit import utils
 from pypeit.spectrographs.util import load_spectrograph
 
 
@@ -312,4 +313,34 @@ class OneSpec(datamodel.DataContainer):
         # Finish
         return OneSpec(new_wv, None, new_fx, sigma=new_sig)
 
+    def gauss_smooth(self, fwhm):
+        """
+        Smooth the spectrum with a Gaussian kernal.
+
+        .. warning::
+
+            This does **not** propagate the errors!  The returned
+            :class:`OneSpec` instance will *not* have any errors.  All other
+            attributes are included in the returned
+            :class:`~pypeit.onespec.OneSpec` instance; array attributes are
+            copied.
+
+        Parameters
+        ----------
+        fwhm : float
+            FWHM of the Gaussian kernal in pixels.
+
+        Returns
+        -------
+        :class:`~pypeit.onespec.OneSpec`
+            The smoothed spectrum
+        """
+        return OneSpec(
+            self.wave.copy(), None if self.wave_grid_mid is None else self.wave_grid_mid.copy(), 
+            utils.convolve_psf(self.flux, fwhm), PYP_SPEC=self.PYP_SPEC, ivar=None, sigma=None,
+            mask=None if self.mask is None else self.mask.copy(),
+            telluric=None if self.telluric is None else self.telluric.copy(),
+            obj_model=None if self.obj_model is None else self.obj_model.copy(),
+            ext_mode=self.ext_mode, fluxed=self.fluxed
+        )
 
