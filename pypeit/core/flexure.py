@@ -970,9 +970,9 @@ def spec_flexure_slit(slits, slitord, slit_bpm, sky_file, method="boxcar", speco
                     for key in keys_to_update[:-1]:
                         flex_dict[key].append(fdict[key][0])
                     # Interpolate
-                    sky_wave_new = flexure_interp(fdict['shift'][0], slit_specs[sidx].wavelength.value)
+                    sky_wave_new = flexure_interp(fdict['shift'][0], slit_specs[sidx].wave)
                     flex_dict['sky_spec'].append(
-                        onespec.OneSpec(sky_wave_new, None, slit_specs[sidx].flux.value)
+                        onespec.OneSpec(sky_wave_new, None, slit_specs[sidx].flux)
                     )
 
                     # insert flex_dict in flex_list at the location of the slit that failed the calculation
