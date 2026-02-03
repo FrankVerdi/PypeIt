@@ -457,6 +457,23 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
         else:
             raise ValueError("Not a valid detector number. Try 1 or 2.")
 
+        def _parse_mask_hdu(mask_hdu):
+
+            targ = mask_hdu['TARGET_TYPE'] == 'TARGET'
+            numslits = mask_hdu['NTARGETS']
+
+            x_targ = np.atleast_1d(mask_hdu['SLITX'])[targ]
+            y_targ = np.atleast_1d(mask_hdu['SLITY'])[targ]
+            y_poly = np.atleast_2d(mask_hdu['POLY_Y']).T[targ]
+            x_poly = np.atleast_2d(mask_hdu['POLY_X']).T[targ]
+            slitid = np.atleast_1d(mask_hdu['SLIT_ID'])[targ]
+            mag = np.atleast_1d(mask_hdu['MAG'])[targ]
+            obj_ra = np.atleast_1d(mask_hdu['RA'])[targ]
+            obj_dec = np.atleast_1d(mask_hdu['DEC'])[targ]
+            objname = np.atleast_1d(mask_hdu['TARGET_NAME'])[targ]
+            objid = np.atleast_1d(mask_hdu['TARGET_ID'])[targ]
+
+
         # Identify TARGET objects and number of slits
         targ = mask_fits['TARGET_TYPE'] == 'TARGET'
         numslits = mask_fits['NTARGETS']
