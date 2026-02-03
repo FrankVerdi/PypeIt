@@ -24,7 +24,7 @@ Documentation Updates
 Dependency Changes
 ------------------
 
-- Removed dependency on linetools package (details :ref:`below <deprecate_linetools>`).
+- Removed dependency on linetools package (details below).
 
 
 Functionality/Performance Improvements and Additions
@@ -87,7 +87,7 @@ Testing
 Under-the-hood Improvements
 ---------------------------
 
-- Improved extension checking for post-processing scripts to explicitely
+- Improved extension checking for post-processing scripts to explicitly
   allow PypeIt-produced ".fits" files regardless of a given spectrograph's
   raw data extension.
 
@@ -108,7 +108,8 @@ Bug Fixes
 
 ----
 
-.. _deprecate_linetools:
+AI Use
+======
 
 Deprecation of linetools dependency
 -----------------------------------
@@ -116,7 +117,7 @@ Deprecation of linetools dependency
 We used Claude to aid in the removal of the linetools dependency from PypeIt
 with the following prompts:
 
-- On this deprecate_linetools branch, I wish to remove all imports of linetools.
+- On this ``deprecate_linetools`` branch, I wish to remove all imports of linetools.
   Can you confirm that I have successfully done so?
 
 - Yes, please do, but ignore the ones in the Documentation files
