@@ -46,6 +46,7 @@ from astropy import table
 
 from pypeit import log
 from pypeit import PypeItError
+from pypeit import PypeItBitMaskError
 from pypeit import utils
 from pypeit import sampling
 from pypeit import slittrace
