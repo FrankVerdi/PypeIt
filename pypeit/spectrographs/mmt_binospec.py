@@ -1059,10 +1059,8 @@ def binospec_read_amp(inp, ext):
         String with the bias section in IRAF format, e.g. '[x1:x2,y1:y2]'.
     """
     # Parse input
-    if isinstance(inp, str):
-        hdu = io.fits_open(inp)
-    else:
-        hdu = inp
+    hdu = io.fits_open(inp) if isinstance(inp, str) else inp
+
     # get entire extension...
     temp = hdu[ext].data.transpose()
     nxt = temp.shape[0]
@@ -1073,30 +1071,29 @@ def binospec_read_amp(inp, ext):
 
     # parse the DATASEC keyword to determine the size of the science region (unbinned)
     datasec = header['DATASEC']
-    xdata1, xdata2, ydata1, ydata2 = np.asarray(
-        parse.load_sections(datasec, fmt_iraf=False)
-    ).flatten()
-    datasec = '[{:}:{:},{:}:{:}]'.format(xdata1 - 1, xdata2, ydata1-1, ydata2)
 
-    # TODO: Since pypeit can only subtract overscan along one axis, I'm subtract
+    x1, x2, y1, y2 = chain.from_iterable(parse.load_sections(datasec, fmt_iraf=False))
+    datasec = f'[{x1-1}:{x2},{y1-1}:{y2}]'
+
+    # NOTE: Since pypeit can only subtract overscan along one axis, I'm subtract
     # the overscan here using median method.
     # Overscan X-axis
-    if xdata1 > 1:
-        overscanx = temp[2:xdata1-1, :]
+    if x1 > 1:
+        overscanx = temp[2:x1-1, :]
         overscanx_vec = np.median(overscanx, axis=0)
         temp = temp - overscanx_vec[None,:]
-    data = temp[xdata1 - 1:xdata2, ydata1 -1 : ydata2]
+    data = temp[x1-1:x2, y1-1:y2]
 
     ## Overscan Y-axis
-    if ydata2<nyt:
-        os1, os2 = ydata2+1, nyt-1
-        overscany = temp[xdata1 - 1:xdata2, ydata2:os2]
+    if y2 < nyt:
+        os1, os2 = y2+1, nyt-1
+        overscany = temp[x1 - 1:x2, y2:os2]
         overscany_vec = np.median(overscany, axis=1)
         data = data -  overscany_vec[:,None]
 
     # Overscan
-    biassec = '[0:{:},{:}:{:}]'.format(xdata1-1, ydata1-1, ydata2)
-    xos1, xos2, yos1, yos2 = np.asarray(parse.load_sections(biassec, fmt_iraf=False)).flatten()
+    biassec = f'[0:{x1-1},{y1-1}:{y2}]'
+    xos1, xos2, yos1, yos2 = chain.from_iterable(parse.load_sections(biassec, fmt_iraf=False))
     overscan = np.zeros_like(temp[xos1:xos2, yos1:yos2]) # Give a zero fake overscan at the edge of each amplifiers
 
     return data, overscan, datasec, biassec
