@@ -656,7 +656,7 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
         hdu = io.fits_open(filename)
         mask_fits = hdu[9].data[0] if det == 1 else hdu[10].data[0]
         # keep only the TARGET slits
-        targ = np.where(mask_fits['TARGET_TYPE'] == 'TARGET')[0]
+        targ = mask_fits['TARGET_TYPE'] == 'TARGET'
 
         # Define det buffer and mm/pixel scale factor
         # NOTE: these are hard-coded and not sure if there is a more robust way to determine them
