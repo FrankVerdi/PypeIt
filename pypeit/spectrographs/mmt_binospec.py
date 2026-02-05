@@ -3,6 +3,7 @@ Module for MMT/BINOSPEC specific methods.
 
 .. include:: ../include/links.rst
 """
+from itertools import chain
 from pathlib import Path
 
 from astropy.io import fits
@@ -873,7 +874,7 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
 
         # First read over the header info to determine the size of the output array...
         datasec = head1['DATASEC']
-        x1, x2, y1, y2 = np.asarray(parse.load_sections(datasec, fmt_iraf=False)).flatten()
+        x1, x2, y1, y2 = chain.from_iterable(parse.load_sections(datasec, fmt_iraf=False))
         nxb = x1 - 1
 
         # determine the output array size...
@@ -904,7 +905,7 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
             ys = iny * kk
             yn = ys + iny
 
-            b1, b2, b3, b4 = np.asarray(parse.load_sections(biassec, fmt_iraf=False)).flatten()
+            b1, b2, b3, b4 = chain.from_iterable(parse.load_sections(biassec, fmt_iraf=False))
 
             if kk == 0:
                 array[b2:inx+b2,:iny] = data #*1.028
