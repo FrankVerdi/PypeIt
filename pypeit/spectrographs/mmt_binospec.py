@@ -528,6 +528,149 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
 
         return self.slitmask
 
+#    def get_slitmask_old(self, filename, det=None):
+#
+#        """
+#        Parse Binospec slitmask file and construct a SlitMask object with target
+#        and slit metadata.
+#
+#        This function reads a FITS file describing a multi-slit mask for a
+#        specified Binospec detector, extracts geometric and target information,
+#        computes relevant positional offsets, and constructs a `SlitMask` object
+#        used for downstream processing and plotting.
+#
+#        Parameters
+#        ----------
+#        filename : :obj:`str`
+#            Path to the slitmask FITS file.
+#        det : :obj:`int`
+#            Detector number (1 or 2).
+#
+#        Returns
+#        -------
+#        slitmask : :class:`SlitMask`
+#            An object containing geometry, target positions, and metadata for
+#            each slit, defined in PypeIt/pypeit/spectrographs/slitmask.py
+#
+#        Notes
+#        -----
+#        - Target-slit alignment is characterized via distances from slit edges.
+#        - Slit corners and on-sky positions are stored for each target.
+#        """
+#        if det is None:
+#            raise ValueError("A valid detector number must be provided.")
+#
+#        if filename is None:
+#            raise ValueError("A valid slitmask filename must be provided.")
+#
+#        # Open the FITS file
+#        hdu = io.fits_open(filename)
+#
+#        # Select appropriate extension for detector 1 or 2
+#        if det == 1:
+#            mask_fits = hdu[9].data[0]
+#        elif det == 2:
+#            mask_fits = hdu[10].data[0]
+#        else:
+#            raise ValueError("Not a valid detector number. Try 1 or 2.")
+#
+#        # Identify TARGET objects and number of slits
+#        targ = mask_fits['TARGET_TYPE'] == 'TARGET'
+#        numslits = mask_fits['NTARGETS']
+#
+#        # Target positions in mm
+#        x_targ = mask_fits['SLITX'][targ]
+#        y_targ = mask_fits['SLITY'][targ]
+#        # conversion factor mm to arcsec
+#        mm_arcsec = mask_fits['MM_PER_ARCSEC']
+#
+#        # left
+#        topdist = (y_targ - mask_fits['POLY_Y'][0][targ]) / mm_arcsec
+#        # right
+#        botdist = (mask_fits['POLY_Y'][1][targ] - y_targ) / mm_arcsec
+#        if det == 2:
+#            # flip for detector 2
+#            topdist, botdist = botdist, topdist
+#
+#        slit_length_arcsec = topdist + botdist
+#
+#        # Read basic object metadata
+#        obj_ra = mask_fits['RA'][targ]
+#        obj_dec = mask_fits['DEC'][targ]
+#        objname = mask_fits['TARGET_NAME'][targ]
+#        objid = mask_fits['TARGET_ID'][targ]
+#
+#        # Assemble object array: [slit_id, id, ra, dec, name, mag, mag_band, top, bot]
+#        objects = np.array([
+#            np.asarray(mask_fits['SLIT_ID'][targ], dtype=int),
+#            objid,
+#            obj_ra,
+#            obj_dec,
+#            objname,
+#            np.asarray(mask_fits['MAG'][targ], dtype=float),
+#            ['None'] * mask_fits['SLIT_ID'][targ].size,
+#            np.round(topdist.astype(float),2),
+#            np.round(botdist.astype(float),2)
+#        ], dtype=object).T
+#
+#        # Compute slit centers offsets from object positions
+#        xcen_slit = (mask_fits['POLY_X'][0][targ] + mask_fits['POLY_X'][3][targ]) / 2.
+#        ycen_slit = (mask_fits['POLY_Y'][0][targ] + mask_fits['POLY_Y'][1][targ]) / 2.
+#        slit_xoff = (xcen_slit - x_targ) / mm_arcsec  # in arcseconds
+#        slit_yoff = (ycen_slit - y_targ) / mm_arcsec  # in arcseconds
+#        slit_offset = np.sqrt(slit_xoff ** 2 + slit_yoff ** 2)
+#
+#        # Compute slit center RA/Dec via spherical offset from target position
+#        obj_coord = SkyCoord(ra=obj_ra, dec=obj_dec, unit='deg')
+#
+#        # Position angle corresponding to detector +x axis (spatial direction)
+#        posx_pa = hdu[1].header['POSANG'] - 180
+#        if posx_pa < 0:
+#            posx_pa += 360.
+#
+#        # Slit position angles and sign of offset (accounting for up/down location)
+#        slit_pas = posx_pa + np.zeros(numslits)
+#        off_signs = np.ones_like(slit_pas)
+#        negy = slit_yoff < 0.
+#        off_signs[negy] = -1.
+#
+#        # Compute slit center RA/Dec
+#        slit_ra, slit_dec = [], []
+#        for slit_off, obj_coo, slit_pa, off_sign in zip(slit_offset, obj_coord, slit_pas, off_signs):
+#            slit_coord = obj_coo.directional_offset_by(
+#                slit_pa * units.deg, off_sign * slit_off * units.arcsec)
+#            slit_ra.append(slit_coord.ra.deg)
+#            slit_dec.append(slit_coord.dec.deg)
+#
+#        # Extract slit corner coordinates
+#        poly_x_T = np.squeeze(mask_fits['POLY_X'].T)[targ]
+#        poly_y_T = np.squeeze(mask_fits['POLY_Y'].T)[targ]
+#
+#        corners = np.stack((poly_x_T, poly_y_T), axis=-1)
+#        corners = corners[:, [3, 0, 1, 2], :]
+#
+#        # Slitmask pointing coordinates (mask center RA/Dec)
+#        mask_coord = SkyCoord(mask_fits['CENTERRA'], mask_fits['CENTERDEC'], unit=('hourangle', 'deg'))
+#
+#        # Construct and return the slitmask object
+#        self.slitmask = SlitMask(
+#            np.asarray(corners),
+#            slitid=np.asarray(mask_fits['SLIT_ID'][targ], dtype=int),
+#            onsky=np.asarray([
+#                np.asarray(slit_ra), np.asarray(slit_dec),
+#                np.round(slit_length_arcsec.astype(float),2),
+#                np.asarray(mask_fits['SLIT_WIDTH'][targ], dtype=float),
+#                slit_pas
+#            ]).T,
+#            objects=objects,
+#            mask_radec=(mask_coord.ra.deg, mask_coord.dec.deg),
+#            posx_pa=posx_pa
+#        )
+#
+#        return self.slitmask
+
+
+
     @staticmethod
     def _parse_slitmask_data(filename, det):
 
@@ -590,7 +733,7 @@ class MMTBINOSPECSpectrograph(spectrograph.Spectrograph):
         )
 
 
-    def get_maskdef_slitedges(self, filename:str=None, det:1=None, debug:bool=None, 
+    def get_maskdef_slitedges(self, filename:str=None, det:int=1, debug:bool=None, 
                               binning:str=None, trc_path:str=None):
         """
         Provides the slit edges positions predicted by the slitmask design.
