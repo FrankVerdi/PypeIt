@@ -540,8 +540,6 @@ This is a screenshot from the GUI showing the 1D spectrum:
 
 .. image:: ../figures/mosfire_spec1d.png
 
-**THIS IMAGE IS CURRENTLY OUT OF DATE.**
-
 See :doc:`../out_spec1D` for further details.
 
 Coadd2D

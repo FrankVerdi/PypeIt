@@ -536,8 +536,6 @@ This is a screenshot from the GUI showing the 1D spectrum:
 
 .. image:: ../figures/lris_spec1d.png
 
-**THIS IMAGE IS CURRENTLY OUT OF DATE.**
-
 See :ref:`spec-1d-output` for further details.
 
 

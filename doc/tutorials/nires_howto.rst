@@ -413,14 +413,12 @@ You can plot the spectrum using :ref:`pypeit_show_1dspec`:
 
 .. code-block:: bash
 
-    pypeit_show_1dspec Science/spec1d_s190519_0059-GD153_NIRES_20190519T083811.995.fits --exten 5
+    pypeit_show_1dspec Science/spec1d_s190519_0059-GD153_NIRES_20190519T083811.995.fits --exten 9
 
-The ``--exten 5`` argument specifies to use the fifth extension in the fits file, which selects the reddest (order=3) spectrum.
+The ``--exten 9`` argument specifies to use the fifth extension in the fits file, which selects the reddest (order=3) spectrum.
 
 .. figure:: ../figures/nires_standard_kspec.png
    :width: 50%
-
-**THIS IMAGE IS CURRENTLY OUT OF DATE.**
 
 See :doc:`../out_spec1D` for further details.
 
