@@ -9,6 +9,8 @@ import numpy as np
 import copy
 
 from astropy.table import Table
+from astropy.coordinates import SkyCoord
+from astropy import units
 
 from pypeit import log
 from pypeit import PypeItError
@@ -27,8 +29,6 @@ from pypeit import io
 
 from pypeit import slittrace
 from pypeit import calibrations
-
-from linetools import utils as ltu
 
 from IPython import embed
 
@@ -905,7 +905,7 @@ def refframe_correct(spectrograph, par, slits, ra, dec, obstime, slitgpm=None,
             and par['calibrations']['wavelengths']['reference'] != 'pixel':
         log.info(f"Performing a {par['calibrations']['wavelengths']['refframe']} correction")
         # Calculate correction
-        radec = ltu.radec_to_coord((ra, dec))
+        radec = SkyCoord(ra=ra, dec=dec, unit=(units.deg, units.deg))
         vel, vel_corr = wave.geomotion_correct(radec, obstime,
                                                 spectrograph.telescope['longitude'],
                                                 spectrograph.telescope['latitude'],
