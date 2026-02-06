@@ -15,8 +15,6 @@ from astropy.time import Time
 from astropy.coordinates import SkyCoord 
 from astropy import units
 
-import linetools.utils
-
 from pypeit import log
 from pypeit import PypeItError
 from pypeit import telescopes
@@ -1705,7 +1703,7 @@ class KeckLRISRMark4Spectrograph(KeckLRISRSpectrograph):
             ampmode_translate_file = dataPaths.spectrographs.get_file_path(
                     'keck_lris_red_mark4/dict_for_ampmode.json')
             # Force any possible pathlib.Path object to string before `loadjson`
-            ampmode_translate_dict = linetools.utils.loadjson(str(ampmode_translate_file))
+            ampmode_translate_dict = utils.loadjson(str(ampmode_translate_file))
             # Load up the corrected header
             _amp = ampmode_translate_dict[amp_mode]
             swap_binning = f"{binning[-1]}_{binning[0]}" # LRIS convention is oppopsite ours
