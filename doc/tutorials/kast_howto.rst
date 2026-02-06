@@ -294,8 +294,6 @@ Here is a screen shot from the GUI showing the
 .. figure:: ../figures/kastb_spec1d.png
    :width: 70%
 
-**THIS IMAGE IS CURRENTLY OUT OF DATE.**
-
 See :doc:`../out_spec1D` for further details.
 
 Fluxing
