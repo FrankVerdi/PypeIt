@@ -10,7 +10,7 @@ import copy
 import datetime
 import os
 from pathlib import Path
-import pdb
+
 import numpy as np
 import yaml
 
@@ -1600,7 +1600,7 @@ class Calibrations:
 
         # Iterate through each frame type and add the raw and processed
         # calibration frames
-        pdb.set_trace()
+
         for frametype, calib_classes in frame_calibrations.items():
             indx = fitstbl.find_frames(frametype) & in_grp
             if not any(indx):
