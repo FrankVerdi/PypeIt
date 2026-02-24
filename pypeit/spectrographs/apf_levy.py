@@ -16,6 +16,7 @@ from pypeit import log
 from pypeit import PypeItError
 from pypeit import telescopes
 from pypeit import io
+from pypeit import par
 from pypeit.core import framematch
 from pypeit.par import parset
 from pypeit.spectrographs import spectrograph
@@ -91,7 +92,7 @@ class APFLevySpectrograph(spectrograph.Spectrograph):
 
         # no sky subtraction on standard stars
         par['reduce']['skysub']['global_sky_std'] = False
-
+        par['reduce']['skysub']['no_local_sky'] = True
         # skip sky subtraction when searching for objects
         # this is because the sky subtraction is not very good with narrow
         # slits and the usual APF target is bright
