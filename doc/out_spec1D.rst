@@ -117,8 +117,16 @@ Here is a typical call:
 Interacting with the display
 ----------------------------
 
-The special ginga bindings (mode) implemented for interacting with PypeIt spec1d
-files is as follows:
+The spec1d mode is a mode enabled by ginga to interact with the spectrum plot.
+**To get a listing of the key-bindings in the ginga window, type 'h'.**  If that
+doesn't work, or if the key bindings themselves don't seem to work, you may have
+exited the mode.  To restart the mode, hit the space-bar and then the 1 key.  If
+you're still having trouble, please submit an issue via GitHub or post a
+question to the Users Slack.
+
+The key-bindings below are copied from the relevant docstring; if anything is
+different from the dialog you get when pressing 'h' in ginga, you should defer
+to what is shown there.  The key-bindigs are as follows:
 
 Enter the mode
 ++++++++++++++
