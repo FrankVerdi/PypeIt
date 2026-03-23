@@ -2,7 +2,7 @@
 Version 2.0.1
 =============
 
-- Move key-binding documentation from ``pypeit/display/pypeit_modes.py`` to the
+- Add key-binding documentation from ``pypeit/display/pypeit_modes.py`` to the
   main documentation page, :ref:`pypeit_show_1dspec`.
 
 - Small changes to default parameter values for the APF/Levy spectrograph
