@@ -14,7 +14,64 @@ class Spec1DMode(Plot2DMode):
     """
     Spec1DMode enables special bindings for viewing PypeIt spec1d files.
 
-    See :ref:`pypeit_show_1dspec_interact` for interactivity implemented here.
+    Enter the mode by
+    -----------------
+    * Space, then "1"
+
+    Exit the mode by
+    ----------------
+    * Esc
+
+    Mouse/trackpad bindings in mode
+    -------------------------------
+    * Shift + left click : set pan position
+    * middle click : set pan position
+    * scroll : zoom in/out
+    * ctrl + scroll : zoom in/out X axis only
+    * shift + scroll : zoom in/out Y axis only (On MacOS, trackpad only)
+    * alt + scroll(mouse) : zoom in/out Y axis only (Option key on Macs)
+    * alt + scroll : zoom in/out at cursor
+
+    Keystroke bindings in mode
+    --------------------------
+
+    Zooming
+    -------
+    * equals : zoom in one zoom level
+    * ctrl + equals : zoom in X axis one zoom level
+    * plus (shift + equals) : zoom in Y axis one zoom level
+    * minus : zoom out one zoom level
+    * ctrl + minus : zoom out X axis one zoom level
+    * underscore (shift + minus): zoom out Y axis one zoom level
+    * 9 : zoom out maintaining cursor position
+    * ctrl + 9 : zoom out X axis maintaining cursor position
+    * left paren (shift + 9): zoom out Y axis maintaining cursor position
+    * 0 : zoom in maintaining cursor position
+    * ctrl + 0 : zoom in X axis maintaining cursor position
+    * right paren (shift + 0): zoom in Y axis maintaining cursor position
+    * backquote : zoom X and Y axes to fit window
+    * 1 : zoom X axis only to fit window
+    * 2 : zoom Y axis only to fit window
+    * k : set lower X range to X value at cursor
+    * l : set upper X range to X value at cursor
+    * K : set lower Y range to Y value at cursor
+    * L : set upper Y range to Y value at cursor
+
+    Panning
+    -------
+    * left arrow : pan left
+    * right arrow : pan right
+    * up arrow : pan up
+    * down arrow : pan down
+
+    Regions
+    -------
+    * [ : mark lower X boundary of region
+    * ] : mark upper X boundary of region
+    * backslash : clear region
+    * singlequote : (zoom) set X range to region
+    * f : fit region and show result
+    * c : clear fit result
     """
 
     # Needs to be set by reference viewer (via set_shell_ref) before any
