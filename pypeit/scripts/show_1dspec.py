@@ -121,10 +121,10 @@ class Show1DSpec(scriptbase.ScriptBase):
 
         if args.obj is not None:
             exten = np.where(sobjs.NAME == args.obj)[0][0]
-            if exten < 0:
-                raise PypeItError(f"Bad input extension/object name: {args.obj}")
         else:
             exten = args.exten-1 # 1-index in FITS file
+        if exten < 0:
+            raise PypeItError(f"Bad input extension/object name: {args.obj}")
 
         # Check Extraction
         if args.extract == 'OPT':
