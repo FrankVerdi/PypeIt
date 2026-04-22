@@ -41,22 +41,42 @@ import astropy.utils.data
 import github
 import requests
 
+
 # NOTE: pygit2 is only used for testing purposes.  It is not a requirement for a
 # general user.  Hence the try block below.
 try:
     from pygit2 import Repository
 except ImportError:
     Repository = None
+    GitError = None
+else:
+    from pygit2 import GitError
+
 
 # NOTE: To avoid circular imports, avoid (if possible) importing anything from
 # pypeit into this module!  Objects created or available in pypeit/__init__.py
 # are the exceptions, for now.
-from pypeit.pypmsgs import PypeItPathError
-from pypeit import msgs
+from pypeit import log
+from pypeit import PypeItError, PypeItPathError
 from pypeit import __version__
 
 
 __PYPEIT_DATA__ = resources.files('pypeit') / 'data'
+__PYPEIT_REPO_PATH__ = 'pypeit/PypeIt'
+
+
+def git_repo():
+    """
+    Get a reference to the local repository, if possible.
+    """
+    if Repository is None:
+        # pygit2 not available
+        return None
+    try:
+        return Repository(resources.files('pypeit'))
+    except GitError:
+        # PypeIt not in a git repo
+        return None
 
 
 # For development versions, try to get the branch name
@@ -65,21 +85,33 @@ def git_branch():
     Return the name/hash of the currently checked out branch
     
     Returns:
-        :obj:`str`: Branch name or hash. Defaults to "develop" if PypeIt is not currently in a repository
-        or pygit2 is inot installed.
-    
+        :obj:`str`: Branch name or hash. Defaults to "develop" if PypeIt is not
+        currently in a repository or pygit2 is not installed.
     """
-    if Repository is not None:
-        try:
-            repo = Repository(resources.files('pypeit'))
-        except Exception as e:
-            # PypeIt not in a git repo
-            repo = None
-
-    if Repository is None or repo is None:
+    repo = git_repo()
+    if repo is None:
         return 'develop' if '.dev' in __version__ else __version__
-
     return str(repo.head.target) if repo.head_is_detached else str(repo.head.shorthand)
+
+
+def git_remote_path():
+    """
+    The main path to the GitHub repository.
+
+    This defaults to the main repository if the repository cannot be defined
+    (see :func:`git_repo`) or if the "origin" remote URL cannot be determined.
+
+    Returns:
+        :obj:`str`: Remote path
+    """
+    repo = git_repo()
+    if repo is None:
+        return __PYPEIT_REPO_PATH__
+    try:
+        url = repo.remotes['origin'].url
+    except KeyError:
+        return __PYPEIT_REPO_PATH__
+    return urlparse(url).path.replace('.git','').removeprefix('/')
 
 
 def github_contents(repo, branch, path, recursive=True):
@@ -147,7 +179,7 @@ def git_most_recent_tag():
     tags = [packaging.version.parse(ref.split('/')[-1]) \
                 for ref in repo.references if 'refs/tags' in ref]
     if len(tags) == 0:
-        msgs.warn('Unable to find any tags in pypeit repository.')
+        log.warning('Unable to find any tags in pypeit repository.')
         return __version__, None
     latest_version = str(sorted(tags)[-1])
     timestamp = repo.resolve_refish(f'refs/tags/{latest_version}')[0].author.time
@@ -207,7 +239,7 @@ def fetch_remote_file(
     if remote_host == "s3_cloud" and not install_script:
         # Display a warning that this may take a while, and the user may wish to
         # download use an install script
-        msgs.warn(f'Note: If this file takes a while to download, you may wish to used one of '
+        log.warning(f'Note: If this file takes a while to download, you may wish to used one of '
                   'the install scripts (e.g., pypeit_install_telluric) to install the file '
                   'independent of this processing script.')
 
@@ -228,26 +260,26 @@ def fetch_remote_file(
             in [requests.codes.forbidden, requests.codes.not_found]
         ):
             err_msg = (
-                f"The file {filename}{msgs.newline()}"
-                f"is not hosted in the cloud.  Please download this file from{msgs.newline()}"
-                f"the PypeIt Google Drive and install it using the script{msgs.newline()}"
-                f"pypeit_install_telluric --local.  See instructions at{msgs.newline()}"
+                f"The file {filename}\n"
+                f"is not hosted in the cloud.  Please download this file from"
+                f"the PypeIt Google Drive and install it using the script"
+                f"pypeit_install_telluric --local.  See instructions at"
                 "https://pypeit.readthedocs.io/en/latest/installing.html#additional-data"
             )
 
         elif filetype == "arc_lines/lists":
             err_msg = (
-                f"Cannot find local arc line list {filename}{msgs.newline()}"
-                f"Use the script `pypeit_install_linelist` to install{msgs.newline()}"
-                f"your custom line list into the cache.  See instructions at{msgs.newline()}"
+                f"Cannot find local arc line list {filename}\n"
+                f"Use the script `pypeit_install_linelist` to install"
+                f"your custom line list into the cache.  See instructions at"
                 "https://pypeit.readthedocs.io/en/latest/wave_calib.html#line-lists"
             )
 
         elif filetype == "extinction":
             err_msg = (
-                f"Cannot find local extinction file {filename}{msgs.newline()}"
-                f"Use the script `pypeit_install_extinctfile` to install{msgs.newline()}"
-                f"your custom extinction file into the cache.  See instructions at{msgs.newline()}"
+                f"Cannot find local extinction file {filename}\n"
+                f"Use the script `pypeit_install_extinctfile` to install"
+                f"your custom extinction file into the cache.  See instructions at"
                 "https://pypeit.readthedocs.io/en/latest/fluxing.html#extinction-correction"
             )
 
@@ -256,19 +288,19 @@ def fetch_remote_file(
 
         else:
             err_msg = (
-                f"Error downloading {filename}: {error}{msgs.newline()}"
-                f"URL attempted: {remote_url}{msgs.newline()}"
-                f"If the error relates to the server not being found,{msgs.newline()}"
-                f"check your internet connection.  If the remote server{msgs.newline()}"
-                f"name has changed, please contact the PypeIt development{msgs.newline()}"
+                f"Error downloading {filename}: {error}\n"
+                f"URL attempted: {remote_url}\n"
+                f"If the error relates to the server not being found,"
+                f"check your internet connection.  If the remote server"
+                f"name has changed, please contact the PypeIt development"
                 "team."
             )
 
         # Raise the appropriate error message
-        msgs.error(err_msg)
+        raise PypeItError(err_msg)
 
     except TimeoutError as error:
-        msgs.error(f"Timeout Error encountered: {error}")
+        raise PypeItError(f"Timeout Error encountered: {error}")
 
     # If no error, return the pathlib object
     return pathlib.Path(cache_fn).resolve()
@@ -356,7 +388,7 @@ def remove_from_cache(cache_url=None, pattern=None, allow_multiple=False):
     if cache_url is None:
         _url = search_cache(pattern, path_only=False)
         if len(_url) == 0:
-            msgs.warn(f'Cache does not include a file matching the pattern {pattern}.')
+            log.warning(f'Cache does not include a file matching the pattern {pattern}.')
             return
         _url = list(_url.keys())
     elif not isinstance(cache_url, list):
@@ -365,7 +397,7 @@ def remove_from_cache(cache_url=None, pattern=None, allow_multiple=False):
         _url = cache_url
 
     if len(_url) > 1 and not allow_multiple:
-        msgs.warn('Function found or was provided with multiple entries to be removed.  Either '
+        log.warning('Function found or was provided with multiple entries to be removed.  Either '
                   'set allow_multiple=True, or try again with a single url or more specific '
                   'pattern.  URLs passed/found are:\n' + '\n'.join(_url))
         return
@@ -379,44 +411,68 @@ def parse_cache_url(url):
     """
     Parse a URL from the cache into its relevant components.
 
-    Args:
-        url (:obj:`str`):
-            URL of a file in the pypeit cache. A valid cache URL must include
-            either ``'github'`` or ``'s3.cloud'`` in its address.
+    Parameters
+    ----------
+    url : :obj:`str`
+        URL of a file in the pypeit cache. A valid cache URL must include either
+        ``'github'`` or ``'s3.cloud'`` in its address.
 
-    Returns:
-        :obj:`tuple`: A tuple of four strings parsed from the URL.  If the URL
-        is not considered a valid cache URL, all elements of the tuple are None.
-        The parsed elements of the url are: (1) the host name, which will be
-        either ``'github'`` or ``'s3_cloud'``, (2) the branch name, which will
-        be None when the host is ``'s3_cloud'``, (3) the subdirectory of
-        ``pypeit/data/`` in which to find the file (e.g.,
-        ``arc_lines/reid_arxiv`` or ``sensfuncs``), and (4) the file name.
+    Returns
+    -------
+    host : :obj:`str`
+        Host name, either ``'github'`` or ``'s3_cloud'``.  None if the ``url``
+        is not valid.
+    fork : :obj:`str`
+        Fork name.  None if the ``url`` is not valid or if the host is
+        ``'s3_cloud'``.
+    branch : :obj:`str`
+        Branch name.  None if the ``url`` is not valid or if the host is
+        ``'s3_cloud'``.
+    dir : :obj:`str`
+        Directory name.  None if the ``url`` is not valid.
+    file : :obj:`str`
+        File name.  None if the ``url`` is not valid.
     """
     url_parts = urlparse(url)
 
     # Get the host
     if 'github' in url_parts.netloc:
-        host = 'github'
-    # NOTE: I'm assuming "s3.cloud" will always be in the url ...
-    elif 's3.cloud' in url_parts.netloc:
-        host = 's3_cloud'
-    else:
-        msgs.warn(f'URL not recognized as a pypeit cache url:\n\t{url}')
-        return None, None, None, None
+        _path = pathlib.PurePosixPath(url_parts.path)
+        root_tuple = _path.parts[:3] if _path.is_absolute() else ('/', *_path.parts[:2])
+        fork = pathlib.PurePosixPath(*root_tuple)
+        sub_path = pathlib.PurePosixPath(url_parts.path).relative_to(fork)
+        branch = sub_path.parts[0]
+        f_type = str(sub_path.parent.relative_to(pathlib.PurePosixPath(f'{branch}/pypeit/data')))
+        return 'github', str(fork), branch, f_type, sub_path.name
 
-    if host == 'github':
-        # Get the branch name
-        github_root = pathlib.PurePosixPath('/pypeit/PypeIt')
-        p = pathlib.PurePosixPath(url_parts.path).relative_to(github_root)
-        branch = p.parts[0]
-        f_type = str(p.parent.relative_to(pathlib.PurePosixPath(f'{branch}/pypeit/data')))
-        return host, branch, f_type, p.name
-    
-    # If we make it here, the host *must* be s3_cloud
-    s3_root = pathlib.PurePosixPath('/pypeit')
-    p = pathlib.PurePosixPath(url_parts.path).relative_to(s3_root)
-    return host, None, str(p.parent), p.name
+    elif 's3.cloud' in url_parts.netloc:
+        # NOTE: I'm assuming "s3.cloud" will always be in the url ...
+        s3_root = pathlib.PurePosixPath('/pypeit')
+        sub_path = pathlib.PurePosixPath(url_parts.path).relative_to(s3_root)
+        return 's3_cloud', None, None, str(sub_path.parent), sub_path.name
+
+    # Unknown host
+    log.warning(f'URL not recognized as a pypeit cache url:\n\t{url}')
+    return None, None, None, None, None
+
+
+def list_cache_contents(contents):
+    """
+    Print the list of cache contents
+
+    Parameters
+    ----------
+    contents : :obj:`dict`
+        A dictionary with key-value pairs that provide the original source url
+        (key) and the path to the local file (value).  This can be generated
+        using :func:`search_cache`.
+    """
+    print(f' {"HOST":>10} {"FORK":>20} {"BRANCH":>15} {"SUBDIR":>15} {"FILE":<20}')
+    for url in contents.keys():
+        head, fork, branch, subdir, f = parse_cache_url(url)
+        print(f' {head:>10} {"..." if fork is None else fork:>20}'
+              f'{"..." if branch is None else branch:>20}'
+              f' {subdir:>20} {f:<30}')
 
 
 def _build_remote_url(f_name: str, f_type: str, remote_host: str=None):
@@ -452,7 +508,7 @@ def _build_remote_url(f_name: str, f_type: str, remote_host: str=None):
         (above) is what controls the download.
     """
     if remote_host == "github":
-        parts = ['https://raw.githubusercontent.com/pypeit/PypeIt/', f'{git_branch()}/',
+        parts = ['https://raw.githubusercontent.com', f'/{git_remote_path()}/', f'{git_branch()}/',
                  'pypeit/', 'data/'] + [f'{p}/' for p in pathlib.Path(f_type).parts] + [f'{f_name}']
         return reduce(lambda a, b: urljoin(a, b), parts), None
 
@@ -464,7 +520,7 @@ def _build_remote_url(f_name: str, f_type: str, remote_host: str=None):
         return reduce(lambda a, b: urljoin(a, b), parts_perm), \
                 [reduce(lambda a, b: urljoin(a, b), parts_fake)]
 
-    msgs.error(f"Remote host type {remote_host} is not supported for package data caching.")
+    raise PypeItError(f"Remote host type {remote_host} is not supported for package data caching.")
 
 
 def _get_s3_hostname() -> str:

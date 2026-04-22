@@ -10,10 +10,10 @@ from typing import Optional,Union
 
 from qtpy.QtWidgets import  QHBoxLayout, QVBoxLayout, QFileDialog, QWidget, QPlainTextEdit, QPushButton
 
-from qtpy.QtGui import QIcon, QFont,QTextCursor
+from qtpy.QtGui import QIcon, QFont,QTextCursor,QFontDatabase
 from qtpy.QtCore import Qt, Signal, QSettings, QEvent
 
-from pypeit import msgs
+from pypeit import log
 from pypeit.setup_gui.dialog_helpers import display_error, FileDialog, FileType, PersistentStringListModel, DialogResponses
 from pypeit.setup_gui.model import LogBuffer
 
@@ -50,8 +50,7 @@ class TextViewerWindow(QWidget):
 
         # Get a fixed width font
         fixed_font = QFont()
-        fixed_font.setFamilies(["Monospace", "Courier"])
-        fixed_font.setFixedPitch(True)
+        fixed_font.setFamilies(["Monospace","Menlo","Courier New"])
         fixed_font.setPointSize(12)
 
         # Create the log viewer widget
@@ -121,7 +120,7 @@ class TextViewerWindow(QWidget):
                         self._text_stream.seek(0)
                     for message in self._text_stream:
                         f.write(message)
-                msgs.info(f"File saved to {save_dialog.selected_path}.")
+                log.info(f"File saved to {save_dialog.selected_path}.")
                 self._filename =  save_dialog.selected_path
             except Exception as e:
                 display_error(self, str(e))

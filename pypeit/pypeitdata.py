@@ -53,13 +53,13 @@ Data directories that *MUST* exist as part of the package distribution are:
 
 .. include:: ../include/links.rst
 """
-from importlib import resources
 import pathlib
 import shutil
 
 from IPython import embed
 
-from pypeit import msgs
+from pypeit import log
+from pypeit import PypeItError, PypeItPathError
 from pypeit import cache
 
 # NOTE: A better approach may be to subclass from Path.  I briefly tried that,
@@ -97,7 +97,7 @@ class PypeItDataPath:
 
     def __init__(self, subdirs, remote_host=None):
         if remote_host not in [None, 's3_cloud', 'github']:
-            msgs.error(f'Remote host not recognized: {self.host}')
+            raise PypeItError(f'Remote host not recognized: {self.host}')
         self.host = remote_host
         self.subdirs = subdirs
         self.data = self.check_isdir(cache.__PYPEIT_DATA__)
@@ -117,7 +117,7 @@ class PypeItDataPath:
         Args:
             pattern (:obj:`str`):
                 Search string with wild cards.
-        
+
         Returns:
             generator: Generator object that provides contents matching the
             search string.
@@ -148,7 +148,7 @@ class PypeItDataPath:
             where the output type is based on the type of ``p``.
 
         Raises:
-            :class:`~pypeit.pypmsgs.PypeItPathError`:
+            :class:`~pypeit.exceptions.PypeItPathError`:
                 Raised if the requested contents *do not exist*.
         """
         if (self.path / p).is_dir():
@@ -156,10 +156,12 @@ class PypeItDataPath:
             # directory
             return PypeItDataPath(str((self.path / p).relative_to(self.data)),
                                   remote_host=self.host)
-        if (self.path / p).is_file(): 
+        if (self.path / p).is_file():
             return self.path / p
-        msgs.error(f'{str(self.path / p)} is not a valid PypeIt data path or is a file '
-                   'that does not exist.', cls='PypeItPathError')
+        raise PypeItPathError(
+            f'{str(self.path / p)} is not a valid PypeIt data path or is a file that does not '
+            'exist.'
+        )
 
     @staticmethod
     def check_isdir(path:pathlib.Path) -> pathlib.Path:
@@ -174,13 +176,13 @@ class PypeItDataPath:
             `Path`_: The input path is returned if it is valid.
 
         Raises:
-            :class:`~pypeit.pypmsgs.PypeItPathError`:
+            :class:`~pypeit.exceptions.PypeItPathError`:
                 Raised if the path does not exist or is not a directory.
         """
         if not path.is_dir():
-            msgs.error(f"Unable to find {path}.  Check your installation.", cls='PypeItPathError')
+            raise PypeItPathError(f'Unable to find {path}.  Check your installation.')
         return path
-    
+
     @staticmethod
     def _get_file_path_return(f, return_format, format=None):
         """
@@ -206,7 +208,7 @@ class PypeItDataPath:
             _format = PypeItDataPath._parse_format(f) if format is None else format
             return f, _format
         return f
-    
+
     @staticmethod
     def _parse_format(f):
         """
@@ -279,7 +281,7 @@ class PypeItDataPath:
         # Make sure the file is a Path object
         _data_file = pathlib.Path(data_file).absolute()
 
-        # Check if the file exists on disk, as provided 
+        # Check if the file exists on disk, as provided
         if _data_file.is_file():
             # If so, assume this points directly to the file to be read
             return self._get_file_path_return(_data_file, return_format)
@@ -287,7 +289,7 @@ class PypeItDataPath:
         # Otherwise, construct the file name given the root path:
         _data_file = self.path / data_file
 
-        # If the file exists, return it 
+        # If the file exists, return it
         if _data_file.is_file():
             # Return the full path and the file format
             return self._get_file_path_return(_data_file, return_format)
@@ -295,7 +297,7 @@ class PypeItDataPath:
         # If it does not, inform the user and download it into the cache.
         # NOTE: This should not be required for from-source (dev) installations.
         if not quiet:
-            msgs.info(f'{data_file} does not exist in the expected package directory '
+            log.info(f'{data_file} does not exist in the expected package directory '
                       f'({self.path}).  Checking cache or downloading the file now.')
 
         # Get the path to the cached file
@@ -305,7 +307,7 @@ class PypeItDataPath:
         _cached_file = cache.fetch_remote_file(data_file, subdir, remote_host=self.host,
                                                force_update=force_update, return_none=return_none)
         if _cached_file is None:
-            msgs.warn(f'File {data_file} not found in the cache.')
+            log.warning(f'File {data_file} not found in the cache.')
             return None
 
         # If we've made it this far, the file is being pulled from the cache.
@@ -314,7 +316,7 @@ class PypeItDataPath:
             # always ``contents``.  That means, if the format is returned, we
             # should use the *expected* file name.
             format = PypeItDataPath._parse_format(_data_file) if return_format else None
-            # Return the cached file path 
+            # Return the cached file path
             return self._get_file_path_return(_cached_file, return_format, format=format)
 
         # Create a symlink to the cached file or move it into the package
@@ -328,7 +330,7 @@ class PypeItDataPath:
             cache.remove_from_cache(pattern=data_file)
         # Return the symlinked or moved file
         return self._get_file_path_return(_data_file, return_format)
-    
+
 
 class PypeItDataPaths:
     """
@@ -343,7 +345,7 @@ class PypeItDataPaths:
 
     defined_paths = {
                      # Class attribute name
-                     'tests':               
+                     'tests':
                         # Subdirectory in pypeit/data
                         {'path': 'tests',
                         # String name for the remote host; None means the data
@@ -370,7 +372,9 @@ class PypeItDataPaths:
                      # Other
                      'sky_spec': {'path': 'sky_spec', 'host': None},
                      'static_calibs': {'path': 'static_calibs', 'host': None},
-                     'spectrographs': {'path': 'spectrographs', 'host': None}
+                     'spectrographs': {'path': 'spectrographs', 'host': None},
+                     # Known lists of interesting lines for data analysis
+                     'line_lists': {'path': 'line_lists', 'host': None},
                     }
     """
     Dictionary providing the metadata for all the paths defined by the class.
@@ -414,7 +418,7 @@ class PypeItDataPaths:
                 continue
             paths[name] = meta
         return paths
-    
+
     @classmethod
     def remote_paths(cls):
         """
@@ -428,5 +432,3 @@ class PypeItDataPaths:
         paths = cls.github_paths()
         paths.update(cls.s3_paths())
         return paths
-
-
