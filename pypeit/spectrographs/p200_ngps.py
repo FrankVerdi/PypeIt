@@ -8,7 +8,6 @@ from typing import List, Optional
 import numpy as np
 
 from astropy.io import fits
-from astropy.coordinates import Angle
 from astropy import units as u
 from astropy.time import Time
 
@@ -21,14 +20,13 @@ from pypeit.core import parse
 from pypeit.images import detector_container
 
 
-
-
 class P200NGPSSpectrograph(spectrograph.Spectrograph):
     """
-    Child to handle P200/NGPS specific code
+    Base class to handle P200/NGPS common code shared by all four channels.
     """
-    ndet = 1 
+    ndet = 1
     telescope = telescopes.P200TelescopePar()
+    camera = 'NGPS_X'  # Must include camera
 
     def init_meta(self):
         """
@@ -39,30 +37,30 @@ class P200NGPSSpectrograph(spectrograph.Spectrograph):
         """
         self.meta = {}
         # Required (core)
-        self.meta['ra'] = dict(ext=0, card='TELRA', required_ftypes=['science', 'standard']) 
-        self.meta['dec'] = dict(ext=0, card='TELDEC', required_ftypes=['science', 'standard']) 
-        self.meta['target'] = dict(ext=0, card='NAME', compound=True, required_ftypes=['science', 'standard']) 
+        self.meta['ra'] = dict(ext=0, card='TELRA', required_ftypes=['science', 'standard'])
+        self.meta['dec'] = dict(ext=0, card='TELDEC', required_ftypes=['science', 'standard'])
+        self.meta['target'] = dict(ext=0, card='NAME', compound=True, required_ftypes=['science', 'standard'])
 
         self.meta['dispname'] = dict(card=None, compound=True, default='VPH')
-        self.meta['decker'] = dict(ext=0, card='SLITW', rtol=1e-2) 
-        self.meta['binning'] = dict(card=None, compound=True) # Got by compound meta function
+        self.meta['decker'] = dict(ext=0, card='SLITW', rtol=1e-2)
+        self.meta['binning'] = dict(card=None, compound=True)
 
         self.meta['mjd'] = dict(ext=0, card='MJD')
-        self.meta['exptime'] = dict(ext=0, card='SHUTTIME') # SHUTTIME more accurate than EXPTIME
+        self.meta['exptime'] = dict(ext=0, card='SHUTTIME')  # SHUTTIME more accurate than EXPTIME
         self.meta['airmass'] = dict(ext=0, card='AIRMASS', required_ftypes=['science', 'standard'])
 
         # Extras for config and frametyping
-        self.meta['dichroic'] = dict(card=None, compound=True) 
-        self.meta['dispangle'] = dict(card=None, rtol=1e-2, compound=True) # Got by compound meta function
-        self.meta['slitwid'] = dict(ext=0, card='SLITW', rtol=1e-2) 
-        self.meta['idname'] = dict(ext=0, card='IMGTYPE') 
-        self.meta['instrument'] = dict(ext=0, card='INSTRUME') 
+        self.meta['dichroic'] = dict(card=None, compound=True)
+        self.meta['dispangle'] = dict(card=None, rtol=1e-2, compound=True)
+        self.meta['slitwid'] = dict(ext=0, card='SLITW', rtol=1e-2)
+        self.meta['idname'] = dict(ext=0, card='IMGTYPE')
+        self.meta['instrument'] = dict(ext=0, card='INSTRUME')
 
         # Lamps
-        self.meta['lampstat01'] = dict(ext=0, card='LAMPBLUC') # Blue Xe
-        self.meta['lampstat02'] = dict(ext=0, card='LAMPFEAR') # FeAr
-        self.meta['lampstat03'] = dict(ext=0, card='LAMPREDC') # Red Continuum
-        self.meta['lampstat04'] = dict(ext=0, card='LAMPTHAR') # ThAr
+        self.meta['lampstat01'] = dict(ext=0, card='LAMPBLUC')  # Blue Xe
+        self.meta['lampstat02'] = dict(ext=0, card='LAMPFEAR')  # FeAr
+        self.meta['lampstat03'] = dict(ext=0, card='LAMPREDC')  # Red Continuum
+        self.meta['lampstat04'] = dict(ext=0, card='LAMPTHAR')  # ThAr
 
     def configuration_keys(self):
         """
@@ -80,6 +78,9 @@ class P200NGPSSpectrograph(spectrograph.Spectrograph):
         """
         return ['binning']
     
+    
+
+
 
     def raw_header_cards(self):
         """
@@ -111,7 +112,7 @@ class P200NGPSSpectrograph(spectrograph.Spectrograph):
             :ref:`pypeit_file`.
         """
         return super().pypeit_file_keys()
-    
+
     def check_frame_type(self, ftype, fitstbl, exprng=None):
         """
         Check for frames of the provided type.
@@ -132,57 +133,58 @@ class P200NGPSSpectrograph(spectrograph.Spectrograph):
             exposures in ``fitstbl`` that are ``ftype`` type frames.
         """
         good_exp = framematch.check_frame_exptime(fitstbl['exptime'], exprng)
-        
+
         if ftype in ['science', 'standard']:
             return good_exp & (fitstbl['idname'] == 'SCI')
-        
+
         if ftype == 'bias':
             return good_exp & (fitstbl['idname'] == 'BIAS')
-        
+
         if ftype in ['pixelflat', 'trace', 'illumflat']:
-            return ((good_exp & (fitstbl['idname'] == 'DOMEFLAT')) | (good_exp & (fitstbl['idname'] == 'CONT')))
-        
+            return ((good_exp & (fitstbl['idname'] == 'DOMEFLAT'))
+                    | (good_exp & (fitstbl['idname'] == 'CONT')))
+
         if ftype in ['pinhole', 'dark']:
-            # Don't type pinhole or dark frames
             return np.zeros(len(fitstbl), dtype=bool)
 
         if ftype in ['arc', 'tilt']:
-            # return good_exp & ((fitstbl['idname'] == 'FEAR') | (fitstbl['idname'] == 'THAR'))  
-            return good_exp & (fitstbl['idname'] == 'THAR') # Temporary fix, do not use FEAR arcs
+            return good_exp & (fitstbl['idname'] == 'THAR')
 
         
         msgs.warn('Cannot determine if frames are of type {0}.'.format(ftype))
         return np.zeros(len(fitstbl), dtype=bool)
 
 
-class P200NGPSSpectrograph_r(P200NGPSSpectrograph):
+# ---------------------------------------------------------------------------
+# G channel  –  FITS extension 1  (EXTNAME='G')
+# Shape: (610, 1404)
+# Orientation: specaxis=1 
+# Overscan: BIASSEC=[1:31,1:610]
+# Data: DATASEC=[32:1402,1:610]
+# ---------------------------------------------------------------------------
+
+class P200NGPSSpectrograph_g(P200NGPSSpectrograph):
     """
-    Child to handle P200/NGPS r-Channel specific code
+    Child to handle P200/NGPS g-Channel (blue/green) specific code
     """
-    name = 'p200_ngps_r'
-    camera = 'NGPS_r'
-    header_name = 'NGPS_r'
+    name = 'p200_ngps_g'
+    camera = 'NGPS_g'
+    header_name = 'NGPS_g'
     supported = True
-    comment = 'r-Channel'
+    comment = 'g-Channel; FITS ext 1'
+
+    # FITS extension index for this channel.
+    _FITS_EXT = 1
 
     def get_rawimage(self, raw_file, det):
         """
-        Read raw spectrograph image files and return data and relevant metadata
-        needed for image processing.
-
-        For P200/NGPS, the ``DATASEC`` and ``OSCANSEC`` regions are read
-        directly from the file header and are automatically adjusted to account
-        for the on-chip binning.  This is a simple wrapper for
-        :func:`pypeit.spectrographs.spectrograph.Spectrograph.get_rawimage` that
-        sets ``sec_includes_binning`` to True.  See the base-class function for
-        the detailed descriptions of the input parameters and returned objects.
+        Read raw spectrograph image files and return data and relevant
+        metadata needed for image processing.
         """
+        return super().get_rawimage(raw_file, det=self._FITS_EXT,
+                                    sec_includes_binning=True)
 
-        return super().get_rawimage(raw_file, det=1, sec_includes_binning=True)
-    
-
-
-    def compound_meta(self, headarr: List[fits.Header], meta_key: str):
+    def compound_meta(self, headarr: list[fits.Header], meta_key: str):
         """
         Methods to generate metadata requiring interpretation of the header
         data, instead of simply reading the value of a header card.
@@ -196,40 +198,32 @@ class P200NGPSSpectrograph_r(P200NGPSSpectrograph):
         Returns:
             object: Metadata value read from the header(s).
         """
-        # Handle dispangle and mjd from superclass method
         retval = super().compound_meta(headarr, meta_key)
-        
-        # If superclass could not handle the meta key
         if retval is not None:
             return retval
-        
+
         if meta_key == 'mjd':
             return Time(headarr[0]['UTSHUT']).mjd
         elif meta_key == 'dispangle':
             return 0
-            
         elif meta_key == 'binning':
-            # Always the same binning for DET01 and DET02    
-            binspat = headarr[1]['BINSPAT'] 
-            binspec = headarr[1]['BINSPEC']
+            binspat = headarr[self._FITS_EXT]['BINSPAT']
+            binspec = headarr[self._FITS_EXT]['BINSPEC']
             return parse.binning2string(binspec, binspat)
-        
-        # If there is no target keyword, return image type
         elif meta_key == 'target':
             if 'TARGET' in headarr[0]:
                 return headarr[0]['TARGET']
             else:
                 return headarr[0]['IMGTYPE']
-        elif meta_key == 'dichroic': 
+        elif meta_key == 'dichroic':
             return None
         else:
-            msgs.error(f"Not ready for this compound meta: {meta_key}")
+            raise PypeItError(f"Not ready for this compound meta: {meta_key}")
 
-
-    def get_detector_par(self, det: int, hdu: Optional[fits.HDUList] = None):
+    def get_detector_par(self, det: int, hdu: fits.HDUList | None = None):
         """
         Return metadata for the selected detector.
-    
+
         Args:
             det (:obj:`int`):
                 1-indexed detector number.
@@ -241,37 +235,44 @@ class P200NGPSSpectrograph_r(P200NGPSSpectrograph):
             :class:`~pypeit.images.detector_container.DetectorContainer`:
             Object with the detector metadata.
         """
-    
-        binning = self.get_meta_value(self.get_headarr(hdu), 'binning') 
+        if hdu is None:
+            binning = '1,1'
+            datasec = None
+            oscansec = None
+        else:
+            binning = self.get_meta_value(self.get_headarr(hdu), 'binning')
+            # DATASEC=[32:1402,1:610] -> Python [1:610, 32:1402]
+            datasec = np.atleast_1d(
+                parse.flip_fits_slice(hdu[self._FITS_EXT].header['DATASEC']))
+            # BIASSEC=[1:31,1:610] -> Python [1:610, 1:31]
+            oscansec = np.atleast_1d(
+                parse.flip_fits_slice(hdu[self._FITS_EXT].header['BIASSEC']))
 
-        # Detector 1 (r Channel)
-        detector_dict1 = dict(
+        detector_dict = dict(
             binning         = binning,
-            det             = 1, # All r channel images assigned to extension 1
-            dataext         = 1, # All r channel images assigned to extension 1
+            det             = 1,
+            dataext         = self._FITS_EXT,
             specaxis        = 1,
-            specflip        = False, 
-            spatflip        = False, 
-            platescale      = 0.5, 
-            darkcurr        = 0.0,  # e-/pixel/hour (No dark current)
-            saturation      = 65000., # ???
+            specflip        = False,
+            spatflip        = False,
+            platescale      = 0.5,     # arcsec/pix
+            darkcurr        = 0.0,     # e-/pixel/hour
+            saturation      = 65000.,
             nonlinear       = 40./45.,
-            mincounts       = -1e10, # check
-            numamplifiers   = 1, 
-            gain            = np.atleast_1d(2.8),
+            mincounts       = -1e10,
+            numamplifiers   = 1,
+            gain            = np.atleast_1d(2.8),  
             ronoise         = np.atleast_1d(8.5),
-            datasec         = np.atleast_1d(parse.flip_fits_slice(hdu[1].header['DATASEC'])),
-            oscansec        = np.atleast_1d(parse.flip_fits_slice(hdu[1].header['BIASSEC']))
+            datasec         = datasec,
+            oscansec        = oscansec,
         )
-
-        return detector_container.DetectorContainer(**detector_dict1)
-
+        return detector_container.DetectorContainer(**detector_dict)
 
     @classmethod
     def default_pypeit_par(cls):
         """
         Return the default parameters to use for this instrument.
-        
+
         Returns:
             :class:`~pypeit.par.pypeitpar.PypeItPar`: Parameters required by
             all of PypeIt methods.
@@ -279,11 +280,10 @@ class P200NGPSSpectrograph_r(P200NGPSSpectrograph):
         par = super().default_pypeit_par()
 
         par['calibrations']['slitedges']['sync_predict'] = 'nearest'
-        par['calibrations']['slitedges']['edge_thresh'] = 50. # Lower edge tracing thresdhold to catch leftmost slit
-        par['calibrations']['slitedges']['minimum_slit_length'] = 100 # Set minimum slit length 
+        par['calibrations']['slitedges']['edge_thresh'] = 50.
+        par['calibrations']['slitedges']['minimum_slit_length'] = 100
         par['calibrations']['slitedges']['min_edge_side_sep'] = 1.0
-#        #par['calibrations']['slitedges']['add_slits'] = ['1:1090:24:153']
-        
+
         par['scienceframe']['process']['combine'] = 'median'
         par['calibrations']['standardframe']['process']['combine'] = 'median'
 
@@ -291,23 +291,17 @@ class P200NGPSSpectrograph_r(P200NGPSSpectrograph):
         par['scienceframe']['process']['sigclip'] = 4.0
         par['scienceframe']['process']['objlim'] = 5.0
 
-        # Make a bad pixel mask
-        par['calibrations']['bpm_usebias'] = True
+        par['calibrations']['bpm_usebias'] = False
 
-        # Set pixel flat combination method
         par['calibrations']['pixelflatframe']['process']['combine'] = 'median'
 
-        par['calibrations']['wavelengths']['lamps'] = ['ThAr'] # FeAr and ThAR lamps for NGPS (ThAr)
-        par['calibrations']['wavelengths']['method'] = 'full_template' # Use wavelength template
-        par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_p200_ngps_20250131T1227.fits' #  Channel
+        par['calibrations']['wavelengths']['lamps'] = ['ThAr']
+        par['calibrations']['wavelengths']['method'] = 'full_template'
+        par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_p200_ngps_g_20260424T0006.fits'
+        par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 1.0
 
-        par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 1.0 
+        par['sensfunc']['algorithm'] = 'UVIS'
 
-        # Do not flux calibrate
-        #par['fluxcalib'] = None
-        par['sensfunc']['algorithm'] = 'UVIS' 
-
-        # Set the default exposure time ranges for the frame typing
         par['calibrations']['biasframe']['exprng'] = [None, 0.001]
         par['calibrations']['arcframe']['exprng'] = [None, 120]
         par['calibrations']['standardframe']['exprng'] = [None, 120]
@@ -316,6 +310,13 @@ class P200NGPSSpectrograph_r(P200NGPSSpectrograph):
         return par
 
 
+# ---------------------------------------------------------------------------
+# I channel  –  FITS extension 2  (EXTNAME='I')
+# Shape: (610, 1404) 
+# Orientation: specaxis=1 
+# Overscan: BIASSEC=[1:31,1:610]
+# Data: DATASEC=[32:1402,1:610]
+# ---------------------------------------------------------------------------
 
 class P200NGPSSpectrograph_i(P200NGPSSpectrograph):
     """
@@ -325,26 +326,21 @@ class P200NGPSSpectrograph_i(P200NGPSSpectrograph):
     camera = 'NGPS_i'
     header_name = 'NGPS_i'
     supported = True
-    comment = 'i-Channel'
+    comment = 'i-Channel; FITS ext 2'
 
+    _FITS_EXT = 2
 
     def get_rawimage(self, raw_file, det):
         """
-        Read raw spectrograph image files and return data and relevant metadata
-        needed for image processing.
+        Read raw spectrograph image files and return data and relevant
+        metadata needed for image processing.
 
-        For P200/NGPS, the ``DATASEC`` and ``OSCANSEC`` regions are read
-        directly from the file header and are automatically adjusted to account
-        for the on-chip binning.  This is a simple wrapper for
-        :func:`pypeit.spectrographs.spectrograph.Spectrograph.get_rawimage` that
-        sets ``sec_includes_binning`` to True.  See the base-class function for
-        the detailed descriptions of the input parameters and returned objects.
+        Raw i-channel data are stored in FITS extension :attr:`_FITS_EXT`.
         """
+        return super().get_rawimage(raw_file, det=self._FITS_EXT,
+                                    sec_includes_binning=True)
 
-        # Pull image from detector 2
-        return super().get_rawimage(raw_file, det=2, sec_includes_binning=True)
-    
-    def compound_meta(self, headarr: List[fits.Header], meta_key: str):
+    def compound_meta(self, headarr: list[fits.Header], meta_key: str):
         """
         Methods to generate metadata requiring interpretation of the header
         data, instead of simply reading the value of a header card.
@@ -358,40 +354,32 @@ class P200NGPSSpectrograph_i(P200NGPSSpectrograph):
         Returns:
             object: Metadata value read from the header(s).
         """
-        # Handle dispangle and mjd from superclass method
         retval = super().compound_meta(headarr, meta_key)
-        
-        # If superclass could not handle the meta key
         if retval is not None:
             return retval
-        
+
         if meta_key == 'mjd':
             return Time(headarr[0]['UTSHUT']).mjd
         elif meta_key == 'dispangle':
             return 0
-            
         elif meta_key == 'binning':
-            # Always the same binning for DET01 and DET02    
-            binspat = headarr[2]['BINSPAT'] 
-            binspec = headarr[2]['BINSPEC']
+            binspat = headarr[self._FITS_EXT]['BINSPAT']
+            binspec = headarr[self._FITS_EXT]['BINSPEC']
             return parse.binning2string(binspec, binspat)
-        
-        # If there is no target keyword, return image type
         elif meta_key == 'target':
             if 'TARGET' in headarr[0]:
                 return headarr[0]['TARGET']
             else:
                 return headarr[0]['IMGTYPE']
-        elif meta_key == 'dichroic': 
+        elif meta_key == 'dichroic':
             return None
         else:
-            msgs.error("Not ready for this compound meta: ", meta_key)
+            raise PypeItError(f"Not ready for this compound meta: {meta_key}")
 
-
-    def get_detector_par(self, det: int, hdu: Optional[fits.HDUList] = None):
+    def get_detector_par(self, det: int, hdu: fits.HDUList | None = None):
         """
         Return metadata for the selected detector.
-    
+
         Args:
             det (:obj:`int`):
                 1-indexed detector number.
@@ -403,36 +391,42 @@ class P200NGPSSpectrograph_i(P200NGPSSpectrograph):
             :class:`~pypeit.images.detector_container.DetectorContainer`:
             Object with the detector metadata.
         """
-    
-        binning = self.get_meta_value(self.get_headarr(hdu), 'binning') 
-    
-        # Detector 2 (i Channel)
-        detector_dict2 = dict(
+        if hdu is None:
+            binning = '1,1'
+            datasec = None
+            oscansec = None
+        else:
+            binning = self.get_meta_value(self.get_headarr(hdu), 'binning')
+            datasec = np.atleast_1d(
+                parse.flip_fits_slice(hdu[self._FITS_EXT].header['DATASEC']))
+            oscansec = np.atleast_1d(
+                parse.flip_fits_slice(hdu[self._FITS_EXT].header['BIASSEC']))
+
+        detector_dict = dict(
             binning         = binning,
-            det             = 1, # All i channel images assigned to extension 2 ###################
-            dataext         = 2, # All i channel images assigned to extension 2
+            det             = 1,
+            dataext         = self._FITS_EXT,
             specaxis        = 1,
-            specflip        = False, 
-            spatflip        = False, 
-            platescale      = 0.5, 
-            darkcurr        = 0.0,  # e-/pixel/hour (No dark current)
-            saturation      = 65000., # ???
+            specflip        = False,
+            spatflip        = False,
+            platescale      = 0.5,     # arcsec/pix
+            darkcurr        = 0.0,     # e-/pixel/hour
+            saturation      = 65000.,
             nonlinear       = 40./45.,
-            mincounts       = -1e10, # check
-            numamplifiers   = 1, # Updated
+            mincounts       = -1e10,
+            numamplifiers   = 1,
             gain            = np.atleast_1d(2.8),
             ronoise         = np.atleast_1d(8.5),
-            datasec         = np.atleast_1d(parse.flip_fits_slice(hdu[2].header['DATASEC'])),
-            oscansec        = np.atleast_1d(parse.flip_fits_slice(hdu[2].header['BIASSEC']))
+            datasec         = datasec,
+            oscansec        = oscansec,
         )
-
-        return detector_container.DetectorContainer(**detector_dict2)
+        return detector_container.DetectorContainer(**detector_dict)
 
     @classmethod
     def default_pypeit_par(cls):
         """
         Return the default parameters to use for this instrument.
-        
+
         Returns:
             :class:`~pypeit.par.pypeitpar.PypeItPar`: Parameters required by
             all of PypeIt methods.
@@ -440,35 +434,28 @@ class P200NGPSSpectrograph_i(P200NGPSSpectrograph):
         par = super().default_pypeit_par()
 
         par['calibrations']['slitedges']['sync_predict'] = 'nearest'
-        par['calibrations']['slitedges']['edge_thresh'] = 50. # Lower edge tracing thresdhold to catch leftmost slit
-        par['calibrations']['slitedges']['minimum_slit_length'] = 100 # Set minimum slit length 
+        par['calibrations']['slitedges']['edge_thresh'] = 50.
+        par['calibrations']['slitedges']['minimum_slit_length'] = 100
         par['calibrations']['slitedges']['min_edge_side_sep'] = 1.0
-#        #par['calibrations']['slitedges']['add_slits'] = ['1:1015:123:251']
-        
+
         par['scienceframe']['process']['combine'] = 'median'
         par['calibrations']['standardframe']['process']['combine'] = 'median'
 
         par['scienceframe']['process']['use_overscan'] = True
         par['scienceframe']['process']['sigclip'] = 4.0
-        par['scienceframe']['process']['objlim'] =  5.0
+        par['scienceframe']['process']['objlim'] = 5.0
 
-        # Make a bad pixel mask
         par['calibrations']['bpm_usebias'] = False
 
-        # Set pixel flat combination method
         par['calibrations']['pixelflatframe']['process']['combine'] = 'median'
 
-        par['calibrations']['wavelengths']['lamps'] = ['ThAr'] # FeAr and ThAR lamps for NGPS (ThAr)
-        par['calibrations']['wavelengths']['method'] = 'full_template' # Use wavelength template
-        par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_p200_ngps_20250131T1354.fits' # I Channel Template
+        par['calibrations']['wavelengths']['lamps'] = ['ThAr']
+        par['calibrations']['wavelengths']['method'] = 'full_template'
+        par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_p200_ngps_20250131T1354.fits'  # I Channel Template
+        par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 1.0
 
-        par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 1.0 
-
-        # Do not flux calibrate  
-        #par['fluxcalib'] = None
         par['sensfunc']['algorithm'] = 'UVIS'
 
-        # Set the default exposure time ranges for the frame typing
         par['calibrations']['biasframe']['exprng'] = [None, 0.001]
         par['calibrations']['arcframe']['exprng'] = [None, 120]
         par['calibrations']['standardframe']['exprng'] = [None, 120]
@@ -476,4 +463,329 @@ class P200NGPSSpectrograph_i(P200NGPSSpectrograph):
 
         return par
 
-    
+
+# ---------------------------------------------------------------------------
+# R channel  –  FITS extension 3  (EXTNAME='R')
+# Shape: (610, 1404)
+# Orientation: specaxis=1
+# Overscan: BIASSEC=[1:31,1:610]
+# Data: DATASEC=[32:1402,1:610]
+# ---------------------------------------------------------------------------
+
+class P200NGPSSpectrograph_r(P200NGPSSpectrograph):
+    """
+    Child to handle P200/NGPS r-Channel specific code
+    """
+    name = 'p200_ngps_r'
+    camera = 'NGPS_r'
+    header_name = 'NGPS_r'
+    supported = True
+    comment = 'r-Channel; FITS ext 3'
+
+    _FITS_EXT = 3
+
+    def get_rawimage(self, raw_file, det):
+        """
+        Read raw spectrograph image files and return data and relevant
+        metadata needed for image processing.
+
+        Raw r-channel data are stored in FITS extension :attr:`_FITS_EXT`.
+        """
+        return super().get_rawimage(raw_file, det=self._FITS_EXT,
+                                    sec_includes_binning=True)
+
+    def compound_meta(self, headarr: list[fits.Header], meta_key: str):
+        """
+        Methods to generate metadata requiring interpretation of the header
+        data, instead of simply reading the value of a header card.
+
+        Args:
+            headarr (:obj:`list`):
+                List of `astropy.io.fits.Header`_ objects.
+            meta_key (:obj:`str`):
+                Metadata keyword to construct.
+
+        Returns:
+            object: Metadata value read from the header(s).
+        """
+        retval = super().compound_meta(headarr, meta_key)
+        if retval is not None:
+            return retval
+
+        if meta_key == 'mjd':
+            return Time(headarr[0]['UTSHUT']).mjd
+        elif meta_key == 'dispangle':
+            return 0
+        elif meta_key == 'binning':
+            binspat = headarr[self._FITS_EXT]['BINSPAT']
+            binspec = headarr[self._FITS_EXT]['BINSPEC']
+            return parse.binning2string(binspec, binspat)
+        elif meta_key == 'target':
+            if 'TARGET' in headarr[0]:
+                return headarr[0]['TARGET']
+            else:
+                return headarr[0]['IMGTYPE']
+        elif meta_key == 'dichroic':
+            return None
+        else:
+            raise PypeItError(f"Not ready for this compound meta: {meta_key}")
+
+    def get_detector_par(self, det: int, hdu: fits.HDUList | None = None):
+        """
+        Return metadata for the selected detector.
+
+        Args:
+            det (:obj:`int`):
+                1-indexed detector number.
+            hdu (`astropy.io.fits.HDUList`_, optional):
+                The open fits file with the raw image of interest.  If not
+                provided, frame-dependent parameters are set to a default.
+
+        Returns:
+            :class:`~pypeit.images.detector_container.DetectorContainer`:
+            Object with the detector metadata.
+        """
+        if hdu is None:
+            binning = '1,1'
+            datasec = None
+            oscansec = None
+        else:
+            binning = self.get_meta_value(self.get_headarr(hdu), 'binning')
+            datasec = np.atleast_1d(
+                parse.flip_fits_slice(hdu[self._FITS_EXT].header['DATASEC']))
+            oscansec = np.atleast_1d(
+                parse.flip_fits_slice(hdu[self._FITS_EXT].header['BIASSEC']))
+
+        detector_dict = dict(
+            binning         = binning,
+            det             = 1,
+            dataext         = self._FITS_EXT,
+            specaxis        = 1,
+            specflip        = False,
+            spatflip        = False,
+            platescale      = 0.5,     # arcsec/pix
+            darkcurr        = 0.0,     # e-/pixel/hour
+            saturation      = 65000.,
+            nonlinear       = 40./45.,
+            mincounts       = -1e10,
+            numamplifiers   = 1,
+            gain            = np.atleast_1d(2.8),
+            ronoise         = np.atleast_1d(8.5),
+            datasec         = datasec,
+            oscansec        = oscansec,
+        )
+        return detector_container.DetectorContainer(**detector_dict)
+
+    @classmethod
+    def default_pypeit_par(cls):
+        """
+        Return the default parameters to use for this instrument.
+
+        Returns:
+            :class:`~pypeit.par.pypeitpar.PypeItPar`: Parameters required by
+            all of PypeIt methods.
+        """
+        par = super().default_pypeit_par()
+
+        par['calibrations']['slitedges']['sync_predict'] = 'nearest'
+        par['calibrations']['slitedges']['edge_thresh'] = 50.
+        par['calibrations']['slitedges']['minimum_slit_length'] = 100
+        par['calibrations']['slitedges']['min_edge_side_sep'] = 1.0
+
+        par['scienceframe']['process']['combine'] = 'median'
+        par['calibrations']['standardframe']['process']['combine'] = 'median'
+
+        par['scienceframe']['process']['use_overscan'] = True
+        par['scienceframe']['process']['sigclip'] = 4.0
+        par['scienceframe']['process']['objlim'] = 5.0
+
+        par['calibrations']['bpm_usebias'] = True
+
+        par['calibrations']['pixelflatframe']['process']['combine'] = 'median'
+
+        par['calibrations']['wavelengths']['lamps'] = ['ThAr']
+        par['calibrations']['wavelengths']['method'] = 'full_template'
+        par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_p200_ngps_20250131T1227.fits'  # R Channel Template
+        par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 1.0
+
+        par['sensfunc']['algorithm'] = 'UVIS'
+
+        par['calibrations']['biasframe']['exprng'] = [None, 0.001]
+        par['calibrations']['arcframe']['exprng'] = [None, 120]
+        par['calibrations']['standardframe']['exprng'] = [None, 120]
+        par['scienceframe']['exprng'] = [90, None]
+
+        return par
+
+
+
+# ---------------------------------------------------------------------------
+# U channel  –  FITS extension 4  (EXTNAME='U')
+# Raw image shape: (1433, 1099)
+#
+# Overscan geometry (row-strip, not column-strip):
+#   SKIPROWS=2
+#   OS_ROWS=33 
+#   BIASSEC=[1:-2,3:1433]
+#   DATASEC=[-1:1097,3:1433]
+# ---------------------------------------------------------------------------
+
+class P200NGPSSpectrograph_u(P200NGPSSpectrograph):
+    """
+    Child to handle P200/NGPS u-Channel (near-UV) specific code.
+    """
+    name = 'p200_ngps_u'
+    camera = 'NGPS_u'
+    header_name = 'NGPS_u'
+    supported = True
+    comment = 'u-Channel; FITS ext 4'
+
+    # FITS extension index for this channel (verified from raw headers).
+    _FITS_EXT = 4
+
+    def get_rawimage(self, raw_file, det):
+        """
+        Read raw spectrograph image files and return data and relevant
+        metadata needed for image processing.
+
+        Raw u-channel data are stored in FITS extension :attr:`_FITS_EXT`.
+        The ``DATASEC``/``BIASSEC`` strings are already in binned-pixel
+        coordinates (``sec_includes_binning=True``).
+        """
+        return super().get_rawimage(raw_file, det=self._FITS_EXT,
+                                    sec_includes_binning=True)
+
+    def compound_meta(self, headarr: list[fits.Header], meta_key: str):
+        """
+        Methods to generate metadata requiring interpretation of the header
+        data, instead of simply reading the value of a header card.
+
+        Args:
+            headarr (:obj:`list`):
+                List of `astropy.io.fits.Header`_ objects.
+            meta_key (:obj:`str`):
+                Metadata keyword to construct.
+
+        Returns:
+            object: Metadata value read from the header(s).
+        """
+        retval = super().compound_meta(headarr, meta_key)
+        if retval is not None:
+            return retval
+
+        if meta_key == 'mjd':
+            return Time(headarr[0]['UTSHUT']).mjd
+        elif meta_key == 'dispangle':
+            return 0
+        elif meta_key == 'binning':
+            # BINSPEC / BINSPAT retain their standard meaning (spectral /
+            # spatial binning factor) regardless of the physical CCD rotation.
+            binspat = headarr[self._FITS_EXT]['BINSPAT']
+            binspec = headarr[self._FITS_EXT]['BINSPEC']
+            return parse.binning2string(binspec, binspat)
+        elif meta_key == 'target':
+            if 'TARGET' in headarr[0]:
+                return headarr[0]['TARGET']
+            else:
+                return headarr[0]['IMGTYPE']
+        elif meta_key == 'dichroic':
+            return None
+        else:
+            raise PypeItError(f"Not ready for this compound meta: {meta_key}")
+
+    def get_detector_par(self, det: int, hdu: fits.HDUList | None = None):
+        """
+        Return metadata for the selected detector.
+
+        Args:
+            det (:obj:`int`):
+                1-indexed detector number.
+            hdu (`astropy.io.fits.HDUList`_, optional):
+                The open fits file with the raw image of interest.  If not
+                provided, frame-dependent parameters are set to a default.
+
+        Returns:
+            :class:`~pypeit.images.detector_container.DetectorContainer`:
+            Object with the detector metadata.
+        """
+        if hdu is None:
+            binning = '1,1'
+            datasec = None
+            oscansec = None
+        else:
+            binning = self.get_meta_value(self.get_headarr(hdu), 'binning')
+            hdr = hdu[self._FITS_EXT].header
+            naxis1 = hdr['NAXIS1'] 
+            naxis2 = hdr['NAXIS2']  
+            skiprows = hdr['SKIPROWS']
+            os_rows = hdr['OS_ROWS']
+ 
+            osc_row_start = skiprows + 1
+            osc_row_end   = skiprows + os_rows
+            oscansec = np.atleast_1d(f'[{osc_row_start}:{osc_row_end},1:{naxis1}]')
+ 
+            data_row_start = skiprows + os_rows + 1
+            datasec = np.atleast_1d(f'[{data_row_start}:{naxis2},1:{naxis1}]')
+ 
+        detector_dict = dict(
+            binning         = binning,
+            det             = 1,
+            dataext         = self._FITS_EXT,
+            specaxis        = 0,
+            specflip        = False,
+            spatflip        = False,
+            platescale      = 0.5,     # arcsec/pix
+            darkcurr        = 0.0,     # e-/pixel/hour
+            saturation      = 65000.,
+            nonlinear       = 40./45.,
+            mincounts       = -1e10,
+            numamplifiers   = 1,
+            gain            = np.atleast_1d(2.8),
+            ronoise         = np.atleast_1d(8.5),  
+            datasec         = datasec,
+            oscansec        = oscansec,
+        )
+        return detector_container.DetectorContainer(**detector_dict)
+
+    @classmethod
+    def default_pypeit_par(cls):
+        """
+        Return the default parameters to use for this instrument.
+
+        Returns:
+            :class:`~pypeit.par.pypeitpar.PypeItPar`: Parameters required by
+            all of PypeIt methods.
+        """
+        par = super().default_pypeit_par()
+
+        par['calibrations']['slitedges']['sync_predict'] = 'nearest'
+        par['calibrations']['slitedges']['edge_thresh'] = 50.
+        par['calibrations']['slitedges']['minimum_slit_length'] = 100 
+        par['calibrations']['slitedges']['det_min_spec_length'] = 0.1
+        par['calibrations']['slitedges']['fit_min_spec_length'] = 0.1
+        par['calibrations']['slitedges']['min_edge_side_sep'] = 1.0
+
+        par['scienceframe']['process']['combine'] = 'median'
+        par['calibrations']['standardframe']['process']['combine'] = 'median'
+
+        par['scienceframe']['process']['use_overscan'] = True
+        par['scienceframe']['process']['sigclip'] = 4.0
+        par['scienceframe']['process']['objlim'] = 5.0
+
+        par['calibrations']['bpm_usebias'] = False
+
+        par['calibrations']['pixelflatframe']['process']['combine'] = 'median'
+
+        par['calibrations']['wavelengths']['lamps'] = ['ThAr']
+        par['calibrations']['wavelengths']['method'] = 'full_template'
+        par['calibrations']['wavelengths']['reid_arxiv'] = 'wvarxiv_p200_ngps_u_20260423T2352.fits' # New Wavelength Solution
+        par['calibrations']['wavelengths']['rms_thresh_frac_fwhm'] = 1.0
+
+        par['sensfunc']['algorithm'] = 'UVIS'
+
+        par['calibrations']['biasframe']['exprng'] = [None, 0.001]
+        par['calibrations']['arcframe']['exprng'] = [None, 120]
+        par['calibrations']['standardframe']['exprng'] = [None, 120]
+        par['scienceframe']['exprng'] = [90, None]
+
+        return par
